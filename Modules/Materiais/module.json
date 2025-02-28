@@ -1,0 +1,11 @@
+{
+    "name": "Materiais",
+    "alias": "materiais",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\Materiais\\Providers\\MateriaisServiceProvider"
+    ],
+    "files": []
+}

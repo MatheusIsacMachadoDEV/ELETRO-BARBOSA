@@ -1,0 +1,11 @@
+{
+    "name": "Cardapio",
+    "alias": "cardapio",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\Cardapio\\Providers\\CardapioServiceProvider"
+    ],
+    "files": []
+}

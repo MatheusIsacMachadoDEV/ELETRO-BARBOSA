@@ -1,0 +1,41 @@
+.btn-primary {
+    background-color: #31df7b!important;
+    border-color: #31df7b!important;
+}
+.nav-link.active {
+    background-color: #31df7dbe!important;
+    border-color: #31df7dbe!important;
+}
+.page-item.active .page-link {
+    background-color: #31df7b!important;
+    border-color: #31df7b!important;
+    color: #000000!important;
+}
+.table{
+    background-color: #f8f9fa;
+}
+.table td, .table th{
+    padding: 0px!important;
+}
+thead {
+    background: #343a40;
+    color: #ffffff;
+}
+table tr:nth-child(even) /* CSS3 */ {
+    background: #31df7dad;
+}
+.ui-autocomplete{
+    z-index: 1050;
+}
+.linhaZebrada{
+    background-color: #c4c4c4;
+}
+.btn-acao{
+    cursor: pointer;
+}
+.content{
+    padding: 0px!important;
+}
+.card-body{
+    padding: 0px!important;
+}

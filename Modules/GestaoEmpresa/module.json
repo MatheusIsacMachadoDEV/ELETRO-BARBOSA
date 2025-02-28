@@ -1,0 +1,11 @@
+{
+    "name": "GestaoEmpresa",
+    "alias": "gestaoempresa",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\GestaoEmpresa\\Providers\\GestaoEmpresaServiceProvider"
+    ],
+    "files": []
+}

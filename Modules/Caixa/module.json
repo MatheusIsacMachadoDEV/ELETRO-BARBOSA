@@ -1,0 +1,11 @@
+{
+    "name": "Caixa",
+    "alias": "caixa",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\Caixa\\Providers\\CaixaServiceProvider"
+    ],
+    "files": []
+}

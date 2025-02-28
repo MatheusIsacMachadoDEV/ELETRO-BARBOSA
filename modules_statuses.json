@@ -1,0 +1,13 @@
+{
+    "ContasPagar": true,
+    "Venda": true,
+    "Cardapio": true,
+    "Caixa": true,
+    "Materiais": true,
+    "Estoque": true,
+    "Compras": true,
+    "Financeiro": true,
+    "GestaoEmpresa": true,
+    "Agenda": true,
+    "Usuarios": true
+}
