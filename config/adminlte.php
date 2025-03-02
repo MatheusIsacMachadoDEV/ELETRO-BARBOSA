@@ -350,7 +350,7 @@ return [
                 [
                     'text' => 'Pedido de Compra',
                     'url'  => 'compras',
-                    'icon' => 'fas fa-plug'
+                    'icon' => 'fas fa-shopping-basket'
                 ], 
                 [
                     'text' => 'Relatórios',

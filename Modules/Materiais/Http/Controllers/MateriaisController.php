@@ -10,6 +10,7 @@ use DateTime;
 use PDF;
 use Endroid\QrCode\QrCode;
 use Endroid\QrCode\Writer\PngWriter;
+use GuzzleHttp\Psr7\Query;
 
 class MateriaisController extends Controller
 {
@@ -81,6 +82,58 @@ class MateriaisController extends Controller
         return $result;
     }
 
+    public function buscarMaterialMovimento(Request $request){
+        $dadosRecebidos = $request->except('_token');
+        $filtroLimit = "";
+        $return = [];
+        
+        // MONTA O FILTRO DE DATA
+        if(isset($dadosRecebidos['dataInicio']) && isset($dadosRecebidos['dataTermino'])){
+            $filtroData = "AND TABELA.DATA BETWEEN '{{$dadosRecebidos['dataInicio']}}'
+                                                 AND '{{$dadosRecebidos['dataTermino']}}'";
+        } else if(isset($dadosRecebidos['dataTermino']) && !isset($dadosRecebidos['dataInicio'])){
+            $filtroData = "AND TABELA.DATA <= ''";
+        } else if(isset($dadosRecebidos['dataInicio']) && !isset($dadosRecebidos['dataTermino'])){
+            $filtroData = "AND TABELA.DATA >= ''";
+        } else {
+            $filtroData = "AND 1 = 1";
+        }
+        
+        // MONTA O FILTRO DE BUSCA DE TEXTO
+        if(isset($dadosRecebidos['FILTRO_BUSCA'])){
+            $filtroParametro = str_replace(' ', '%', $dadosRecebidos['FILTRO_BUSCA']);
+            $filtroBusca = "AND (EQUIPAMENTO LIKE '%$filtroParametro%'
+                                OR PESSOA LIKE '%$filtroParametro%')";
+        } else {
+            $filtroBusca = 'AND 1 = 1';
+        }
+        
+        if(isset($dadosRecebidos['dadosPorPagina']) && isset($dadosRecebidos['offset']) && $dadosRecebidos['dadosPorPagina'] != 'todos'){
+            $filtroLimit = "LIMIT ".$dadosRecebidos['dadosPorPagina']."
+                           OFFSET ".$dadosRecebidos['offset'];
+        }
+        
+        $queryCount= " SELECT COUNT(*) as COUNT
+                         FROM material_movimento
+                        WHERE STATUS = 'A'
+                        $filtroBusca
+                        $filtroData";
+        $resultCount = DB::select($queryCount);
+        $return['contagem'] = $resultCount[0]->COUNT;
+        
+        $query = " SELECT material_movimento.*
+                     FROM material_movimento
+                    WHERE STATUS = 'A'
+                    $filtroData
+                    $filtroBusca
+                    ORDER BY DATA DESC
+                    $filtroLimit";
+        $result = DB::select($query);
+        $return['dados'] = $result;
+        
+        return $return;
+    }
+
     public function inserirMaterial(Request $request){
         $dadosRecebidos = $request->except('_token');
         $valor = $dadosRecebidos['valor'];
@@ -133,6 +186,47 @@ class MateriaisController extends Controller
                             '$marca'
                             )";
         $result = DB::select($query);
+
+        return $result;
+    }
+
+    public function inserirRetiradaDevolucao(Request $request){
+        $dadosRecebidos = $request->except('_token');
+        $data = str_replace('T', ' ', $dadosRecebidos['data']);
+        $pessoa = $dadosRecebidos['pessoa'];
+        $idPessoa = $dadosRecebidos['idPessoa'];
+        $equipamento = $dadosRecebidos['equipamento'];
+        $idEquipamento = $dadosRecebidos['idEquipamento'];
+        $tipo = $dadosRecebidos['tipo'];
+
+        $query = "INSERT INTO material_movimento
+	                          (TIPO_MOVIMENTO
+                               , `DATA`
+                               , ID_PESSOA
+                               , PESSOA
+                               , ID_EQUIPAMENTO
+                               , EQUIPAMENTO
+                            ) VALUES (
+                                $tipo
+                               , '$data'
+                               , '$idPessoa'
+                               , '$pessoa'
+                               , '$idEquipamento'
+                               , '$equipamento'
+                            )";
+        $result = DB::select($query);
+
+        $queryMaterialMovimento = "SELECT COALESCE(MAX(DATA), NOW()) as DATA_MOVIMENTACAO
+                                     FROM material_movimento
+                                    WHERE ID_EQUIPAMENTO = $idEquipamento";
+        $dataUltimaMovimentacao = DB::select($queryMaterialMovimento)[0]->DATA_MOVIMENTACAO;
+
+        $queryUpdateMaterial = "UPDATE material
+                                   SET DATA_ULTIMA_RETIRADA = '$dataUltimaMovimentacao'
+                                     , USUARIO_ULTIMA_RETIRADA = '$idPessoa'
+                                     , SITUACAO = '$tipo'
+                                 WHERE ID = $idEquipamento";
+        $resultUpdateMaterial = DB::select($queryUpdateMaterial);  
 
         return $result;
     }
@@ -191,6 +285,36 @@ class MateriaisController extends Controller
                      SET STATUS = 'I'
                     WHERE ID = $idCodigo";
         $result = DB::select($query);
+
+        return $result;
+    }
+
+    public function inativarMovimentacao(Request $request){
+        $dadosRecebidos = $request->except('_token');
+        $idCodigo = $dadosRecebidos['ID'];
+        $idPessoaUltimaMovimentacao = auth()->user()->id;
+
+        $query = "UPDATE material_movimento 
+                     SET STATUS = 'I'
+                   WHERE ID = $idCodigo";
+        $result = DB::select($query);
+
+        $queryMaterialMovimento = "SELECT COALESCE(MAX(DATA), NOW()) as DATA_MOVIMENTACAO
+                                     FROM material_movimento
+                                    WHERE ID_EQUIPAMENTO = (SELECT ID_EQUIPAMENTO
+                                                              FROM material_movimento 
+                                                             WHERE ID = $idCodigo)
+                                    GROUP BY ID_EQUIPAMENTO";
+        $resultUltimaMovimentacao = DB::select($queryMaterialMovimento);
+        $dataUltimaMovimentacao = $resultUltimaMovimentacao[0]->DATA_MOVIMENTACAO;
+
+        $queryUpdateMaterial = "UPDATE material
+                                   SET DATA_ULTIMA_RETIRADA = '$dataUltimaMovimentacao'
+                                     , USUARIO_ULTIMA_RETIRADA = '$idPessoaUltimaMovimentacao'
+                                 WHERE ID = (SELECT ID_EQUIPAMENTO
+                                               FROM material_movimento 
+                                              WHERE ID = $idCodigo)";
+        $resultUpdateMaterial = DB::select($queryUpdateMaterial);  
 
         return $result;
     }

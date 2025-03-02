@@ -13,4 +13,9 @@
 
 Route::prefix('compras')->group(function() {
     Route::get('/', 'ComprasController@index');
+
+    Route::post('/buscar', 'ComprasController@buscarOrdemCompra')->name('compras.buscar.ordem');
+    Route::post('/inserir', 'ComprasController@inserirOrdemCompra')->name('compras.inserir.ordem');
+    Route::post('/alterar', 'ComprasController@alterarOrdemCompra')->name('compras.alterar.ordem');
+    Route::post('/inativar', 'ComprasController@inativarOrdemCompra')->name('compras.inativar.ordem');
 });

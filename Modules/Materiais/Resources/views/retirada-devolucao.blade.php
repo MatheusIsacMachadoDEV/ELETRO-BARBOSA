@@ -1,6 +1,6 @@
 @extends('adminlte::page')
 
-@section('title', 'GSSoftware')
+@section('title', 'Retirada/Devolução | GSSoftware')
 
 @section('content')
     <div class="content-title">
@@ -26,18 +26,20 @@
             <div class="card-header">
                 <div class="row d-flex m-0 p-0">
                     <div class="col-12 col-md-6">
-                        <input type="text" class="form-control form-control-border col" id="inputFiltro" placeholder="Filtro" maxlength="8" onkeyup="buscarDados()">
+                        <input type="text" class="form-control form-control-border col" id="inputFiltro" placeholder="Material/Responsável" onkeyup="buscarDados()">
                     </div>
                 </div>
             </div>
             <div class="card-body">
                 <table class="table table-responsive-xs">
                     <thead>
-                        <th class="d-none d-lg-table-cell" style="padding-left: 5px!important">Coluna</th>
-                        <th class="d-none d-lg-table-cell"><center>Coluna 2</center></th>
+                        <th class="d-none d-lg-table-cell" style="padding-left: 5px!important">Material</th>
+                        <th class="d-none d-lg-table-cell"><center>Responsável</center></th>
+                        <th class="d-none d-lg-table-cell"><center>Data</center></th>
+                        <th class="d-none d-lg-table-cell"><center>Tipo</center></th>
                         <th class="d-none d-lg-table-cell"><center>Ações</center></th>
                     </thead>
-                    <tbody id="tableBodyDadosdados">
+                    <tbody id="tableBodyDados">
                     </tbody>
                 </table>
             </div>
@@ -48,7 +50,7 @@
         <div class="modal-dialog"> 
             <div class="modal-content"> 
                 <div class="modal-header"> 
-                    <h4 class="modal-title">Registrar Retirada/Devolução/</h4> 
+                    <h4 class="modal-title">Registrar Retirada/Devolução</h4> 
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close"> 
                         <span aria-hidden="true">×</span> 
                     </button> 
@@ -73,26 +75,37 @@
                                 <canvas id="canvas" style="display: none;"></canvas>
                             </div>
                         </div>
+
                         <div class="col btnLimpar d-none">
                             <button id="btnLimpar" class="btnLimpar btn btn-sm btn-danger d-none col-12"><i class="fas fa-eraser"></i>LIMPAR</button>
                         </div>
 
-                        <div class="col-12">
-                            <input type="text" class="form-control form-control-border col-12" placeholder="Quem devolveu?" id="inputDevolucaoPessoa" >
-                            <input type="hidden" id="inputDevolucaoIDPessoa">
+                        <div class="col-12 row d-flex p-0 m-0">
+                            <div class="col">
+                                <input type="text" class="form-control form-control-border col-12" placeholder="Responsável" id="inputDevolucaoPessoa" >
+                                <input type="hidden" id="inputDevolucaoIDPessoa">                                
+                            </div>
+                            <div class="col btnLimparPessoa d-none">
+                                <button id="btnLimparPessoa" class="btnLimparPessoa btn btn-sm btn-danger d-none col-12"><i class="fas fa-eraser"></i>LIMPAR</button>
+                            </div>
                         </div>
 
-                        <div class="form-group">
-                            <input type="datetime-local" class="form-control form-control-border" id="inputDevolucaoData" value="{{date('Y-m-d H:i:s')}}" >
+                        <div class="form-group col-12 col-md-6">
+                            <input type="datetime-local" class="form-control form-control-border" id="inputDevolucaoData" value="{{date('Y-m-d H:i')}}" >
                         </div>
-                        <div class="col btnLimparPessoa d-none">
-                            <button id="btnLimparPessoa" class="btnLimparPessoa btn btn-sm btn-danger d-none col-12"><i class="fas fa-eraser"></i>LIMPAR</button>
+
+                        <div class="form-group col-12 col-md-6">
+                            <select id="selectDevolucaoTipo" class="form-control form-control-border">
+                                <option value="0">Tipo Movimentação</option>
+                                <option value="2">Retirada</option>
+                                <option value="1">Devolução</option>
+                            </select>
                         </div>
                     </div>
                 </div> 
                 <div class="modal-footer justify-content-between"> 
                     <button type="button" class="btn btn-default" data-dismiss="modal">Fechar</button> 
-                    <button type="button" class="btn btn-primary">Salvar</button> 
+                    <button type="button" class="btn btn-primary" id="btnSalvarRetiradaDevolucao">Salvar</button> 
                 </div> 
             </div> 
         </div> 
@@ -102,7 +115,7 @@
         <div class="modal-dialog ">
             <div class="modal-content p-0">
                 <div class="modal-header">
-                    <h5 class="modal-title" >Documentação da dados <span id="titleDocumento"></span></h5>
+                    <h5 class="modal-title" >Documentação dados <span id="titleDocumento"></span></h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -221,9 +234,9 @@
                 datatype:'json',
                 data:{
                     '_token':'{{csrf_token()}}',
-                    'filtro': $('#inputDescricaoFiltro').val()
+                    'FILTRO_BUSCA': $('#inputFiltro').val()
                 },
-                url:"",
+                url:"{{route('material.buscar.movimento')}}",
                 success:function(r){
                     popularListaDados(r.dados);
                 },
@@ -240,34 +253,70 @@
                         dados[i][Keys[j]] = "";
                     }
                 }
-                btnAcoes = ` <button class="btn" onclick="exibirModalEdicao(dados)"><i class="fas fa-pen"></i></button>
-                             <button class="btn" onclick="inativar(dados)"><i class="fas fa-trash"></i></button>`;
+
+                var tipoMovimento = 'Retirada';
+                var classeBadgeTipoMovimento = 'bg-warning';
+
+                if(dados[i]['TIPO_MOVIMENTO'] == 1){
+                    tipoMovimento = 'Devolução';
+                    classeBadgeTipoMovimento = 'bg-success';
+                }
+
+                btnAcoes = ` <button class="btn" onclick="inativarMovimentacao(${dados[i]['ID']})"><i class="fas fa-trash"></i></button>`;
                 htmlTabela += `
                     <tr id="tableRowdados" class="d-none d-lg-table-row">
-                        <td class="tdTexto" style="padding-left: 5px!important">dados</td>
-                        <td class="tdTexto">dados</td>
+                        <td style="padding-left: 5px!important">${dados[i]['EQUIPAMENTO']}</td>
+                        <td><center>${dados[i]['PESSOA']}</center></td>
+                        <td><center>${moment(dados[i]['DATA']).format('DD/MM/YYYY HH:mm')}</center></td>
                         <td>
                             <center>
-                                btnAcoes
+                                <span class="badge ${classeBadgeTipoMovimento}">${tipoMovimento}</span>
+                            </center>
+                        </td>
+                        <td>
+                            <center>
+                                ${btnAcoes}
                             </center>
                         </td>
                     </tr>
-                `;
+                
+                    <tr id="tableRow${dados[i]['ID']}" class="d-table-row d-lg-none">
+                        <td>
+                            <div class="col-12">
+                                <center>
+                                    <b>${dados[i]['EQUIPAMENTO']} = ${dados[i]['PESSOA']}</b>
+                                </center>
+                            </div>
+                            <div class="col-12" style="font-size: 4vw">
+                                <center>
+                                    <span class="badge bg-info">${moment(dados[i]['DATA']).format('DD/MM/YYYY HH:mm')}</span>
+                                    <span class="badge ${classeBadgeTipoMovimento}">${tipoMovimento}</span>
+                                </center>
+                            </div>
+                            <div class="col-12">
+                                <center>
+                                    ${btnAcoes}
+                                </center>
+                            </div>
+                        </td>
+                    </tr>`;
             }
-            $('#tableBodyDadosdados').html(htmlTabela);
+            $('#tableBodyDados').html(htmlTabela);
         }
 
-        function inserirMarca() {
+        function inserirRetiradaDevolucao() {
             validacao = true;
 
-            var inputIDs = ['inputDevolucaoData', 'inputDevolucaoEquipamento', 'inputDevolucaoIDEquipamento', 'inputDevolucaoPessoa'];
+            var inputIDs = ['inputDevolucaoData', 'inputDevolucaoEquipamento', 'inputDevolucaoIDEquipamento', 'inputDevolucaoPessoa', 'selectDevolucaoTipo', 'inputDevolucaoIDPessoa'];
 
             for (var i = 0; i < inputIDs.length; i++) {
                 var inputID = inputIDs[i];
                 var input = $('#' + inputID);
                 
-                if (input.val() === '') {
+                if (input.val() === '' || input.val() == '0' || inputID == 'selectDevolucaoTipo' && input.val() == 0) {
                     if(inputID == 'inputDevolucaoIDEquipamento'){
+                        $('#inputDevolucaoEquipamento').addClass('is-invalid');
+                    }else if(inputID == 'inputDevolucaoIDPessoa') {
                         $('#inputDevolucaoPessoa').addClass('is-invalid');
                     } else {
                         input.addClass('is-invalid');
@@ -281,39 +330,88 @@
             if(validacao){
                 var data = $('#inputDevolucaoData').val();
                 var pessoa = $('#inputDevolucaoPessoa').val();
+                var idPessoa = $('#inputDevolucaoIDPessoa').val();
                 var equipamento = $('#inputDevolucaoEquipamento').val();
+                var idEquipamento = $('#inputDevolucaoIDEquipamento').val();
+                var tipo = $('#selectDevolucaoTipo').val();
 
                 $.ajax({
-                        type:'post',
-                        datatype:'json',
-                        data:{
+                    type:'post',
+                    datatype:'json',
+                    data:{
                         '_token':'{{csrf_token()}}',
-                        'MARCA': marca
-                        },
-                        url:"{{route('material.inserir.marca')}}",
-                        success:function(r){
-                            // to do
-                            Swal.fire(
-                                'Sucesso!',
-                                'Retirada cadastrada com sucesso.',
-                                'success',
-                            );
-                        },
-                        error:err=>{exibirErro(err)}
+                        'data': data,
+                        'pessoa': pessoa,
+                        'idPessoa': idPessoa,
+                        'equipamento': equipamento,
+                        'idEquipamento': idEquipamento,
+                        'tipo': tipo
+                    },
+                    url:"{{route('material.inserir.devolucao')}}",
+                    success:function(r){
+                        Swal.fire(
+                            'Sucesso!',
+                            'Retirada cadastrada com sucesso.',
+                            'success',
+                        );
+                        $('#modal-cadastro').modal('hide');
+                        buscarDados();
+                    },
+                    error:err=>{exibirErro(err)}
                     })
             }
             
         }
 
-        function resetarCampos(tipo){
-            $('#inputDevolucaoEquipamento').val('')
+        function inativarMovimentacao(idMovimentacao){
+            Swal.fire({
+                title: 'Confirmação',
+                text: 'Deseja inativar a movimentação?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Sim',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        type:'post',
+                        datatype:'json',
+                        data:{
+                            '_token':'{{csrf_token()}}',
+                            'ID': idMovimentacao
+                        },
+                        url:"{{route('material.inativar.movimentacao')}}",
+                        success:function(r){
+                            Swal.fire('Sucesso!'
+                                    , 'Movimentação inativada com sucesso.'
+                                    , 'success');
+                            buscarDados();
+                        },
+                        error:err=>{exibirErro(err)}
+                    })
+                }
+            });
+        }
+
+        function resetarCampos(){
             $('#inputDevolucaoIDEquipamento').val('0')
-            $('.btnLimpar').addClass('d-none');
+            $('#inputDevolucaoEquipamento').val('')
+            $('#inputDevolucaoEquipamento').removeClass('is-invalid');
             $('#inputDevolucaoEquipamento').attr('disabled', false); 
-            $('#inputDevolucaoPessoa').val('')
+            
             $('#inputDevolucaoIDPessoa').val('0')
-            $('.btnLimpar').addClass('d-none');
+            $('#inputDevolucaoPessoa').val('')
+            $('#inputDevolucaoPessoa').removeClass('is-invalid');
             $('#inputDevolucaoPessoa').attr('disabled', false);
+            
+            $('#selectDevolucaoTipo').val('0')
+            $('#selectDevolucaoTipo').removeClass('is-invalid');
+            
+            $('#inputDevolucaoData').removeClass('is-invalid');
+            $('#inputDevolucaoData').val(moment().format('YYYY-MM-DD HH:mm'))
+
+
+            $('.btnLimpar').addClass('d-none');
         }
 
         function limparCampo(input1, input2, botao){
@@ -321,6 +419,10 @@
             $('#'+input2).val('0')
             $('#'+input1).attr('disabled', false); 
             $('.'+botao).addClass('d-none');
+
+            if(input1 == 'inputDevolucaoEquipamento'){
+                $('#btnQRCODE').removeClass('d-none');
+            }
         }
 
         function scanQRCode() {
@@ -346,6 +448,11 @@
                             let imageData = context.getImageData(0, 0, canvas.width, canvas.height);
                             let code = jsQR(imageData.data, canvas.width, canvas.height);
                             if (code) {
+                                Swal.fire(
+                                    'CODIGO LIDO QR CODE',
+                                    code.data,
+                                    'success',
+                                );
                                 $('#inputDevolucaoEquipamento').val(code.data);
                                 setTimeout(() => { $('#inputDevolucaoEquipamento').autocomplete("search"); }, 500);
                                 stopScan();
@@ -395,6 +502,10 @@
             stopScan();
         });
 
+        $('#btnSalvarRetiradaDevolucao').click(() => {
+            inserirRetiradaDevolucao();
+        });
+
         $("#inputDevolucaoEquipamento").autocomplete({
             source: function(request, cb){
                 param = request.term;
@@ -404,7 +515,8 @@
                     method: 'post',
                     data:{
                         '_token': '{{csrf_token()}}',
-                        'filtro': param
+                        'filtro': param,
+                        'tipo_material': 1
                     },
                     dataType: 'json',
                     success: function(r){
@@ -428,6 +540,7 @@
                     $('#inputDevolucaoIDEquipamento').val(selectedData.item.data.ID);
                     $('#inputDevolucaoEquipamento').attr('disabled', true); 
                     $('.btnLimpar').removeClass('d-none');
+                    $('#btnQRCODE').addClass('d-none');
                 } else {
                     limparCampo('inputDevolucaoEquipamento', 'inputDevolucaoIDEquipamento', 'btnLimpar');
                 }
@@ -497,5 +610,9 @@
                 reader.readAsDataURL(file);
             }
         });
+
+        $(document).ready(function() {
+            buscarDados();
+        })
     </script>
 @stop

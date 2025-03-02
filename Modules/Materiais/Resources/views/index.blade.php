@@ -34,7 +34,7 @@
             <div class="card-header">
                 <div class="row d-flex m-0 p-0">
                     <div class="col-12 col-md-6">
-                        <input type="text" class="form-control form-control-border" id="inputMaterialDescricaoFiltro" placeholder="Material/Marca" maxlength="8" onkeyup="buscarMaterial()">
+                        <input type="text" class="form-control form-control-border" id="inputMaterialDescricaoFiltro" placeholder="Material/Marca" onkeyup="buscarMaterial()">
                     </div>
                     <div class="col-12 col-md-3">
                         <select id="selectFiltroTipo" class="form-control form-control-border">
@@ -742,8 +742,6 @@
         $('#selectFiltroSituacao').on('change', () => {
             buscarMaterial();
         });
-
-        
         
         $(document).ready(() => {
             buscarMaterial();
