@@ -36,6 +36,23 @@ function exibirErro(err){
     console.log(err)
 }
 
+function limparCampo(input1, input2, botao, inputsAdicionais){
+    $('#'+input1).val('')
+    $('#'+input2).val('0')
+    $('#'+input1).attr('disabled', false); 
+    $('.'+botao).addClass('d-none');
+
+    if(input1 == 'inputDevolucaoEquipamento'){
+        $('#btnQRCODE').removeClass('d-none');
+    }
+
+    for (let index = 0; index < inputsAdicionais.length; index++) {
+        var inputID = inputsAdicionais[index];
+        var input = $('#' + inputID);
+        input.val('');        
+    }
+}
+
 $('.modal').on('show.bs.modal', function() {
     setTimeout(() => {
         $(this).find('input').first().focus();        

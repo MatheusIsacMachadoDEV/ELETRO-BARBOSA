@@ -6,6 +6,9 @@ use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use DB;
+use Config;
+use PDF;
+use DateTime;
 
 class ComprasController extends Controller
 {
@@ -27,79 +30,95 @@ class ComprasController extends Controller
             $filtroID = 'AND 1 = 1';
         }
 
-        if(isset($dadosRecebidos['filtro']) && strlen($dadosRecebidos['filtro']) > 0){
-            $filtro = "AND (UPPER(MATERIAL) LIKE UPPER('%".$dadosRecebidos['filtro']."%')
-                            OR MATERIAL LIKE '%{$dadosRecebidos['filtro']}%'
-                            OR CONCAT('EB', ID) LIKE '{$dadosRecebidos['filtro']}')";
-        } else {
-            $filtro = 'AND 1 = 1';
-        }
-
-        if(isset($dadosRecebidos['situacao']) && $dadosRecebidos['situacao'] > 0){
-            $filtroSituacao = "AND SITUACAO = {$dadosRecebidos['situacao']}";
+        if(isset($dadosRecebidos['ID_SITUACAO']) && $dadosRecebidos['ID_SITUACAO'] > 0){
+            $filtroSituacao = "AND ID_SITUACAO = '{$dadosRecebidos['ID_SITUACAO']}'";
         } else {
             $filtroSituacao = 'AND 1 = 1';
         }
 
+        if(isset($dadosRecebidos['filtro']) && strlen($dadosRecebidos['filtro']) > 0){
+            $filtro = "AND ((SELECT COUNT(*)
+                               FROM users
+                              WHERE users.ID = ordem_compra.ID_USUARIO
+                                AND users.name LIKE '%{$dadosRecebidos['filtro']}%') > 0
+                            OR (SELECT COUNT(*)
+                                  FROM users
+                                 WHERE users.ID = ordem_compra.ID_USUARIO_APROVACAO
+                                   AND users.name LIKE '%{$dadosRecebidos['filtro']}%') > 0
+                            OR ordem_compra.OBSERVACAO LIKE '%{$dadosRecebidos['filtro']}%')";
+        } else {
+            $filtro = 'AND 1 = 1';
+        }
+
         $query = "SELECT ordem_compra.*
-                       , (SELECT NAME
+                       , (SELECT name
                             FROM users
                            WHERE users.ID = ordem_compra.ID_USUARIO_APROVACAO) as USUARIO_APROVACAO
                        , (SELECT VALOR
                             FROM situacoes
-                           WHERE situacoes.ID_ITEM = ordem_compra.ID_SITUACAO) AS SITUACAO
+                           WHERE situacoes.ID_ITEM = ordem_compra.ID_SITUACAO
+                             AND TIPO = 'ORDEM_COMPRA') AS SITUACAO
                     FROM ordem_compra
                    WHERE STATUS = 'A'
                    $filtro
                    $filtroSituacao
                    $filtroID
-                   ORDER BY ordem_compra.DATA_CADASTRO ASC";
+                   ORDER BY ordem_compra.DATA_CADASTRO DESC";
         $result['dados'] = DB::select($query);
+        $result['query'] = $query;
 
         return $result;
     }
 
     public function inserirOrdemCompra(Request $request){
         $dadosRecebidos = $request->except('_token');
-        $valor = $dadosRecebidos['valor'];
-        $situacao = $dadosRecebidos['situacao'];
+        $data = $dadosRecebidos['data'];
+        $valor = $dadosRecebidos['valorTotal'];
+        $idProjeto = isset($dadosRecebidos['idProjeto']) ? $dadosRecebidos['idProjeto'] : 0;
         $observacao = $dadosRecebidos['observacao'];
-        $usuario = auth()->user()->NAME;
-        $idUsuario = auth()->user()->ID;
+        $usuario = auth()->user()->name;
+        $idUsuario = auth()->user()->id;
         $return = [];
 
         $bancoDados = Config::get('database.connections.mysql.database'); // PEGA A DATABASE DO PROJETO ( FICA NO .ENV)
         $queryNumDoc = "SELECT AUTO_INCREMENT
                           FROM information_schema.TABLES
                          WHERE TABLE_SCHEMA = '$bancoDados'
-                           AND TABLE_NAME = 'ordem_servico'"; // PEGA O AUTO INCREMENT DA TABELA EM QUESTAO ( NESSE EXMPLO NFCE)
-        $idCodigo = executarSQL($queryNumDoc)[0]->AUTO_INCREMENT; // ATRIBUI O AUTO INCREMENT A UMA VARIAVEL
+                           AND TABLE_NAME = 'ordem_compra'"; // PEGA O AUTO INCREMENT DA TABELA EM QUESTAO ( NESSE EXMPLO NFCE)
+        $idCodigo = DB::select($queryNumDoc)[0]->AUTO_INCREMENT; // ATRIBUI O AUTO INCREMENT A UMA VARIAVEL
 
         $query = "INSERT INTO ordem_compra ( ID
                                             , VALOR
+                                            , DATA_CADASTRO
                                             , ID_SITUACAO
+                                            , ID_PROJETO
                                             , OBSERVACAO
                                             , USUARIO
                                             , ID_USUARIO
                                            ) VALUES (
                                             $idCodigo
                                            , $valor
-                                           , $situacao
-                                           , $observacao
-                                           , $usuario
+                                           , '$data'
+                                           , 3
+                                           , $idProjeto
+                                           , '$observacao'
+                                           , '$usuario'
                                            , $idUsuario
                                            )";
         $result = DB::select($query);
 
         for ($i=0; $i < count($dadosRecebidos['dadosItens']) ; $i++) { 
-            $valor_total = $dadosRecebidos['dadosItens'][$i]->VALOR_TOTAL;
-            $valor_unitario = $dadosRecebidos['dadosItens'][$i]->VALOR_UNITARIO;
-            $id_item = $dadosRecebidos['dadosItens'][$i]->ID_ITEM;
-            $qtde = $dadosRecebidos['dadosItens'][$i]->QTDE;
-            $observacao_item = $dadosRecebidos['dadosItens'][$i]->OBSERVACAO;
+            $valor_total = $dadosRecebidos['dadosItens'][$i]['VALOR_TOTAL'];
+            $valor_unitario = $dadosRecebidos['dadosItens'][$i]['VALOR_UNITARIO'];
+            $id_item = $dadosRecebidos['dadosItens'][$i]['ID_ITEM'];
+            $id_item_unico = $dadosRecebidos['dadosItens'][$i]['ID_UNICO'];
+            $qtde = $dadosRecebidos['dadosItens'][$i]['QTDE'];
+            $observacao_item = $dadosRecebidos['dadosItens'][$i]['OBSERVACAO'];
             
-            $queryItem = "INSERT INTO ordem_compra_item ( ID_ORDEM_SERVICO
+            $queryItem = "INSERT INTO ordem_compra_item ( 
+                                                      ID_ORDEM_COMPRA
                                                     , ID_ITEM
+                                                    , ID_UNICO_ITEM
                                                     , VALOR_UNITARIO
                                                     , VALOR_TOTAL
                                                     , QTDE
@@ -107,13 +126,14 @@ class ComprasController extends Controller
                                                     , USUARIO
                                                     , ID_USUARIO
                                                     ) VALUES (
-                                                    $idCodigo
+                                                      $idCodigo
                                                     , $id_item
+                                                    , $id_item_unico
                                                     , $valor_unitario
                                                     , $valor_total
                                                     , $qtde
                                                     , '$observacao_item'
-                                                    , $usuario
+                                                    , '$usuario'
                                                     , $idUsuario
                                                     )";
             $resultItem = DB::select($queryItem);
@@ -126,34 +146,39 @@ class ComprasController extends Controller
 
     public function alterarOrdemCompra(Request $request){
         $dadosRecebidos = $request->except('_token');
-        $idCodigo = $dadosRecebidos['ID_ORDEM_COMPRA'];
-        $valor = $dadosRecebidos['valor'];
-        $situacao = $dadosRecebidos['situacao'];
+        $idCodigo = $dadosRecebidos['ID'];
+        $data = $dadosRecebidos['data'];
+        $valor = $dadosRecebidos['valorTotal'];
+        $idProjeto = isset($dadosRecebidos['idProjeto']) ? $dadosRecebidos['idProjeto'] : 0;
         $observacao = $dadosRecebidos['observacao'];
-        $usuario = auth()->user()->NAME;
-        $idUsuario = auth()->user()->ID;
+        $usuario = auth()->user()->name;
+        $idUsuario = auth()->user()->id;
         $return = [];
 
         $query = "UPDATE ordem_compra
                      SET VALOR = $valor
-                       , ID_SITUACAO = $situacao
                        , OBSERVACAO = '$observacao'
+                       , DATA_CADASTRO = $data
+                       , ID_PROJETO = $idProjeto
                    WHERE ID = $idCodigo";
         $result = DB::select($query);
 
         $queryDelete = "DELETE ordem_compra_item
-                         WHERE ID_ORDEM_COMPRA = $idOrdemCompra";
+                         WHERE ID_ORDEM_COMPRA = $idCodigo";
         $resultDelete = DB::select($queryDelete);
 
         for ($i=0; $i < count($dadosRecebidos['dadosItens']) ; $i++) { 
-            $valor_total = $dadosRecebidos['dadosItens'][$i]->VALOR_TOTAL;
-            $valor_unitario = $dadosRecebidos['dadosItens'][$i]->VALOR_UNITARIO;
-            $id_item = $dadosRecebidos['dadosItens'][$i]->ID_ITEM;
-            $qtde = $dadosRecebidos['dadosItens'][$i]->QTDE;
-            $observacao_item = $dadosRecebidos['dadosItens'][$i]->OBSERVACAO;
+            $valor_total = $dadosRecebidos['dadosItens'][$i]['VALOR_TOTAL'];
+            $valor_unitario = $dadosRecebidos['dadosItens'][$i]['VALOR_UNITARIO'];
+            $id_item = $dadosRecebidos['dadosItens'][$i]['ID_ITEM'];
+            $id_item_unico = $dadosRecebidos['dadosItens'][$i]['ID_UNICO'];
+            $qtde = $dadosRecebidos['dadosItens'][$i]['QTDE'];
+            $observacao_item = $dadosRecebidos['dadosItens'][$i]['OBSERVACAO'];
             
-            $queryItem = "INSERT INTO ordem_compra_item ( ID_ORDEM_SERVICO
+            $queryItem = "INSERT INTO ordem_compra_item ( 
+                                                      ID_ORDEM_COMPRA
                                                     , ID_ITEM
+                                                    , ID_UNICO_ITEM
                                                     , VALOR_UNITARIO
                                                     , VALOR_TOTAL
                                                     , QTDE
@@ -161,13 +186,14 @@ class ComprasController extends Controller
                                                     , USUARIO
                                                     , ID_USUARIO
                                                     ) VALUES (
-                                                    $idCodigo
+                                                      $idCodigo
                                                     , $id_item
+                                                    , $id_item_unico
                                                     , $valor_unitario
                                                     , $valor_total
                                                     , $qtde
                                                     , '$observacao_item'
-                                                    , $usuario
+                                                    , '$usuario'
                                                     , $idUsuario
                                                     )";
             $resultItem = DB::select($queryItem);
@@ -175,6 +201,70 @@ class ComprasController extends Controller
 
         $return['situacao'] = 'SUCESSO';
 
+        return $return;
+    }
+
+    public function alterarSituacaoOrdemCompra(Request $request){
+        $dadosRecebidos = $request->except('_token');
+        $idCodigo = $dadosRecebidos['ID'];
+        $idSituacao = $dadosRecebidos['ID_SITUACAO'];
+        $usuario = auth()->user()->name;
+        $idUsuario = auth()->user()->id;
+        $return = [];
+
+        $query = "UPDATE ordem_compra 
+                     SET ID_SITUACAO = $idSituacao
+                   WHERE ID = $idCodigo";
+        $result = DB::select($query);
+
+        if($idSituacao == 1){
+            $queryDadosOrdem = "SELECT *
+                                  FROM ordem_compra_item
+                                 WHERE ID_ORDEM_COMPRA = $idCodigo";
+            $dadosOrdem = DB::select($queryDadosOrdem);
+
+            $queryUpdateAprovacao = "UPDATE ordem_compra 
+                                        SET DATA_APROVACAO = NOW()
+                                          , ID_USUARIO_APROVACAO = $idUsuario
+                                      WHERE ID = $idCodigo";
+            $resultUpdateAprovacao = DB::select($queryUpdateAprovacao);
+            
+            for ($i=0; $i < count($dadosOrdem); $i++) { 
+                $idOrdemCompraItem = $dadosOrdem[$i]->ID;
+                $idItem = $dadosOrdem[$i]->ID_ITEM;
+                $qtde = $dadosOrdem[$i]->QTDE;
+
+                $queryDadosKardex = "INSERT INTO kardex
+                                                 (
+                                                   ID_MATERIAL
+                                                 , DATA_CADASTRO
+                                                 , VALOR
+                                                 , ID_ORIGEM
+                                                 , ORIGEM
+                                                 , TIPO
+                                                 , ID_USUARIO
+                                                 , USUARIO
+                                                ) VALUES (
+                                                  $idItem
+                                                 , NOW()
+                                                 , $qtde
+                                                 , $idOrdemCompraItem
+                                                 , 'ordem_compra_item'
+                                                 , $idSituacao
+                                                 , $idUsuario
+                                                 , '$usuario'
+                                                 )";
+                $dadosKardex = DB::select($queryDadosKardex);
+
+                $querydadosOrdemCompraUpdate = "UPDATE material
+                                                   SET QTDE = QTDE + $qtde
+                                                 WHERE ID = $idItem";
+                $dadosOrdemCompraUpdate = DB::select($querydadosOrdemCompraUpdate);
+                
+            }
+        }
+
+        $return['SITUACAO'] = 'SUCESSO';
         return $return;
     }
 
@@ -190,27 +280,41 @@ class ComprasController extends Controller
         return $result;
     }
 
-    public function gerarEtiqueta($idMaterial){
-        $codigoEtiqueta = "EB$idMaterial";
+    public function imprimirOrdemCompra($id){
+        $data = (new DateTime())->format('d/m/Y H:i');
 
-        $queryEmpresa = "SELECT empresa_cliente.* 
-                        FROM empresa_cliente 
-                        WHERE ID = 1";
+        $queryOrdemCompra = "SELECT ordem_compra.*
+                                   , (SELECT name
+                                        FROM users
+                                       WHERE users.ID = ordem_compra.ID_USUARIO_APROVACAO) as USUARIO_APROVACAO
+                                   , (SELECT VALOR
+                                        FROM situacoes
+                                       WHERE situacoes.ID_ITEM = ordem_compra.ID_SITUACAO
+                                         AND TIPO = 'ORDEM_COMPRA') AS SITUACAO
+                                FROM ordem_compra
+                               WHERE STATUS = 'A'
+                                 AND ID = $id";
+        $dadosOrdemCompra = DB::select($queryOrdemCompra)[0];
+
+        $queryItemOrdemCompra = "SELECT ordem_compra_item.*
+                                   , (SELECT MATERIAL
+                                        FROM material
+                                       WHERE material.ID = ordem_compra_item.ID_ITEM) as MATERIAL
+                                FROM ordem_compra_item
+                               WHERE STATUS = 'A'
+                                 AND ID_ORDEM_COMPRA = $id";
+        $dadosItemOrdemCompra = DB::select($queryItemOrdemCompra);
+
+        $queryEmpresa = "SELECT empresa_cliente.*
+                           FROM empresa_cliente
+                          WHERE ID = 1";
         $dadosEmpresa = DB::select($queryEmpresa)[0];
-       
-        $qrCode = new QrCode($codigoEtiqueta);
-        $qrCode->setSize(200);
 
-        $writer = new PngWriter();
-        $qrCodePng = $writer->write($qrCode);
-       
-        $qrCodeBase64 = base64_encode($qrCodePng->getString());
-       
-        $qrCodeBase64 = 'data:image/png;base64,' . $qrCodeBase64;
-       
-        $pdf = PDF::loadView('materiais::impressos.etiqueta-material', compact('codigoEtiqueta', 'dadosEmpresa', 'qrCodeBase64'))->setPaper([0, 0, 100, 100], 'mm');;
-
-        return $pdf->stream("etiqueta-$idMaterial.pdf");
+        // Carregar a view 'ORDEM-COMPRA' passando a variável $data
+        $pdf = PDF::loadView('compras::impressos.ordem-compra', compact('data', 'dadosOrdemCompra', 'dadosItemOrdemCompra', 'dadosEmpresa'));
+        
+        // Exibir o PDF inline no navegador
+        return $pdf->stream("ORDEM-COMPRA-$id.pdf");
     }
 
 }

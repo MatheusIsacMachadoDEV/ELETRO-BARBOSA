@@ -11,6 +11,8 @@
 |
 */
 
-Route::prefix('estoque')->group(function() {
-    Route::get('/', 'EstoqueController@index');
+Route::middleware(['auth'])->group(function () {
+    Route::prefix('estoque')->group(function() {
+        Route::get('/', 'EstoqueController@index');
+    });
 });

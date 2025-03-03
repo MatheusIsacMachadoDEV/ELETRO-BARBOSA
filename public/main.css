@@ -36,6 +36,10 @@ table tr:nth-child(even) /* CSS3 */ {
 .content{
     padding: 0px!important;
 }
+.main-footer{
+    padding: 0px!important;
+}
 .card-body{
     padding: 0px!important;
+    margin: 0px!important;
 }

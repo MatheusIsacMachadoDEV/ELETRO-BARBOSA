@@ -414,17 +414,6 @@
             $('.btnLimpar').addClass('d-none');
         }
 
-        function limparCampo(input1, input2, botao){
-            $('#'+input1).val('')
-            $('#'+input2).val('0')
-            $('#'+input1).attr('disabled', false); 
-            $('.'+botao).addClass('d-none');
-
-            if(input1 == 'inputDevolucaoEquipamento'){
-                $('#btnQRCODE').removeClass('d-none');
-            }
-        }
-
         function scanQRCode() {
             if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
                 navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }).then(function(s) {

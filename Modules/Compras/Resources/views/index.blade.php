@@ -12,7 +12,7 @@
                 <div class="col-12 col-md-6 row d-flex d-flex justify-content-end ">
                     <div class="col-12 col-md-6">
                         <button class="btn btn-block btn-warning" id="btnNovo">
-                            <i class="fas fa-plug"></i>
+                            <i class="fas fa-shopping-basket"></i>
                             <span class="ml-1">Nova Compra</span>
                         </button>
                     </div>
@@ -43,6 +43,7 @@
                         <th class="d-none d-lg-table-cell"><center>Valor</center></th>
                         <th class="d-none d-lg-table-cell"><center>Situação</center></th>
                         <th class="d-none d-lg-table-cell"><center>Aprovação</center></th>
+                        <th class="d-none d-lg-table-cell"><center>Observação</center></th>
                         <th class="d-none d-lg-table-cell"><center>Ações</center></th>
                     </thead>
                     <tbody id="tableBodyDados">
@@ -53,7 +54,7 @@
     </div>
 
     <div class="modal fade" id="modal-cadastro" style="display: none;" aria-hidden="true"> 
-        <div class="modal-dialog modal-lg"> 
+        <div class="modal-dialog modal-xl"> 
             <div class="modal-content"> 
                 <div class="modal-header"> 
                     <h4 class="modal-title">Cadastro de Ordem de Compra</h4> 
@@ -83,7 +84,11 @@
                         </div>
 
                         <div class="form-group col-12">
-                            <textarea class="form-control form-control-border" placeholder="Observações" id="inputCadastroValorTotal" maxlength="200"></textarea>
+                            <textarea class="form-control form-control-border" placeholder="Observações" id="inputCadastroObservacao" maxlength="200"></textarea>
+                        </div>
+
+                        <div class="col-12 d-flex justify-content-start">
+                            <span class="right badge badge-info">Itens</span>
                         </div>
 
                         <div class="col-6 row d-flex p-0 m-0">
@@ -101,19 +106,19 @@
                         </div>
                         
                         <div class="form-group col-4">
-                            <input type="text" class="form-control form-control-border" placeholder="Quantidade" id="inputCadastroItemQTDE">
+                            <input type="text" class="form-control form-control-border" placeholder="Item: Quantidade" id="inputCadastroItemQTDE">
                         </div>
 
                         <div class="form-group col-4">
-                            <input type="text" class="form-control form-control-border" placeholder="Valor Unitário" id="inputCadastroItemValorUnitario">
+                            <input type="text" class="form-control form-control-border" placeholder="Item: Valor Unitário" id="inputCadastroItemValorUnitario">
                         </div>
 
                         <div class="form-group col-4">
-                            <input type="text" class="form-control form-control-border" placeholder="Valor Total" id="inputCadastroItemValorTotal">
+                            <input type="text" class="form-control form-control-border" placeholder="Item: Valor Total" id="inputCadastroItemValorTotal">
                         </div>
 
                         <div class="form-group col-12">
-                            <textarea class="form-control form-control-border" placeholder="Observação do Item" id="inputCadastroItemObs"></textarea>
+                            <textarea class="form-control form-control-border" placeholder="Item: Observação" id="inputCadastroItemObs"></textarea>
                         </div>
 
                         <div class="col-12">
@@ -228,10 +233,11 @@
     <script>
         var dadosItens = [];
         var valorTotalOrdem = 0;
+        let inputsAdicionaisItemCadastro = ['inputCadastroItemQTDE', 'inputCadastroItemValorUnitario', 'inputCadastroItemValorTotal', 'inputCadastroItemObs'];
 
-        $('#inputCadastroValorTotal').maskMoney({ prefix: 'R$ ', allowNegative: true, thousands: '.', decimal: ',' , allowZero: true});
-        $('#inputCadastroItemValorTotal').maskMoney({ prefix: 'R$ ', allowNegative: true, thousands: '.', decimal: ',' , allowZero: true});
-        $('#inputCadastroItemValorUnitario').maskMoney({ prefix: 'R$ ', allowNegative: true, thousands: '.', decimal: ',' , allowZero: true});
+        $('#inputCadastroValorTotal').maskMoney({ prefix: 'R$ ', allowNegative: true, thousands: '.', decimal: ',' , allowZero:false});
+        $('#inputCadastroItemValorTotal').maskMoney({ prefix: 'R$ ', allowNegative: true, thousands: '.', decimal: ',' , allowZero:false});
+        $('#inputCadastroItemValorUnitario').maskMoney({ prefix: 'R$ ', allowNegative: true, thousands: '.', decimal: ',' , allowZero:false});
         $('#inputCadastroItemQTDE').mask('000000000');
 
         function exibirModalCadastro(){
@@ -247,7 +253,8 @@
                 datatype:'json',
                 data:{
                     '_token':'{{csrf_token()}}',
-                    'filtro': $('#inputDescricaoFiltro').val()
+                    'filtro': $('#inputFiltro').val(),
+                    'ID_SITUACAO': $('#selectFiltroSituacao').val()
                 },
                 url:"{{route('compras.buscar.ordem')}}",
                 success:function(r){
@@ -257,8 +264,26 @@
             })
         }
 
+        function buscarSituacoes(){
+            editar = false;
+            $.ajax({
+                type:'post',
+                datatype:'json',
+                data:{
+                    '_token':'{{csrf_token()}}',
+                    'TIPO': 'ORDEM_COMPRA'
+                },
+                url:"{{route('buscar.situacoes')}}",
+                success:function(r){
+                    popularSelectSituacoes(r.dados);
+                },
+                error:err=>{exibirErro(err)}
+            })
+        }
+
         function popularListaDados(dados){
             var htmlTabela = "";
+
             for(i=0; i< dados.length; i++){
                 var Keys = Object.keys(dados[i]);
                 for(j=0;j<Keys.length;j++){
@@ -267,34 +292,42 @@
                     }
                 }
                 var situacaoAprovacao = '-';
-                var btnAcoes = '-';
+                var btnAcoes = '';
+                var btnAprovavaco = '';
+                var btnImprimir = `<button class="btn" onclick="gerarImpresso(${dados[i]['ID']}, 1)"><i class="fas fa-print"></i></button>`;
                 var classeBadgeSituacao = 'bg-warning';
 
-                if(dado[i]['ID_USUARIO_APROVACAO'] != null && dado[i]['ID_USUARIO_APROVACAO'] != '0'){
-                    situacaoAprovacao = `${dados['USUARIO_APROVACAO']} - ${moment(dados[i]['DATA_APROVACAO']).format('DD/MM/YYYY HH:mi')}`;
+                if(dados[i]['ID_USUARIO_APROVACAO'] != null && dados[i]['ID_USUARIO_APROVACAO'] > 0){
+                    situacaoAprovacao = `<span class="badge bg-info">${dados[i]['USUARIO_APROVACAO']} - ${moment(dados[i]['DATA_APROVACAO']).format('DD/MM/YYYY H:m')}</span>`;
                 }
 
-                if(dados[i]['ID_SITUACAO'] == 2){
+                if(dados[i]['ID_SITUACAO'] == 1){
                     classeBadgeSituacao = 'bg-success';
-                } else if(dados[i]['ID_SITUACAO'] == 3){
+                } else if(dados[i]['ID_SITUACAO'] == 2){
                     classeBadgeSituacao = 'bg-danger';
+                } else if(dados[i]['STATUS'] == 'A' && dados[i]['ID_SITUACAO'] == 3){
+                    btnAprovavaco = `<button class="btn" onclick="alterarSituacaoOrdem(${dados[i]['ID']}, 1)"><i class="fas fa-check" style="color: #63E6BE;"></i></button>
+                                     <button class="btn" onclick="alterarSituacaoOrdem(${dados[i]['ID']}, 2)"><i class="fas fa-times" style="color: #ff0000;"></i></button>`;
                 }
 
-                if(dados[i]['SITUACAO'] == 'A'){
-                    btnAcoes = ` <button class="btn" onclick="exibirModalEdicao(${dados[i]['ID']})"><i class="fas fa-pen"></i></button>
-                                 <button class="btn" onclick="inativar(${dados[i]['ID']})"><i class="fas fa-trash"></i></button>`;
+                if(dados[i]['STATUS'] == 'A' && dados[i]['ID_SITUACAO'] == 3){
+                    btnAcoes = `<button class="btn" onclick="exibirModalEdicao(${dados[i]['ID']})"><i class="fas fa-pen"></i></button>
+                                <button class="btn" onclick="inativar(${dados[i]['ID']})"><i class="fas fa-trash"></i></button>`;
                 }
                 
                 htmlTabela += `
                     <tr id="tableRow${dados[i]['ID']}" class="d-none d-lg-table-row">
                         <td class="tdTexto" style="padding-left: 5px!important">${dados[i]['USUARIO']}</td>
-                        <td class="tdTexto">${moment(dados[i]['DATA_CADASTRO']).format('DD/MM/YYYY HH:mi')}</td>
-                        <td class="tdTexto">${mascaraFinanceira(dados[i]['VALOR_TOTAL'])}</td>
-                        <td class="tdTexto"><span class="right badge ${classeBadgeSituacao}">${dados[i]['SITUACAO']}</span></td>
-                        <td class="tdTexto">${situacaoAprovacao}</td>
+                        <td class="tdTexto"><center>${moment(dados[i]['DATA_CADASTRO']).format('DD/MM/YYYY H:m')}</center></td>
+                        <td class="tdTexto"><center>${mascaraFinanceira(dados[i]['VALOR'])}</center></td>
+                        <td class="tdTexto"><center><span class="right badge ${classeBadgeSituacao}">${dados[i]['SITUACAO']}</span></center></td>
+                        <td class="tdTexto"><center>${situacaoAprovacao}</center></td>
+                        <td class="tdTexto"><center>${dados[i]['OBSERVACAO'].substr(0, 20)}</center></td>
                         <td>
                             <center>
-                            ${btnAcoes}
+                                ${btnAprovavaco}
+                                ${btnAcoes}
+                                ${btnImprimir}
                             </center>
                         </td>
                     </tr>
@@ -336,15 +369,133 @@
             $('#tableBodyDadosItens').html(htmlTabela);
         }
 
+        function popularSelectSituacoes(dados){
+            var htmlTabela = `<option value="0">Todas as Situações</option>`;
+
+            for(i=0; i< dados.length; i++){
+                var materialKeys = Object.keys(dados[i]);
+                for(j=0;j<materialKeys.length;j++){
+                    if(dados[i][materialKeys[j]] == null){
+                        dados[i][materialKeys[j]] = "";
+                    }
+                }
+
+                htmlTabela += `
+                    <option value="${dados[i]['ID_ITEM']}">${dados[i]['VALOR']}</option>`;
+            }
+            $('#selectFiltroSituacao').html(htmlTabela)
+        }
+        
+        function inserirOrdemServico() {
+            validacao = true;
+
+            var inputIDs = ['inputCadastroData', 'inputCadastroValorTotal'];
+
+            for (var i = 0; i < inputIDs.length; i++) {
+                var inputID = inputIDs[i];
+                var input = $('#' + inputID);
+                
+                if (input.val() === '' || input.val() == '0' && inputID == 'inputCadastroValorTotal') {
+                    input.addClass('is-invalid');
+                    validacao = false;
+                } else {
+                    input.removeClass('is-invalid');
+                }
+            }
+
+            if(dadosItens.length == 0){
+                Swal.fire(
+                    'Atenção!',
+                    'Insira ao menos um item para a ordem de compra!',
+                    'warning'
+                );
+                validacao = false;
+            }
+
+            if(validacao){
+                var cadastroID = $('#inputCadastroID').val();
+                var data = $('#inputCadastroData').val();
+                var valorTotal = limparMascaraFinanceira($('#inputCadastroValorTotal').val());
+                var projeto = $('#inputCadastroProjeto').val();
+                var idProjeto = $('#inputCadastroIDProjeto').val();
+                var observacao = $('#inputCadastroObservacao').val();
+            
+                if(cadastroID == 0){
+                    $.ajax({
+                        type:'post',
+                        datatype:'json',
+                        data:{
+                            '_token':'{{csrf_token()}}',
+                            'data': data,
+                            'valorTotal': valorTotal,
+                            'idProjeto': idProjeto,
+                            'observacao': observacao,
+                            'dadosItens': dadosItens,
+                        },
+                        url:"{{route('compras.inserir.ordem')}}",
+                        success:function(r){
+                            $('#modal-cadastro').modal('hide');
+
+                            buscarDados();
+
+                            Swal.fire(
+                                'Sucesso!',
+                                'Ordem de Compra cadastrada com sucesso.',
+                                'success',
+                            );
+                        },
+                        error:err=>{exibirErro(err)}
+                    })
+                } else {
+                    $.ajax({
+                        type:'post',
+                        datatype:'json',
+                        data:{
+                            '_token':'{{csrf_token()}}',
+                            'data': data,
+                            'valorTotal': valorTotal,
+                            'idProjeto': idProjeto,
+                            'observacao': observacao,
+                            'dadosItens': dadosItens,
+                            'ID': cadastroID,
+                        },
+                        url:"{{route('material.alterar')}}",
+                        success:function(r){
+                            $('#modal-cadastro').modal('hide');
+
+                            buscarDados();
+
+                            Swal.fire(
+                                'Sucesso!',
+                                'Ordem de Compra alterada com sucesso.',
+                                'success',
+                            )
+                        },
+                        error:err=>{exibirErro(err)}
+                    })
+                }
+            }
+            
+        }
+
         function inserirItemOrdem() {
             var validacao = true;
+
+            if($('#inputCadastroItem').val().trim().length == 0){
+                Swal.fire(
+                    'Atenção!',
+                    'Informe ao menos um item para adicionar!',
+                    'warning'
+                );
+                validacao = false;
+            }
 
             if(validacao){
                 var descItem = '';
 
                 var dadoItemSelecionado = {
-                    ID_ITEM : $('#inputCadastroItem').val(),
-                    ITEM : $('#inputCadastroItemID').val(),
+                    ID_ITEM : $('#inputCadastroItemID').val(),
+                    ITEM : $('#inputCadastroItem').val(),
                     VALOR_UNITARIO : limparMascaraFinanceira($('#inputCadastroItemValorUnitario').val()),
                     QTDE : $('#inputCadastroItemQTDE').val(),
                     VALOR_TOTAL : limparMascaraFinanceira($('#inputCadastroItemValorTotal').val()),
@@ -357,9 +508,40 @@
                 popularListaItens();
     
                 calcularValorTotal();
-    
-                resetarCamposItem();
+
+                limparCampo('inputCadastroItem', 'inputCadastroItemID', 'btnLimparCadastroItem', inputsAdicionaisItemCadastro);
             }
+        }
+
+        function alterarSituacaoOrdem(idOrdem, situacao){
+            Swal.fire({
+                title: 'Confirmação',
+                text: 'Deseja alterar a situação da ordem de compra?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Sim',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        type:'post',
+                        datatype:'json',
+                        data:{
+                            '_token':'{{csrf_token()}}',
+                            'ID': idOrdem,
+                            'ID_SITUACAO' : situacao
+                        },
+                        url:"{{route('compras.alterar.situacao')}}",
+                        success:function(r){
+                            Swal.fire('Sucesso!'
+                                    , 'Situação alterada com sucesso.'
+                                    , 'success');
+                            buscarDados();
+                        },
+                        error:err=>{exibirErro(err)}
+                    })
+                }
+            });
         }
 
         function calcularValorTotal(){
@@ -371,7 +553,23 @@
 
             valorTotalOrdem = valorTotal;
 
-            $('#inputCadastroValorTotal').html(mascaraFinanceira(valorTotal));
+            $('#inputCadastroValorTotal').val(mascaraFinanceira(valorTotal));
+        }
+
+        function calcularValorItem(){
+            var valorUnitario = 0, valorTotalItem = 0, qtde = 0;
+
+            if($('#inputCadastroItemValorUnitario').val() != ''){
+                valorUnitario =  parseFloat(limparMascaraFinanceira($('#inputCadastroItemValorUnitario').val()));
+            }
+
+            if($('#inputCadastroItemQTDE').val() != ''){
+                qtde = $('#inputCadastroItemQTDE').val();
+            }
+
+            valorTotalItem = valorUnitario * qtde;
+
+            $('#inputCadastroItemValorTotal').val(mascaraFinanceira(valorTotalItem));
         }
 
         function removerItem(ID_UNICO){
@@ -383,13 +581,13 @@
 
             dadosItens.splice(index,1);
 
-            popularListaItem();
+            popularListaItens();
             calcularValorTotal();
         }
 
         function resetarCampos(){
             $('#inputCadastroID').val('0')
-            $('#inputCadastroData').val(moment().format('YYYY-MM-DD DD:mi'))
+            $('#inputCadastroData').val(moment().format('YYYY-MM-DD H:m'))
             $('#inputCadastroValorTotal').val('')
             $('#inputCadastroValorTotal').val('')
             $('#inputCadastroItem').val('')
@@ -404,14 +602,53 @@
             popularListaItens();
         }
 
-        function resetarCamposItem(){
-            $('#inputCadastroItem').val('')
-            $('#inputCadastroItemID').val('0')
-            $('#inputCadastroItemQTDE').val('')
-            $('#inputCadastroItemValorUnitario').val('')
-            $('#inputCadastroItemValorTotal').val('')
-            $('#inputCadastroItemObs').val('')
+        function gerarImpresso(idOrdem){
+            window.open(`{{env('APP_URL')}}/compras/imprimir/ordem/${idOrdem}`)
         }
+
+        $("#inputCadastroItem").autocomplete({
+            source: function(request, cb){
+                param = request.term;
+                campoBuscado = param;
+                $.ajax({
+                    url:"{{route('material.busca')}}",
+                    method: 'post',
+                    data:{
+                        '_token': '{{csrf_token()}}',
+                        'filtro': param
+                    },
+                    dataType: 'json',
+                    success: function(r){
+                        result = $.map(r.dados, function(obj){
+                            return {
+                                label: obj.info,
+                                value: obj.MATERIAL,
+                                data : obj
+                            };
+                        });
+                        cb(result);
+                    },
+                    error: err=>{
+                        console.log(err)
+                    }
+                });
+            },
+            select:function(e, selectedData) {
+                if (selectedData.item.label != 'Nenhum Veículo Encontrado.'){
+                    $('#inputCadastroItem').val(selectedData.item.data.MATERIAL);
+                    $('#inputCadastroItem').attr('disabled', true); 
+                    $('#inputCadastroItemID').val(selectedData.item.data.ID);
+                    $('#inputCadastroItemQTDE').val('1');
+                    $('#inputCadastroItemValorUnitario').val(mascaraFinanceira(selectedData.item.data.VALOR));
+                    $('#inputCadastroItemValorTotal').val(mascaraFinanceira(selectedData.item.data.VALOR));
+                    $('#inputCadastroItemObs').val('');
+                    $('.btnLimparCadastroItem').removeClass('d-none');
+                    $('#btnQRCODE').addClass('d-none');
+                } else {
+                    limparCampo('inputCadastroItem', 'inputCadastroItemID', 'btnLimparCadastroItem', inputsAdicionaisItemCadastro);
+                }
+            }
+        });
 
         $('#btnCadastroSalvar').on('click', () => {
             inserirOrdemServico();
@@ -425,7 +662,24 @@
             exibirModalCadastro();
         });
 
+        $('#btnLimparCadastroItem').on('click', () => {
+            limparCampo('inputCadastroItem', 'inputCadastroItemID', 'btnLimparCadastroItem', inputsAdicionaisItemCadastro);
+        });
+
+        $('#selectFiltroSituacao').on('change', () => {
+            buscarDados();
+        });
+
+        $('#inputCadastroItemQTDE').on('change', () => {
+            calcularValorItem();
+        });
+
+        $('#inputCadastroItemValorUnitario').on('change', () => {
+            calcularValorItem();
+        });
+
         $(document).ready(function() {
+            buscarSituacoes();
             buscarDados();
         })
     </script>

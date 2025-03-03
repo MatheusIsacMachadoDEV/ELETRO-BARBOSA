@@ -11,6 +11,8 @@
 |
 */
 
-Route::prefix('financeiro')->group(function() {
-    Route::get('/', 'FinanceiroController@index');
+Route::middleware(['auth'])->group(function () {
+    Route::prefix('financeiro')->group(function() {
+        Route::get('/', 'FinanceiroController@index');
+    });
 });

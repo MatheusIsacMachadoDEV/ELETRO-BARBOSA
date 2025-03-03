@@ -17,13 +17,19 @@ class PadraoController extends Controller
         $this->middleware('auth');
     }
 
-    /**
-     * Show the application dashboard.
-     *
-     * @return \Illuminate\Contracts\Support\Renderable
-     */
-        public function index()
-        {
-            //todo
-        }
+   
+    public function buscarSituacoes(Request $request){
+        $dadosRecebidos = $request->except('_token');
+        $tipoSituacao = $dadosRecebidos['TIPO'];
+        $return = [];
+        
+        $query = " SELECT situacoes.*
+                     FROM situacoes
+                    WHERE STATUS = 'A'
+                      AND TIPO = '$tipoSituacao'";
+        $result = DB::select($query);
+        $return['dados'] = $result;
+        
+        return $return;
+    }
 }

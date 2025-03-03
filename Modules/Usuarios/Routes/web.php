@@ -11,7 +11,9 @@
 |
 */
 
-Route::prefix('usuarios')->group(function() {
-    Route::get('/', 'UsuariosController@index');
-    Route::post('/buscar', 'UsuariosController@buscarUsuarios')->name('usuarios.buscar');
+Route::middleware(['auth'])->group(function () {
+    Route::prefix('usuarios')->group(function() {
+        Route::get('/', 'UsuariosController@index');
+        Route::post('/buscar', 'UsuariosController@buscarUsuarios')->name('usuarios.buscar');
+    });
 });

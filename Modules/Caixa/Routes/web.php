@@ -11,11 +11,13 @@
 |
 */
 
-Route::prefix('caixa')->group(function() {
-    Route::get('/', 'CaixaController@index')->name('caixa');
-    Route::get('/impresso', 'CaixaController@impressoCaixa')->name('caixa.impresso');
+Route::middleware(['auth'])->group(function () {
+    Route::prefix('caixa')->group(function() {
+        Route::get('/', 'CaixaController@index')->name('caixa');
+        Route::get('/impresso', 'CaixaController@impressoCaixa')->name('caixa.impresso');
 
-    Route::post('/buscar/caixa', 'CaixaController@buscarCaixa')->name('caixa.buscar');
-    Route::post('/abrir', 'CaixaController@abrirCaixa')->name('caixa.abrir');
-    Route::post('/fechar', 'CaixaController@fecharCaixa')->name('caixa.fechar');
+        Route::post('/buscar/caixa', 'CaixaController@buscarCaixa')->name('caixa.buscar');
+        Route::post('/abrir', 'CaixaController@abrirCaixa')->name('caixa.abrir');
+        Route::post('/fechar', 'CaixaController@fecharCaixa')->name('caixa.fechar');
+    });
 });

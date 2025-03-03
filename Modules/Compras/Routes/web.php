@@ -11,11 +11,15 @@
 |
 */
 
-Route::prefix('compras')->group(function() {
-    Route::get('/', 'ComprasController@index');
+Route::middleware(['auth'])->group(function () {
+    Route::prefix('compras')->group(function() {
+        Route::get('/', 'ComprasController@index');
+        Route::get('/imprimir/ordem/{id}', 'ComprasController@imprimirOrdemCompra')->name('compra.imprimir.ordem');
 
-    Route::post('/buscar', 'ComprasController@buscarOrdemCompra')->name('compras.buscar.ordem');
-    Route::post('/inserir', 'ComprasController@inserirOrdemCompra')->name('compras.inserir.ordem');
-    Route::post('/alterar', 'ComprasController@alterarOrdemCompra')->name('compras.alterar.ordem');
-    Route::post('/inativar', 'ComprasController@inativarOrdemCompra')->name('compras.inativar.ordem');
+        Route::post('/buscar', 'ComprasController@buscarOrdemCompra')->name('compras.buscar.ordem');
+        Route::post('/inserir', 'ComprasController@inserirOrdemCompra')->name('compras.inserir.ordem');
+        Route::post('/alterar', 'ComprasController@alterarOrdemCompra')->name('compras.alterar.ordem');
+        Route::post('/alterar/situacao', 'ComprasController@alterarSituacaoOrdemCompra')->name('compras.alterar.situacao');
+        Route::post('/inativar', 'ComprasController@inativarOrdemCompra')->name('compras.inativar.ordem');
+    });
 });

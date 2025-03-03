@@ -20,6 +20,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/', [App\Http\Controllers\PDVController::class, 'index'])->name('faturamento');
     Route::get('/home', [App\Http\Controllers\PDVController::class, 'index'])->name('home');
 
+    Route::post('/situacao/buscar', [App\Http\Controllers\PadraoController::class, 'buscarSituacoes'])->name('buscar.situacoes');
+
     Route::get('/venda', [App\Http\Controllers\VendaController::class, 'index'])->name('venda');
     Route::post('/venda/inserir', [App\Http\Controllers\VendaController::class, 'inserirVenda'])->name('venda.inserir');
     Route::post('/venda/inserir/documento', [App\Http\Controllers\VendaController::class, 'inserirDocumentoVenda'])->name('venda.inserir.documento');
