@@ -23,15 +23,24 @@
 
     <div class="content-body">
         <div class="card">
-            <div class="card-header">
+            <div class="card-header m-0 p-0">
                 <div class="row d-flex m-0 p-0">
-                    <div class="col-12 col-md-6">
+                    <div class="col-12 col-md-4">
                         <input type="text" class="form-control form-control-border" id="inputFiltro" placeholder="Filtro" maxlength="8" onkeyup="buscarDados()">
                     </div>
-                    <div class="col-12 col-md-6">
-                        <select id="selectFiltroSituacao" class="form-control form-control-borde">
+                    <div class="col-12 col-md-4">
+                        <select id="selectFiltroSituacao" class="form-control form-control-border">
                             <option value="0">Todas as Situações</option>   
                         </select>
+                    </div>
+                    <div class="col-12 col-md-4 row d-flex">
+                        <div class="form-group col-12 col-md-5">
+                            <input id="inputFiltroDataInicio" type="date" class="form-control form-control-border" value="{{date('Y-m-d')}}">
+                        </div>
+                        <label class="col-2">Até</label>
+                        <div class="form-group col-12 col-md-5">
+                            <input id="inputFiltroDataFim" type="date" class="form-control form-control-border">
+                        </div>
                     </div>
                 </div>
             </div>
@@ -44,7 +53,7 @@
                         <th class="d-none d-lg-table-cell"><center>Situação</center></th>
                         <th class="d-none d-lg-table-cell"><center>Aprovação</center></th>
                         <th class="d-none d-lg-table-cell"><center>Observação</center></th>
-                        <th class="d-none d-lg-table-cell"><center>Ações</center></th>
+                        <th class="d-none d-lg-table-cell" style="width: 10vw"><center></center></th>
                     </thead>
                     <tbody id="tableBodyDados">
                     </tbody>
@@ -145,10 +154,10 @@
     </div> 
 
     <div class="modal fade" id="modal-documentacao">
-        <div class="modal-dialog ">
+        <div class="modal-dialog modal-lg">
             <div class="modal-content p-0">
                 <div class="modal-header">
-                    <h5 class="modal-title" >Documentação da dados <span id="titleDocumento"></span></h5>
+                    <h5 class="modal-title" >Documentação da Ordem <span id="titleDocumento"></span></h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -157,8 +166,7 @@
                     <div class="card">
                         <div class="card-header">
                             <div class="">
-                                <input type="hidden" id="inputPlacaDocumentacao">
-                                <input type="hidden" id="inputIDdadosDocumentacao">
+                                <input type="hidden" id="inputIDOrdemCompra">
                                 <div class="input-group">
                                     <div class="custom-file">
                                         <input type="file" class="custom-file-input" id="inputArquivoDocumentacao" onchange="validaDocumento()">
@@ -171,10 +179,9 @@
                             </div>
                         </div>
                         <div class="card-body">
-                            <table class="table table-responsive">
+                            <table class="table table-responsive-xs">
                                 <thead>
                                     <tr>
-                                        <th>Veiculo</th>
                                         <th>Documento</th>
                                         <th><center>Ações</center></th>
                                     </tr>
@@ -233,6 +240,7 @@
     <script>
         var dadosItens = [];
         var valorTotalOrdem = 0;
+        var timeoutFiltro = 0;
         let inputsAdicionaisItemCadastro = ['inputCadastroItemQTDE', 'inputCadastroItemValorUnitario', 'inputCadastroItemValorTotal', 'inputCadastroItemObs'];
 
         $('#inputCadastroValorTotal').maskMoney({ prefix: 'R$ ', allowNegative: true, thousands: '.', decimal: ',' , allowZero:false});
@@ -246,6 +254,34 @@
             $('#modal-cadastro').modal('show');
         }
 
+        function exibirModalEdicao(idOrdem){
+            resetarCampos();
+
+            $.ajax({
+                type:'post',
+                datatype:'json',
+                data:{
+                   '_token':'{{csrf_token()}}',
+                   'ID': idOrdem
+                },
+                url:"{{route('compras.buscar.ordem')}}",
+                success:function(r){
+                    var dados = r.dados[0];
+
+                    $('#inputCadastroID').val(idOrdem)
+                    $('#inputCadastroData').val(dados['DATA_CADASTRO'])
+                    $('#inputCadastroObservacao').val(dados['OBSERVACAO'])
+                    $('#inputCadastroValorTotal').val(mascaraFinanceira(dados['VALOR']))
+                    
+                    dadosItens = dados['ITENS'];
+
+                    popularListaItens();
+                    $('#modal-cadastro').modal('show');
+                },
+                error:err=>{exibirErroAJAX(err)}
+            })
+        }
+
         function buscarDados(){
             editar = false;
             $.ajax({
@@ -254,7 +290,9 @@
                 data:{
                     '_token':'{{csrf_token()}}',
                     'filtro': $('#inputFiltro').val(),
-                    'ID_SITUACAO': $('#selectFiltroSituacao').val()
+                    'ID_SITUACAO': $('#selectFiltroSituacao').val(),
+                    'DATA_INICIO': $('#inputFiltroDataInicio').val(),
+                    'DATA_FIM': $('#inputFiltroDataFim').val(),
                 },
                 url:"{{route('compras.buscar.ordem')}}",
                 success:function(r){
@@ -293,9 +331,12 @@
                 }
                 var situacaoAprovacao = '-';
                 var btnAcoes = '';
+                var btnOpcoes = '';
                 var btnAprovavaco = '';
-                var btnImprimir = `<button class="btn" onclick="gerarImpresso(${dados[i]['ID']}, 1)"><i class="fas fa-print"></i></button>`;
+                var btnArquivos = '';
+                var btnImprimir = `<li class="dropdown-item" onclick="gerarImpresso(${dados[i]['ID']}, 1)"><span class="btn"><i class="fas fa-print"></i> Imprimir</span></li>`;
                 var classeBadgeSituacao = 'bg-warning';
+                var dataFormatada = moment(dados[i]['DATA_CADASTRO']).format('DD/MM/YYYY H:m');
 
                 if(dados[i]['ID_USUARIO_APROVACAO'] != null && dados[i]['ID_USUARIO_APROVACAO'] > 0){
                     situacaoAprovacao = `<span class="badge bg-info">${dados[i]['USUARIO_APROVACAO']} - ${moment(dados[i]['DATA_APROVACAO']).format('DD/MM/YYYY H:m')}</span>`;
@@ -306,28 +347,42 @@
                 } else if(dados[i]['ID_SITUACAO'] == 2){
                     classeBadgeSituacao = 'bg-danger';
                 } else if(dados[i]['STATUS'] == 'A' && dados[i]['ID_SITUACAO'] == 3){
-                    btnAprovavaco = `<button class="btn" onclick="alterarSituacaoOrdem(${dados[i]['ID']}, 1)"><i class="fas fa-check" style="color: #63E6BE;"></i></button>
-                                     <button class="btn" onclick="alterarSituacaoOrdem(${dados[i]['ID']}, 2)"><i class="fas fa-times" style="color: #ff0000;"></i></button>`;
+                    btnAprovavaco = `<li class="dropdown-item" onclick="alterarSituacaoOrdem(${dados[i]['ID']}, 1)"><span class="btn"><i class="fas fa-check" style="color: #63E6BE;"></i></span> Aprovar</li>
+                                     <li class="dropdown-item" onclick="alterarSituacaoOrdem(${dados[i]['ID']}, 2)"><span class="btn"><i class="fas fa-times" style="color: #ff0000;"></i></span> Reprovar</li>`;
                 }
 
                 if(dados[i]['STATUS'] == 'A' && dados[i]['ID_SITUACAO'] == 3){
-                    btnAcoes = `<button class="btn" onclick="exibirModalEdicao(${dados[i]['ID']})"><i class="fas fa-pen"></i></button>
-                                <button class="btn" onclick="inativar(${dados[i]['ID']})"><i class="fas fa-trash"></i></button>`;
+                    btnAcoes = `<li class="dropdown-item" onclick="exibirModalEdicao(${dados[i]['ID']})"><span class="btn"><i class="fas fa-pen"></i> Editar</span></li>
+                                <li class="dropdown-item" onclick="inativarOrdem(${dados[i]['ID']})"><span class="btn"><i class="fas fa-trash"></i> Inativar</span></li>`;
                 }
+
+                btnArquivos = `<li class="dropdown-item" onclick="cadastarDocumento(${dados[i]['ID']}, '${dataFormatada}')"><span class="btn"><i class="fas fa-file-alt"></i></span> Arquivos</li>`;
+
+                var btnOpcoes = ` <div class="input-group-prepend show justify-content-center" style="text-align: center">
+                                            <button type="button" class="btn btn-sm btn-warning dropdown-toggle" data-toggle="dropdown" aria-expanded="true">
+                                                Ações
+                                            </button>
+                                            <ul class="dropdown-menu ">
+                                                ${btnAprovavaco}
+                                                ${btnAcoes}                                            
+                                                ${btnImprimir}                                            
+                                                ${btnArquivos}                                            
+                                            </ul>
+                                        </div>
+                                    `;
+
                 
                 htmlTabela += `
                     <tr id="tableRow${dados[i]['ID']}" class="d-none d-lg-table-row">
-                        <td class="tdTexto" style="padding-left: 5px!important">${dados[i]['USUARIO']}</td>
-                        <td class="tdTexto"><center>${moment(dados[i]['DATA_CADASTRO']).format('DD/MM/YYYY H:m')}</center></td>
+                        <td class="tdTexto" style="padding-left: 5px!important">${dados[i]['ID']} - ${dados[i]['USUARIO']}</td>
+                        <td class="tdTexto"><center>${dataFormatada}</center></td>
                         <td class="tdTexto"><center>${mascaraFinanceira(dados[i]['VALOR'])}</center></td>
                         <td class="tdTexto"><center><span class="right badge ${classeBadgeSituacao}">${dados[i]['SITUACAO']}</span></center></td>
                         <td class="tdTexto"><center>${situacaoAprovacao}</center></td>
                         <td class="tdTexto"><center>${dados[i]['OBSERVACAO'].substr(0, 20)}</center></td>
                         <td>
                             <center>
-                                ${btnAprovavaco}
-                                ${btnAcoes}
-                                ${btnImprimir}
+                            ${btnOpcoes}
                             </center>
                         </td>
                     </tr>
@@ -459,7 +514,7 @@
                             'dadosItens': dadosItens,
                             'ID': cadastroID,
                         },
-                        url:"{{route('material.alterar')}}",
+                        url:"{{route('compras.alterar.ordem')}}",
                         success:function(r){
                             $('#modal-cadastro').modal('hide');
 
@@ -544,6 +599,36 @@
             });
         }
 
+        function inativarOrdem(idMovimentacao){
+            Swal.fire({
+                title: 'Confirmação',
+                text: `Deseja inativar a ordem de compra ${idMovimentacao}?`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Sim',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        type:'post',
+                        datatype:'json',
+                        data:{
+                            '_token':'{{csrf_token()}}',
+                            'ID': idMovimentacao
+                        },
+                        url:"{{route('compras.inativar.ordem')}}",
+                        success:function(r){
+                            Swal.fire('Sucesso!'
+                                    , 'Ordem de Compra inativada com sucesso.'
+                                    , 'success');
+                            buscarDados();
+                        },
+                        error:err=>{exibirErro(err)}
+                    })
+                }
+            });
+        }
+
         function calcularValorTotal(){
             var valorTotal = 0;
             for(i=0; i< dadosItens.length; i++){
@@ -588,6 +673,7 @@
         function resetarCampos(){
             $('#inputCadastroID').val('0')
             $('#inputCadastroData').val(moment().format('YYYY-MM-DD H:m'))
+            $('#inputCadastroObservacao').val('')
             $('#inputCadastroValorTotal').val('')
             $('#inputCadastroValorTotal').val('')
             $('#inputCadastroItem').val('')
@@ -605,6 +691,164 @@
         function gerarImpresso(idOrdem){
             window.open(`{{env('APP_URL')}}/compras/imprimir/ordem/${idOrdem}`)
         }
+
+        // DOCUMENTOS
+            function cadastarDocumento(idDocumento, descricaoDocumento){
+                $('#titleDocumento').text(idDocumento +' - '+descricaoDocumento);
+                $('#inputIDOrdemCompra').val(idDocumento);
+
+                buscarDocumento();
+
+                $('#modal-documentacao').modal('show');
+            }
+
+            function buscarDocumento(){
+                var idOrdem = $('#inputIDOrdemCompra').val();
+                $.ajax({
+                    type:'post',
+                    datatype:'json',
+                    data:{
+                        '_token':'{{csrf_token()}}',                    
+                        'ID_ORDEM': idOrdem,
+                    },
+                    url:"{{route('compras.buscar.documento.ordem')}}",
+                    success:function(r){
+                        popularListaDocumentos(r.dados);
+                    },
+                    error:err=>{exibirErro(err)}
+                })
+            } 
+
+            function inativarDocumento(idDocumento){
+                Swal.fire({
+                    title: 'Confirmação',
+                    text: 'Deseja inativar o documento?',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Sim',
+                    cancelButtonText: 'Cancelar'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $.ajax({
+                            type:'post',
+                            datatype:'json',
+                            data:{
+                                '_token':'{{csrf_token()}}',
+                                'idDocumento': idDocumento
+                            },
+                            url:"{{route('compras.inativar.documento')}}",
+                            success:function(r){
+                                Swal.fire('Sucesso!'
+                                        , 'Documento inativado com sucesso.'
+                                        , 'success');
+                                buscarDocumento();
+                            },
+                            error:err=>{exibirErro(err)}
+                        })
+                    }
+                });
+            }
+
+            function verDocumento(caminhoDocumento){
+                url = "{{env('APP_URL')}}/"+caminhoDocumento;
+
+                window.open(url, '_blank');
+            }
+
+            function popularListaDocumentos(Documento){
+                var htmlDocumento = "";
+
+                for(i=0; i< Documento.length; i++){
+                    var DocumentoKeys = Object.keys(Documento[i]);
+                    for(j=0;j<DocumentoKeys.length;j++){
+                        if(Documento[i][DocumentoKeys[j]] == null){
+                            Documento[i][DocumentoKeys[j]] = "";
+                            }
+                        }
+                    
+                    documentoCaminho = Documento[i]['CAMINHO_DOCUMENTO'];
+                    documentoCaminho = documentoCaminho.split('/')[3];
+                    
+                    htmlDocumento += `
+                        <tr id="tableRow${Documento[i]['ID']}">
+                            <td class="tdTexto"><span style="text-decoration: underline; cursor: pointer;" onclick="verDocumento('${Documento[i]['CAMINHO_DOCUMENTO']}')">${documentoCaminho}</span></td>
+                                <td>\
+                                    <center>\
+                                    <button class="btn" onclick="inativarDocumento(${Documento[i]['ID']})"><i class="fas fa-trash"></i></button>\
+                                    </center>\
+                                </td>\                      
+                            </tr>`;
+                    }
+                $('#tableBodyDocumentos').html(htmlDocumento)
+            }  
+
+            function validaDocumento(){
+                if ($("#inputArquivoDocumentacao")[0].files.length > 0) {
+                    $('#labelInputArquivoDocumentacao').html($("#inputArquivoDocumentacao")[0].files[0].name);
+                } else {
+                    $('#labelInputArquivoDocumentacao').html('Selecionar Arquivos');
+                }
+            }
+
+            function salvarDocumento(){
+                if($("#inputArquivoDocumentacao")[0].files.length > 0){
+                    uploadArquivo();
+                } else {
+                    Swal.fire('Atenção!'
+                            , 'Selecione um documento para vincular à venda.'
+                            , 'error');
+                }
+            }
+
+            function uploadArquivo(){
+                var dataAnexo = new FormData();
+                anexoCaminho = "";
+                idOrdemCompra = $('#inputIDOrdemCompra').val();
+                dataAnexo.append('meuArquivo', document.getElementById('inputArquivoDocumentacao').files[0]);
+                dataAnexo.append('ID', idOrdemCompra);
+
+                $.ajax({
+                    processData: false,
+                    contentType: false,
+                    type : 'POST',
+                    data : dataAnexo,
+                    url : "{{env('APP_URL')}}/salvarDocumentacao.php",
+                    success : function(resultUpload) {
+                        if(resultUpload != "error"){
+                            anexoCaminho = resultUpload;
+                            $.ajax({
+                                type:'post',
+                                datatype:'json',
+                                data:{
+                                    '_token':'{{csrf_token()}}',
+                                    'caminhoArquivo': resultUpload,
+                                    'ID_ORDEM': idOrdemCompra
+                                },
+                                url:"{{route('compras.inserir.documento.ordem')}}",
+                                success:function(resultInsert){                               
+                                    $("#inputArquivoDocumentacao").val('');
+                                    validaDocumento();
+
+                                    Swal.fire('Sucesso!'
+                                            , 'Documento salvo com sucesso.'
+                                            , 'success');
+                                    buscarDocumento();
+                                },
+                                error:err=>{exibirErro(err)}
+                            })  
+                        }else{
+                            console.log(r)
+                            Swal.fire(
+                                'Atenção!',
+                                'Erro ao enviar Anexo.',
+                                'error'
+                            )
+                        }
+                    },
+                    error: err=>{exibirErro(err)}
+                });
+            }
+        // FIM
 
         $("#inputCadastroItem").autocomplete({
             source: function(request, cb){
@@ -677,6 +921,22 @@
         $('#inputCadastroItemValorUnitario').on('change', () => {
             calcularValorItem();
         });
+
+        $('#inputFiltroDataInicio').on('change', () => {
+            clearTimeout(timeoutFiltro);
+
+            timeoutFiltro = setTimeout(() => {
+                buscarDados();
+            }, 1500);
+        });
+
+        $('#inputFiltroDataFim').on('change', () => {
+            clearTimeout(timeoutFiltro);
+
+            timeoutFiltro = setTimeout(() => {
+                buscarDados();
+            }, 1500);
+        })
 
         $(document).ready(function() {
             buscarSituacoes();

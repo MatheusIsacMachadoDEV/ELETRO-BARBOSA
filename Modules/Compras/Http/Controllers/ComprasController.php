@@ -24,6 +24,17 @@ class ComprasController extends Controller
     public function buscarOrdemCompra(Request $request){
         $dadosRecebidos = $request->except('_token');
 
+        if(isset($dadosRecebidos['DATA_INICIO']) && isset($dadosRecebidos['DATA_FIM'])){
+            $filtroData = "AND ordem_compra.DATA_CADASTRO BETWEEN '{$dadosRecebidos['DATA_INICIO']} 00:00:00'
+                                                AND '{$dadosRecebidos['DATA_FIM']} 23:59:59'";
+        } else if(isset($dadosRecebidos['DATA_FIM']) && !isset($dadosRecebidos['DATA_INICIO'])){
+            $filtroData = "AND ordem_compra.DATA_CADASTRO <= '{$dadosRecebidos['DATA_FIM']} 23:59:59'";
+        } else if(isset($dadosRecebidos['DATA_INICIO']) && !isset($dadosRecebidos['DATA_FIM'])){
+            $filtroData = "AND ordem_compra.DATA_CADASTRO >= '{$dadosRecebidos['DATA_INICIO']} 00:00:00'";
+        } else {
+            $filtroData = "AND 1 = 1";
+        }
+
         if(isset($dadosRecebidos['ID'])){
             $filtroID = "AND ID = '{$dadosRecebidos['ID']}'";
         } else {
@@ -63,11 +74,46 @@ class ComprasController extends Controller
                    $filtro
                    $filtroSituacao
                    $filtroID
+                   $filtroData
                    ORDER BY ordem_compra.DATA_CADASTRO DESC";
         $result['dados'] = DB::select($query);
         $result['query'] = $query;
 
+        for ($i=0; $i < count($result['dados']) ; $i++) {
+          $idOrdem = $result['dados'][$i]->ID;
+          $queryOrdemItem = "SELECT ID
+                                  , ID_ITEM
+                                  , ID_UNICO_ITEM AS ID_UNICO
+                                  , (SELECT MATERIAL
+                                       FROM material
+                                      WHERE material.ID = ordem_compra_item.ID_UNICO_ITEM) AS ITEM
+                                  , OBSERVACAO
+                                  , QTDE
+                                  , VALOR_UNITARIO
+                                  , VALOR_TOTAL
+                               FROM ordem_compra_item
+                              WHERE STATUS = 'A'
+                                AND ID_ORDEM_COMPRA = $idOrdem";
+          $result['dados'][$i]->ITENS = DB::select($queryOrdemItem);
+
+        }
+
         return $result;
+    }
+
+    public function buscarDocumentoOrdemCompra(Request $request){
+      $dadosRecebidos = $request->except('_token');
+      $idOrdemCompra = $dadosRecebidos['ID_ORDEM'];
+      $return = [];
+      
+      $query = " SELECT ordem_compra_documento.*
+                     FROM ordem_compra_documento
+                    WHERE STATUS = 'A'
+                     AND ID_ORDEM_COMPRA = $idOrdemCompra";
+      $result = DB::select($query);
+      $return['dados'] = $result;
+      
+      return $return;
     }
 
     public function inserirOrdemCompra(Request $request){
@@ -144,6 +190,18 @@ class ComprasController extends Controller
         return $return;
     }
 
+    public function inserirDocumentoOrdemCompra(Request $request){
+      $dadosRecebidos = $request->except('_token');
+      $idOrdem = $dadosRecebidos['ID_ORDEM'];
+      $caminhoArquivo = $dadosRecebidos['caminhoArquivo'];
+
+      $query = "INSERT INTO ordem_compra_documento (ID_ORDEM_COMPRA, CAMINHO_DOCUMENTO) 
+                                  VALUES ($idOrdem, '$caminhoArquivo')";
+      $result = DB::select($query);
+
+      return $result;
+  }
+
     public function alterarOrdemCompra(Request $request){
         $dadosRecebidos = $request->except('_token');
         $idCodigo = $dadosRecebidos['ID'];
@@ -158,12 +216,12 @@ class ComprasController extends Controller
         $query = "UPDATE ordem_compra
                      SET VALOR = $valor
                        , OBSERVACAO = '$observacao'
-                       , DATA_CADASTRO = $data
+                       , DATA_CADASTRO = '$data'
                        , ID_PROJETO = $idProjeto
                    WHERE ID = $idCodigo";
         $result = DB::select($query);
 
-        $queryDelete = "DELETE ordem_compra_item
+        $queryDelete = "DELETE FROM ordem_compra_item
                          WHERE ID_ORDEM_COMPRA = $idCodigo";
         $resultDelete = DB::select($queryDelete);
 
@@ -268,11 +326,23 @@ class ComprasController extends Controller
         return $return;
     }
 
-    public function inativaOrdemCompra(Request $request){
+    public function inativarOrdemCompra(Request $request){
         $dadosRecebidos = $request->except('_token');
         $idCodigo = $dadosRecebidos['ID'];
 
         $query = "UPDATE ordem_compra 
+                     SET STATUS = 'I'
+                    WHERE ID = $idCodigo";
+        $result = DB::select($query);
+
+        return $result;
+    }
+
+    public function inativarDocumentoOrdemCompra(Request $request){
+        $dadosRecebidos = $request->except('_token');
+        $idCodigo = $dadosRecebidos['idDocumento'];
+
+        $query = "UPDATE ordem_compra_documento 
                      SET STATUS = 'I'
                     WHERE ID = $idCodigo";
         $result = DB::select($query);
