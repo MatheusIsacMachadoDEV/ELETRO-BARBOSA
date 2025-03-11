@@ -5,10 +5,10 @@
 @section('content')
     <div class="content-title">
         <div class="row d-flex">
-            <div class="col-3 d-none d-md-block">
-                <h1>Contas a Pagar</h1>
+            <div class="col-4 d-none d-md-block">
+                <h1 id="tituloPagina"></h1>
             </div>
-            <div class="col-12 col-md-9 d-flex justify-content-end p-2">
+            <div class="col-12 col-md-8 d-flex justify-content-end p-2">
                 <button class="col-md-4 btn btn-block btn-warning" id="btnNovoCPG">
                     <i class="fas fa-barcode"></i>
                     <span class="ml-1">Nova</span>
@@ -21,11 +21,11 @@
         <div class="card">
             <div class="card-header">
                 <div class="row d-flex">
-                    <div class="form-group col-12 d-flex row">
-                        <input type="text" class="form-control col-12 col-md-4" id="inputFiltroConta" placeholder="Descrição da Conta" maxlength="120" onkeyup="buscarCPG()">
+                    <div class="form-group col-12 d-flex row p-0 m-0">
+                        <input type="text" class="form-control form-control-border col-12 col-md-4" id="inputFiltroConta" placeholder="Descrição da Conta" maxlength="120" onkeyup="buscarCPG()">
                         
                         <div class="col-12 col-md-4 d-flex justify-content-between row m-0 p-0">
-                            <select class="form-control col-12" id="selectFiltroSituacao" onchange="buscarCPG()">
+                            <select class="form-control form-control-border col-12" id="selectFiltroSituacao" onchange="buscarCPG()">
                                 <option value="T">Todas as Situações</option>
                                 <option value="PAGA">Apenas Pagos</option>
                                 <option value="PENDENTE">Apenas Pendentes</option>
@@ -33,23 +33,25 @@
                         </div>
 
                         <div class="col-12 col-md-4 d-flex justify-content-between row m-0 p-0">
-                            <input type="date" class="form-control col-12 col-md-5" id="inputFiltroDataInicio" onchange="buscarCPG()">
+                            <input type="date" class="form-control form-control-border col-12 col-md-5" id="inputFiltroDataInicio" onchange="buscarCPG()">
                             <label class="col-12 col-md-2">Até</label>
-                            <input type="date" class="form-control col-12 col-md-5" id="inputFiltroDataFim" onchange="buscarCPG()">
+                            <input type="date" class="form-control form-control-border col-12 col-md-5" id="inputFiltroDataFim" onchange="buscarCPG()">
                         </div>
+                    </div>
+                    <div class="col-12 d-flex justify-content-end m-0 p-0">
+                        <span class="right badge badge-danger">Em Aberto <span id="spanValorAberto">R$ 0,00</span></span>
+                        <span class="right badge badge-success">Pago <span id="spanValorPago">R$ 0,00</span></span>
                     </div>
                 </div>
             </div>
             <div class="card-body">
-                <table class="table table-responsive-md">
+                <table class="table table-responsive-xs">
                     <thead>
                         <tr>
-                            <th>Conta</th>
-                            <th><center>Valor</center></th>
-                            <th><center>Data de vencimento</center></th>
-                            <th><center>Data de Pagamento</center></th>
-                            <th><center>Situação</center></th>
-                            <th><center>Ações</center></th>
+                            <th class="d-none d-lg-table-cell">Conta</th>
+                            <th class="d-none d-lg-table-cell"><center>Data de vencimento</center></th>
+                            <th class="d-none d-lg-table-cell"><center>Situação</center></th>
+                            <th class="d-none d-lg-table-cell"><center></center></th>
                         </tr>
                     </thead>
                     <tbody id="tableBodyDadosCPG">
@@ -63,7 +65,7 @@
         <div class="modal-dialog modal-xl">
             <div class="modal-content p-0">
                 <div class="modal-header">
-                    <h5 class="modal-title" >Conta a Pagar</h5>
+                    <h5 class="modal-title" >Cadastro</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -71,24 +73,26 @@
                 <div class="modal-body">
                     <div class="row d-flex">
                         <div class="form-group col-12">
-                            <label>Conta</label>
-                            <input type="hidden" class="form-control col-3" id="inputCodCPG">
-                            <input type="text" class="form-control col-12" id="inputDescricaoCPG" >
+                            <input type="hidden" class="form-control form-control-border col-3" id="inputCodCPG">
+                            <input type="text" class="form-control form-control-border col-12" id="inputDescricaoCPG" placeholder="Título da Conta" maxlength="50">
                         </div>
                         
                         <div class="form-group col-xs-6 col-md-2">
-                            <label>Data Vencimento</label>
-                            <input type="date"  class="form-control" id="inputDataVencimentoCPG">
+                            <input type="date"  class="form-control form-control-border" id="inputDataVencimentoCPG">
                         </div>
 
                         <div class="form-group col-xs-2 col-md-2">
-                            <label>Valor Conta</label>
-                            <input type="text" inputmode="numeric" class="form-control" id="inputValorCPG">
+                            <input type="text" inputmode="numeric" class="form-control form-control-border" id="inputValorCPG" placeholder="Valor Contas Pagar">
                         </div>
+
+                            <div class="form-group col-12 col-md-4">
+                                <select class="form-control form-control-border" id="selectOrigem">
+                                    <option value="0">Selecionar Origem</option>
+                                </select>
+                            </div>
                         
                         <div class="form-group col-12">
-                            <label>Observação</label>
-                            <textarea maxlength="150" class="form-control" id="inputObservacaoCPG"></textarea>
+                            <textarea maxlength="150" class="form-control form-control-border" id="inputObservacaoCPG" placeholder="Observações"></textarea>
                         </div>
                     </div>
                 </div>
@@ -104,7 +108,7 @@
         <div class="modal-dialog ">
             <div class="modal-content p-0">
                 <div class="modal-header">
-                    <h5 class="modal-title" >Documentação da Gasto <span id="titleDocumento"></span></h5>
+                    <h5 class="modal-title" >Comprovante/Documento - CPG <span id="titleDocumento"></span></h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -128,7 +132,7 @@
                             </div>
                         </div>
                         <div class="card-body">
-                            <table class="table table-responsive">
+                            <table class="table table-responsive-xs">
                                 <thead>
                                     <tr>
                                         <th>Conta</th>
@@ -173,12 +177,15 @@
 @stop
 
 @section('js')
+    <script src="{{env('APP_URL')}}/main.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-maskmoney/3.0.2/jquery.maskMoney.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/moment@2.29.1/moment.min.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
     <script>
+        var tipoCPG = '0';
+
         $('#inputValorCPG').maskMoney({ prefix: 'R$ ', allowNegative: true, thousands: '.', decimal: ',' });
 
         function buscarCPG(){
@@ -191,6 +198,7 @@
                     'filtroSituacao': $('#selectFiltroSituacao').val(),
                     'dataInicio': $('#inputFiltroDataInicio').val(),
                     'dataTermino': $('#inputFiltroDataFim').val(),
+                    'TIPO': tipoCPG
                 },
                 url:"{{route('contaspagar.buscar')}}",
                 success:function(r){
@@ -198,16 +206,56 @@
                 },
                 error:err=>{exibirErro(err)}
             })
-        }    
+        }
+
+        function buscarOrigem(){
+            editarMaterial = false;
+            $.ajax({
+                type:'post',
+                datatype:'json',
+                data:{
+                    '_token':'{{csrf_token()}}',
+                    'TIPO': 'CONTAS_PAGAR'
+                },
+                url:"{{route('buscar.situacoes')}}",
+                success:function(r){
+                    popularSelectOrigem(r.dados);
+                },
+                error:err=>{exibirErro(err)}
+            })
+        }
+
+        function popularSelectOrigem(dados){
+            var htmlTabela = `<option value="0">Selecionar Origem</option>`;
+
+            for(i=0; i< dados.length; i++){
+                var materialKeys = Object.keys(dados[i]);
+                for(j=0;j<materialKeys.length;j++){
+                    if(dados[i][materialKeys[j]] == null){
+                        dados[i][materialKeys[j]] = "";
+                    }
+                }
+
+                htmlTabela += `
+                    <option value="${dados[i]['ID_ITEM']}">${dados[i]['VALOR']}</option>`;
+            }
+            $('#selectOrigem').html(htmlTabela);
+        } 
 
         function cadastrarCPG(){
             $('#modal-cpg').modal('show');
 
             $('#inputDescricaoCPG').val('');
             $('#inputObservacaoCPG').val('');
+            $('#selectOrigem').val('0');
             $('#inputDataVencimentoCPG').val(moment().format('YYYY-MM-DD'));
             $('#inputValorCPG').val(mascaraFinanceira('0'));
             $('#inputCodCPG').val('0');
+            
+            if(tipoCPG > 0){
+                $('#selectOrigem').val(tipoCPG);
+                $('#selectOrigem').prop('disabled', true);
+            }
         }
 
         function fecharCadastroDocumento(){
@@ -245,6 +293,7 @@
                         'dataVencimento': $('#inputDataVencimentoCPG').val(),
                         'descricao': $('#inputDescricaoCPG').val(),
                         'observacao': $('#inputObservacaoCPG').val(),
+                        'ID_ORIGEM': $('#selectOrigem').val(),
                         },
                         url:"{{route('contaspagar.inserir')}}",
                         success:function(r){
@@ -271,6 +320,7 @@
                         'descricao': $('#inputDescricaoCPG').val(),
                         'observacao': $('#inputObservacaoCPG').val(),
                         'idCodigo': $('#inputCodCPG').val(),
+                        'ID_ORIGEM': $('#selectOrigem').val(),
                         },
                         url:"{{route('contaspagar.alterar')}}",
                         success:function(r){
@@ -294,9 +344,9 @@
         function inserirPagamento(idCPG, descricaoCPG){
             var dataAtual = moment().format('YYYY-MM-DD');
             Swal.fire({
-                title: 'Deseja realmente confirmar o pagamento '+descricaoCPG+'?',
+                title: 'Deseja realmente confirmar o pagamento para: '+descricaoCPG+'?',
                 html: ' <div class="form-group">\
-                            <input type="date" class="form-control" id="inputDataPagamento" >\
+                            <input type="date" class="form-control form-control-border" id="inputDataPagamento" >\
                         </div>',
                 showCancelButton: true,
                 confirmButtonText: 'Confirmar',
@@ -318,8 +368,32 @@
                             },
                             url:"{{route('contaspagar.inserir.pagamento')}}",
                             success:function(r){
-                                swal.fire('Sucesso!', 'Data de Pagamento inserida com sucesso.', 'success')
-                                buscarCPG();
+                                swal.fire('Sucesso!'
+                                         , 'Data de Pagamento inserida com sucesso.'
+                                         , 'success'
+                                ).then(() => {
+                                    buscarCPG();
+
+                                    Swal.fire({
+                                        icon: 'warning',
+                                        title: 'Atenção!',
+                                        text: 'Deseja vincular um Documento/Comprovante ?',
+                                        showCloseButton: false,
+                                        showConfirmButton: true,
+                                        confirmButtonText:
+                                            'Sim, adicionar!',
+                                        showCancelButton: true,
+                                        cancelButtonText:
+                                            'Não, cancelar',
+                                    }).then((result) => {
+                                        if (result.value) {
+                                            cadastarDocumento(idCPG);
+                                        }
+                                    })
+
+                                })
+
+
                             },
                             error:err=>{exibirErro(err)}
                         })
@@ -345,6 +419,7 @@
                 success:function(r){
                     $('#inputDescricaoCPG').val(r[0]['DESCRICAO']);
                     $('#inputObservacaoCPG').val(r[0]['OBSERVACAO']);
+                    $('#selectOrigem').val(r[0]['ID_ORIGEM']);
                     $('#inputDataVencimentoCPG').val(moment(r[0]['DATA_VENCIMENTO']).format('YYYY-MM-DD'));
                     $('#inputValorCPG').val(mascaraFinanceira(r[0]['VALOR']));
                     $('#inputCodCPG').val(idCPG);
@@ -398,42 +473,78 @@
                     }
                 }
                 var SituacaoCPG = "";
+                var dataVencimento = moment(CPG[i]['DATA_VENCIMENTO']).format('DD/MM/YYYY');
+                var dataPagamento = (CPG[i]['DATA_PAGAMENTO'].length == 0 ? '-' : moment(CPG[i]['DATA_PAGAMENTO']).format('DD/MM/YYYY'));
+                var btnAcoes = ``;
+                var tituloConta = `${CPG[i]['DESCRICAO']} <span class="badge bg-info">${mascaraFinanceira(CPG[i]['VALOR'])}</span>`;
+                
+                var btnInserirPagamento = `<li class="dropdown-item" onclick="inserirPagamento(${CPG[i]['ID']}, '${CPG[i]['DESCRICAO']}')"><span class="btn"><i class="fas fa-check"></i> Inserir Pagamento</span></li>`
+                var btnEditar = `<li class="dropdown-item" onclick="editarCPG(${CPG[i]['ID']})"><span class="btn"><i class="fas fa-pen"></i> Editar</span></li>`
+                var btnDocumento = `<li class="dropdown-item" onclick="cadastarDocumento(${CPG[i]['ID']}, '${CPG[i]['DESCRICAO']}')"><span class="btn"><i class="fas fa-file-alt"></i> Documentos</span></li>`
+                var btnInativar = `<li class="dropdown-item" onclick="inativarCPG(${CPG[i]['ID']})"><span class="btn"><i class="fas fa-trash"></i> Inativar</span></li>`
 
                 if(CPG[i]['SITUACAO'] != 'PAGA'){
-                    totalValorAberto = totalValorAberto + CPG[i]['VALOR'];
+                    totalValorAberto = totalValorAberto + CPG[i]['VALOR'] ;
                     SituacaoCPG = `<span class="badge bg-danger">${CPG[i]['SITUACAO']}</span>`;
                 } else {
-                    totalValorPago = totalValorPago + CPG[i]['VALOR'] ;
-                    SituacaoCPG = `<span class="badge bg-success"> ${CPG[i]['SITUACAO']}</span>`;
+                    totalValorPago = totalValorPago + CPG[i]['VALOR'];
+                    SituacaoCPG = `<span class="badge bg-success"> ${CPG[i]['SITUACAO']} ${dataPagamento}</span>`;
+                    btnInserirPagamento = '';
                 }
+
+                btnAcoes = ` <div class="input-group-prepend show justify-content-center" style="text-align: center">
+                                        <button type="button" class="btn btn-sm btn-warning dropdown-toggle" data-toggle="dropdown" aria-expanded="true">
+                                            Ações
+                                        </button>
+                                        <ul class="dropdown-menu ">
+                                            ${btnInserirPagamento}
+                                            ${btnEditar}                                            
+                                            ${btnDocumento}                                            
+                                            ${btnInativar}                                            
+                                        </ul>
+                                    </div>
+                                `;
                 htmlCPG += `
-                    <tr id="tableRow${CPG[i]['ID']}">
-                        <td class="tdTexto">${CPG[i]['DESCRICAO']}</td>
-                        <td class="tdTexto"><center>${mascaraFinanceira(CPG[i]['VALOR'])}</center></td>
-                        <td class="tdTexto"><center>${moment(CPG[i]['DATA_VENCIMENTO']).format('DD/MM/YYYY')}</center></td>
-                        <td class="tdTexto"><center>${(CPG[i]['DATA_PAGAMENTO'].length == 0 ? '-' : moment(CPG[i]['DATA_PAGAMENTO']).format('DD/MM/YYYY'))}</center></td>
+                    <tr id="tableRow${CPG[i]['ID']}" class="d-none d-lg-table-row">
+                        <td class="tdTexto">${tituloConta}</td>
+                        <td class="tdTexto"><center>${dataVencimento}</center></td>
                         <td class="tdTexto"><center>${SituacaoCPG}</center></td>
-                        <td>\
-                            <center>\
-                                <button class="btn btn-sm btn-warning" onclick="editarCPG(${CPG[i]['ID']})"><i class="fas fa-pen"></i></button>\
-                                <button class="btn btn-sm btn-success" onclick="inserirPagamento(${CPG[i]['ID']}, '${CPG[i]['DESCRICAO']}')"><i class="fas fa-check"></i></button>\
-                                <button class="btn btn-sm btn-info" onclick="cadastarDocumento(${CPG[i]['ID']}, '${CPG[i]['DESCRICAO']}')"><i class="fas fa-file-alt"></i></button>\
-                                <button class="btn btn-sm btn-danger" onclick="inativarCPG(${CPG[i]['ID']})"><i class="fas fa-trash"></i></button>\
-                            </center>\
-                        </td>\                      
+                        <td>
+                            <center>
+                            ${btnAcoes}
+                            </center>
+                        </td>                      
+                    </tr>
+                    
+                    <tr id="tableRow${CPG[i]['ID']}" class="d-table-row d-lg-none">
+                        <td>
+                            <div class="col-12">
+                                <center>
+                                    <b>${tituloConta}</b>
+                                </center>
+                            </div>
+                            <div class="col-12" style="font-size: 4vw">
+                                <center>
+                                    <b>Vencimento: ${dataVencimento}</b>
+                                </center>
+                            </div>
+                            <div class="col-12" style="font-size: 4vw">
+                                <center>
+                                    ${SituacaoCPG}
+                                </center>
+                            </div>
+                            <div class="col-12">
+                                <center>
+                                    ${btnAcoes}
+                                </center>
+                            </div>
+                        </td>
                     </tr>`;
             }
+            $('#tableBodyDadosCPG').html(htmlCPG);
 
-            htmlCPG += `
-                    <tr id="tableRowTOTAL">
-                        <td class="tdTexto">Total Pago</td>
-                        <td class="tdTexto"><center><span class="badge bg-success">${mascaraFinanceira(totalValorPago)}</span></center></td>
-                        <td class="tdTexto"><center></center></td>
-                        <td class="tdTexto"><center>Total Em Aberto</center></td>
-                        <td class="tdTexto"><center><span class="badge bg-danger">${mascaraFinanceira(totalValorAberto)}</span></center></td>
-                        <td></td>\                      
-                    </tr>`;
-            $('#tableBodyDadosCPG').html(htmlCPG)
+            $('#spanValorPago').html(mascaraFinanceira(totalValorPago));
+            $('#spanValorAberto').html(mascaraFinanceira(totalValorAberto));
         }
         
         // DOCUMENTOS
@@ -454,7 +565,7 @@
             }  
 
             function cadastarDocumento(idCPG, descricaoCPG){
-                $('#titleDocumento').text(idCPG +' - '+descricaoCPG);
+                $('#titleDocumento').text(idCPG);
                 $('#inputIDConta').val(idCPG);
 
                 buscarDocumentos();
@@ -607,39 +718,19 @@
         $('#btnComprovantes').click(() => {
             cadastarDocumento();
         })
-
-        function mascaraFinanceira(valor){
-            return (valor-0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-        }
-
-        function mascaraDocumento(numero) {
-            numero = numero.replace(/\D/g, '');
-
-            if (numero.length === 11) {
-                return numero.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
-            } else if (numero.length === 14) {
-                return numero.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5');
-            } else {
-                return numero;
-            }
-        }
-
-        function exibirErro(err){
-            errorMessage =
-            "<p><b>Exception: </b>"+err.responseJSON.exception+"<p></br>"
-            +"<p><b>File: </b>"+err.responseJSON.file+"<p></br>"
-            +"<p><b>Line: </b>"+err.responseJSON.line+"<p></br>"
-            +"<p><b>Message: </b>"+err.responseJSON.message+"<p></br>";
-
-            Swal.fire(
-                'Request exception',
-                errorMessage,
-                'error'
-            )
-            console.log(err)
-        }
         
         $(document).ready(() => {
+            tipoCPG = '{{$tipo}}';
+
+            if(tipoCPG == '2'){
+                $('#tituloPagina').html('Despesa da Empresa')
+            } else if(tipoCPG == '3'){                
+                $('#tituloPagina').html('Despesa de Obra')
+            } else if(tipoCPG == '0'){
+                $('#tituloPagina').html('Contas a Pagar')
+            }
+
+            buscarOrigem();
             buscarCPG();
 
             $('#inputFiltroDataInicio').val(moment().subtract(30, 'days').format('YYYY-MM-DD'))

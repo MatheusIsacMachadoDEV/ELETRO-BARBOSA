@@ -370,17 +370,17 @@ return [
                 ],  
                 [
                     'text' => 'Contas a Receber',
-                    'url'  => 'contasreceber',
+                    'url'  => 'financeiro/contasreceber',
                     'icon' => 'fas fa-file-invoice-dollar'
                 ],
                 [
                     'text' => 'Despesas de Obra',
-                    'url'  => 'financeiro/despesa-obra',
+                    'url'  => 'financeiro/despesaobra',
                     'icon' => 'fas fa-hard-hat'
                 ],
                 [
                     'text' => 'Despesas da Empresa',
-                    'url'  => 'financeiro/despesa-empresa',
+                    'url'  => 'financeiro/despesaempresa',
                     'icon' => 'fas fa-building'
                 ],
                 [

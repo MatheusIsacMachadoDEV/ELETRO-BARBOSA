@@ -71,7 +71,7 @@
                         
                         <div class="form-group col-xs-6 col-md-6">
                             <label>Data Venda</label>
-                            <input type="date"  class="form-control" id="inputDataVenda">
+                            <input type="datetime-local"  class="form-control" id="inputDataVenda">
                         </div>                        
                         
                         <div class="form-group col-xs-2 col-md-6">
@@ -279,8 +279,9 @@
             padding: 0px!important;
         }
 
-        table tr:nth-child(even) /* CSS3 */ {
-            background: #e0a80041;
+
+        .zebrado{
+            background: #e0a80041!important;
         }
     </style>
 @stop
@@ -315,7 +316,7 @@
             $('#modal-venda').modal('show');
             $('#btnConfirmar').removeClass('d-none');
 
-            $('#inputDataVenda').val(moment().format('YYYY-MM-DD'));
+            $('#inputDataVenda').val(moment().format('YYYY-MM-DD H:m'));
             // $('#divPessoaFiado').addClass('d-none');
 
             $('#inputPagamentoVenda').val('1');
@@ -647,7 +648,7 @@
                     $('#inputDataVenda').val(dados['DATA']);
                     $('#inputPagamentoVenda').val(dados['PAGAMENTO']);
                     $('#inputNomePessoa').val(dados['CLIENTE_NOME']);
-                    $('#inputDataVenda').val(moment(dados['DATA']).format('YYYY-MM-DD'));
+                    $('#inputDataVenda').val(moment(dados['DATA']).format('YYYY-MM-DD H:m'));
 
                     for (let index = 0; index < dados['ITEM'].length; index++) {
                         var item = dados['ITEM'][index];
@@ -717,6 +718,7 @@
             var htmlVenda = "";
             var totalVendas = 0;
             var totalPedidosNovos = 0;
+            var contagemDados = 0;
 
             for(i=0; i< Venda.length; i++){
                 var VendaKeys = Object.keys(Venda[i]);
@@ -726,7 +728,7 @@
                     }
                 }
                 
-                var endereco = `${Venda[i]['CLIENTE_RUA']}, ${Venda[i]['CLIENTE_NUMERO']} - ${Venda[i]['CLIENTE_CEP']} - ${Venda[i]['CLIENTE_BAIRRO']}`;
+                var endereco = ``;
                 var retirada = Venda[i]['PEDIDO_RETIRADA'] == 'S' ? 'Sim' : 'Não';
                 var classeBadgeSituacao = 'bg-info';
 
@@ -756,6 +758,14 @@
 
                 if(retirada == 'Sim'){
                     endereco = 'Pedido para retirada';
+                } else if(Venda[i]['CLIENTE_NUMERO'].length > 0 && Venda[i]['CLIENTE_RUA'].length > 0 &&  Venda[i]['CLIENTE_CEP'].length > 0 && Venda[i]['CLIENTE_BAIRRO'].length > 0){
+                    endereco = `${Venda[i]['CLIENTE_RUA']}, ${Venda[i]['CLIENTE_NUMERO']} - ${Venda[i]['CLIENTE_CEP']} - ${Venda[i]['CLIENTE_BAIRRO']}`;
+                }
+
+                if (contagemDados%2 == 0){
+                    classelinhaZebrada = ''
+                } else {
+                    classelinhaZebrada = 'linhaZebrada'
                 }
 
                 var btnAcoes = `<button class="btn p-0" onclick="enviarMensagemWhatssApp('${Venda[i]['CLIENTE_TELEFONE'].replace('(','').replace(')', '').replace('-', '').replace(' ', '')}', 'Avulsa')"><i class="fab fa-whatsapp"></i></button>
@@ -768,7 +778,7 @@
 
 
                 htmlVenda += `
-                    <tr id="tableRow${Venda[i]['ID']}" class="d-none d-lg-table-row">
+                    <tr id="tableRow${Venda[i]['ID']}" class="d-none d-lg-table-row ${classelinhaZebrada}">
                         <td class="tdTexto">${moment(Venda[i]['DATA']).format('DD/MM/YYYY HH:mm:ss')}</td>
                         <td class="tdTexto"><center>${mascaraFinanceira(Venda[i]['VALOR_TOTAL'])}</center></td>
                         <td class="tdTexto"><center>${Venda[i]['CLIENTE_NOME']}</center></td>
@@ -783,8 +793,8 @@
                             </center>
                         </td>
                     </tr>
-                    
-                    <tr class="d-table-row d-lg-none">
+                    <tr></tr>
+                    <tr class="d-table-row d-lg-none ${classelinhaZebrada}">
                         <td>
                             <div class="col-12">
                                 <center>
@@ -794,7 +804,7 @@
                             </div>
                             <div class="col-12">
                                 <center>
-                                    <b>${Venda[i]['ID']}-${Venda[i]['CLIENTE_NOME']} ${Venda[i]['CLIENTE_TELEFONE']}</b>
+                                    <b>Nº ${Venda[i]['ID']} ${Venda[i]['CLIENTE_NOME']} ${Venda[i]['CLIENTE_TELEFONE']}</b>
                                 </center>
                             </div>
                             <div class="col-12" style="font-size: 4vw">
@@ -818,6 +828,7 @@
 
                 
                     totalVendas = totalVendas + Venda[i]['VALOR_TOTAL'];
+                    contagemDados++
             }
 
             htmlVenda += `
@@ -831,6 +842,10 @@
                         <td></td>
                         <td></td>
                         <td></td>\                      
+                    </tr>
+                    
+                     <tr class="d-table-row d-lg-none">
+                        <td class="tdTexto"><center><span class="badge bg-success">Total: ${mascaraFinanceira(totalVendas)}</span></center></td>
                     </tr>`;
             $('#tableBodyDadosVenda').html(htmlVenda);
 
@@ -1199,7 +1214,7 @@
         }
 
         function enviarMensagemWhatssApp(numero, tipoMensagem){
-            var mensagem = 'Olá, temos uma notícia para você: ';
+            var mensagem = 'Olá, Mady tem uma notícia para você: ';
             if(tipoMensagem == 'ENTREGA'){
                 mensagem += 'O seu pedido saiu acaba de sair para entrega!'
             } else if(tipoMensagem == 'CONFIRMACAO'){                

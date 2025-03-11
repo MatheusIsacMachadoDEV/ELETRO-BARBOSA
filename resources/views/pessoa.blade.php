@@ -6,7 +6,7 @@
     <div class="content-title">
         <div class="row d-flex">
             <div class="col-3 d-none d-md-block">
-                <h1>Pessoas</h1>
+                <h1>Cliente</h1>
             </div>
             <div class="col-12 col-md-9 d-flex justify-content-end p-2">
                 <button class="col-md-4 btn btn-block btn-warning" id="btnNovoVeiculo">
@@ -20,9 +20,14 @@
     <div class="content-body">
         <div class="card">
             <div class="card-header">
-                <div class="row">
-                    <div class="input-group">
-                        <input type="text" class="form-control" placeholder="Nome" id="inputNomeFiltro" onkeyup="buscarPessoa()">
+                <div class="row d-flex">
+                    <div class="input-group col-12 col-md-8">
+                        <input type="text" class="form-control form-control-border" placeholder="Nome" id="inputNomeFiltro" onkeyup="buscarPessoa()">
+                    </div>
+                    <div class="col-12 col-md-4">
+                        <select class="form-control form-control-border selectTipoPessoa" id="selectFiltroTipoPessoa" onchange="buscarPessoa()">
+                            <option value="0">Tipo Cliente</option>
+                        </select>
                     </div>
                 </div>
             </div>
@@ -32,10 +37,11 @@
                         <tr>
                             <th>ID</th>
                             <th>Nome</th>
+                            <th>Tipo</th>
                             <th>CPF/CNPJ</th>
                             <th>Contato</th>
                             <th>Email</th>
-                            <th>Valor em Aberto</th>
+                            <th class="d-none">Valor em Aberto</th>
                             <th><center>Ações<center></th>
                         </tr>
                     </thead>
@@ -50,7 +56,7 @@
         <div class="modal-dialog modal-xl">
             <div class="modal-content p-0">
                 <div class="modal-header">
-                    <h5 class="modal-title" >Cadastro de Pessoa</h5>
+                    <h5 class="modal-title" >Cadastro de Cliente</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -59,25 +65,27 @@
                     <div class="row d-flex">
 
                         <div class="form-group col-12">
-                            <label>Nome</label>
-                            <input type="text" class="form-control col-12" id="inputNome">
+                            <input type="text" class="form-control form-control-border col-12" id="inputNome" placeholder="Nome">
                             <input type="hidden" class="form-control col-4" id="inputIDPessoa">
                         </div>
                         <div class="form-group col-6">
-                            <label>CPF/CNPJ</label>
-                            <input type="text" class="form-control" maxlength="18" id="inputDocumento" oninput="mascararDocumento(this)">
+                            <input type="text" class="form-control form-control-border" maxlength="18" id="inputDocumento" oninput="mascararDocumento(this)" placeholder="CPF/CNPJ">
                         </div>
+
+                        <div class="col-12 col-md-4 ">
+                            <select class="form-control form-control-border col-12 selectTipoPessoa" id="selectTipoPessoa">
+                                <option value="0">Tipo Cliente</option>
+                            </select>
+                        </div>
+
                         <div class="form-group col-6">
-                            <label>Telefone</label> 
-                            <input type="text" class="form-control" maxlength="16" id="inputTelefone" oninput="mascaraTelefone(this)">
+                            <input type="text" class="form-control form-control-border" maxlength="16" id="inputTelefone" oninput="mascaraTelefone(this)" placeholder="Telefone">
                         </div>
                         <div class="form-group col-12">
-                            <label>Email</label>
-                            <input type="text" class="form-control" maxlength="48" id="inputEmail">
+                            <input type="text" class="form-control form-control-border" maxlength="48" id="inputEmail" placeholder="Email">
                         </div>
                         <div class="form-group col-12 col-md-4">
-                            <label>Data de Nascimento</label>
-                            <input type="date"  class="form-control" id="inputDataNascimento">
+                            <input type="date"  class="form-control form-control-border" id="inputDataNascimento" placeholder="Data de Nascimento">
                         </div>
                     </div>
                 </div>
@@ -90,7 +98,7 @@
     </div>
 
     <div class="modal fade" id="modal-documentacao">
-        <div class="modal-dialog ">
+        <div class="modal-dialog modal-lg">
             <div class="modal-content p-0">
                 <div class="modal-header">
                     <h5 class="modal-title" >Documentação da Pessoa <span id="titleDocumento"></span></h5>
@@ -105,7 +113,7 @@
                                 <div class="">
                                     <input type="hidden" id="inputIDPessoaDocumento">
                                     <div class="input-control col-12">
-                                        <input class="input-control" type="checkbox" id="checkDocPendente" onchange="validaDocPendente()">
+                                        <input class="input-control d-none" type="checkbox" id="checkDocPendente" onchange="validaDocPendente()">
                                         <label>Documento Pendente?</label>
                                     </div>
                                     <div class="input-group">
@@ -121,7 +129,7 @@
                             </div>
                         </div>
                         <div class="card-body">
-                            <table class="table table-responsive">
+                            <table class="table table-responsive-xs">
                                 <thead>
                                     <tr>
                                         <th>Pessoa</th>
@@ -214,6 +222,79 @@
             </div>
         </div>
     </div>
+
+    <div class="modal fade" id="modal-lista-contas-bancarias" style="display: none;" aria-hidden="true"> 
+        <div class="modal-dialog modal-lg"> 
+            <div class="modal-content"> 
+                <div class="modal-header"> 
+                    <h4 class="modal-title">Contas Bancárias</h4> 
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"> 
+                        <span aria-hidden="true">×</span> 
+                    </button> 
+                </div> 
+                <div class="modal-body"> 
+                    <div class="row d-flex">
+                        <div class="col-12 d-flex justify-content-end">
+                            <button class="btn btn-sm btn-info col-12 col-md-4" id="btnCadastrarContaBancaria">
+                                <i class="fas fa-university"></i>
+                                <span class="ml-1">Cadastrar</span>
+                            </button>
+                        </div>
+                        <div class="col-12">
+                            <table class="table table-responsive-xs">
+                                <thead>
+                                    <th class="d-none d-lg-table-cell" style="padding-left: 5px!important">Banco</th>
+                                    <th class="d-none d-lg-table-cell">Agência</th>
+                                    <th class="d-none d-lg-table-cell">Conta</th>
+                                    <th class="d-none d-lg-table-cell">Pix</th>
+                                    <th class="d-none d-lg-table-cell"><center>Ações</center></th>
+                                </thead>
+                                <tbody id="tableBodyDadosContaBancaria">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div> 
+                <div class="modal-footer justify-content-between"> 
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Fechar</button> 
+                </div> 
+            </div> 
+        </div> 
+    </div> 
+
+    <div class="modal fade" id="modal-cadastro-contas-bancarias" style="display: none;" aria-hidden="true"> 
+        <div class="modal-dialog"> 
+            <div class="modal-content"> 
+                <div class="modal-header"> 
+                    <h4 class="modal-title">Cadastro de Conta Bancária</h4> 
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"> 
+                        <span aria-hidden="true">×</span> 
+                    </button> 
+                </div> 
+                <div class="modal-body">
+                    <div class="col-12">
+                        <input type="hidden" id="inputContaBancariaIDPessoa">
+                        <div class="form-group">
+                            <input type="text" class="form-control form-control-border" maxlength="60"  placeholder="Banco" id="inputContaBancariaBanco">
+                        </div>
+                        <div class="form-group">
+                            <input type="text" class="form-control form-control-border" placeholder="Agência" id="inputContaBancariaAgencia">
+                        </div>
+                        <div class="form-group">
+                            <input type="text" class="form-control form-control-border" placeholder="Número (Com Dígito)" id="inputContaBancariaNumero">
+                        </div>
+                        <div class="form-group">
+                            <input type="text" class="form-control form-control-border" maxlength="50" placeholder="Chave PIX" id="inputContaBancariaPix">
+                        </div>
+                    </div>
+                </div> 
+                <div class="modal-footer justify-content-between"> 
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Fechar</button> 
+                    <button type="button" class="btn btn-primary" id="btnSalvarContaBancaria">Salvar</button> 
+                </div> 
+            </div> 
+        </div> 
+    </div> 
 @stop
 
 @section('footer')
@@ -234,6 +315,7 @@
 @stop
 
 @section('js')
+<script src="{{env('APP_URL')}}/main.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-maskmoney/3.0.2/jquery.maskMoney.min.js"></script>
@@ -242,6 +324,9 @@
     <script>
         inserindoPessoa = false;
         idUsuarioPagamentoFiado = 0;
+
+        $('#inputContaBancariaNumero').mask('0000000000');
+        $('#inputContaBancariaAgencia').mask('0000');
         
         function cadastrarPessoa(){
             inserindoPessoa = true;
@@ -251,20 +336,33 @@
             $('#inputTelefone').val('');
             $('#inputDataNascimento').val('');
             $('#inputEmail').val('');
+            $('#selectTipoPessoa').val('0');
+            
 
             $('#modal-cadastro').modal('show');
+        }        
+
+        function cadastrarContaBancaria(){
+
+            $('#inputContaBancariaNumero').val('');
+            $('#inputContaBancariaAgencia').val('');
+            $('#inputContaBancariaBanco').val('');
+            $('#inputContaBancariaPix').val('');
+            
+            $('#modal-lista-contas-bancarias').modal('hide');
+            $('#modal-cadastro-contas-bancarias').modal('show');
         }        
 
         function inserirPessoa() {
             validacao = true;
 
-            var inputIDs = ['inputNome', 'inputTelefone'];
+            var inputIDs = ['inputNome', 'inputTelefone', 'selectTipoPessoa'];
 
             for (var i = 0; i < inputIDs.length; i++) {
                 var inputID = inputIDs[i];
                 var $input = $('#' + inputID);
                 
-                if ($input.val() === '') {
+                if ($input.val() === '' || $input == 'ID_TIPO' && $input.val() == '0') {
                     $input.addClass('is-invalid');
                     validacao = false;
                 } else {
@@ -284,7 +382,8 @@
                         'documento': $('#inputDocumento').val().replace('.','').replace('.', '').replace('-','').replace('/', ''),
                         'telefone': $('#inputTelefone').val().replace(new RegExp(' ', 'g'), '').replace(')', '').replace('(', '').replace('-', ''),
                         'email': $('#inputEmail').val(),
-                        'data_nascimento': $('#inputDataNascimento').val()
+                        'data_nascimento': $('#inputDataNascimento').val(),
+                        'ID_TIPO': $('#selectTipoPessoa').val()
                         },
                         url:"{{route('pessoa.inserir')}}",
                         success:function(r){
@@ -311,7 +410,8 @@
                         'documento': $('#inputDocumento').val().replace('.', '').replace('.','').replace('-','').replace('/', ''),
                         'telefone': $('#inputTelefone').val().replace(new RegExp(' ', 'g'), '').replace(')', '').replace('(', '').replace('-', ''),
                         'email': $('#inputEmail').val(),
-                        'data_nascimento': $('#inputDataNascimento').val()
+                        'data_nascimento': $('#inputDataNascimento').val(),
+                        'ID_TIPO': $('#selectTipoPessoa').val()
                         },
                         url:"{{route('pessoa.alterar')}}",
                         success:function(r){
@@ -330,6 +430,51 @@
                 }
             }
             
+        }
+
+        function inserirContaBancaria() {
+            validacao = true;
+
+            var inputIDs = ['inputContaBancariaBanco', 'inputContaBancariaAgencia', 'inputContaBancariaNumero'];
+
+            for (var i = 0; i < inputIDs.length; i++) {
+                var inputID = inputIDs[i];
+                var $input = $('#' + inputID);
+                
+                if ($input.val() === '' || $input == 'ID_TIPO' && $input.val() == '0') {
+                    $input.addClass('is-invalid');
+                    validacao = false;
+                } else {
+                    $input.removeClass('is-invalid');
+                }
+            }
+
+            if(validacao){
+                $.ajax({
+                    type:'post',
+                    datatype:'json',
+                    data:{
+                    '_token':'{{csrf_token()}}',
+                    'BANCO': $('#inputContaBancariaBanco').val(),
+                    'AGENCIA': $('#inputContaBancariaAgencia').val(),
+                    'NUMERO': $('#inputContaBancariaNumero').val(),
+                    'PIX': $('#inputContaBancariaPix').val(),
+                    'ID_PESSOA': $('#inputContaBancariaIDPessoa').val()
+                    },
+                    url:"{{route('financeiro.cc.inserir')}}",
+                    success:function(r){
+                        $('#modal-cadastro-contas-bancarias').modal('hide');
+
+                        buscarContaBancaria($('#inputContaBancariaIDPessoa').val());
+                        Swal.fire(
+                            'Sucesso!',
+                            'Conta bancária inserida com sucesso.',
+                            'success',
+                        )
+                    },
+                    error:err=>{exibirErro(err)}
+                })
+            }
         }
 
         function cadastarDocumento(ID, nome, docPendente){
@@ -366,6 +511,7 @@
                     $('#inputTelefone').val(formatarTelefone(r[0]['TELEFONE']));
                     $('#inputEmail').val(r[0]['EMAIL']);
                     $('#inputDataNascimento').val(r[0]['DATA_NASCIMENTO']);
+                    $('#selectTipoPessoa').val(r[0]['ID_TIPO']);
 
                     $('#modal-cadastro').modal('show')
                 },
@@ -404,17 +550,66 @@
             });
         }
 
+        function inativarContaBancaria(idContaBancaria){
+            Swal.fire({
+                title: 'Confirmação',
+                text: 'Deseja inativar a conta bancária?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Sim',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        type:'post',
+                        datatype:'json',
+                        data:{
+                        '_token':'{{csrf_token()}}',
+                        'id': idContaBancaria
+                        },
+                        url:"{{route('financeiro.cc.inativar')}}",
+                        success:function(r){
+                            buscarContaBancaria($('#inputContaBancariaIDPessoa').val());
+
+                            Swal.fire('Sucesso!'
+                                    , 'Conta Bancária inativada com sucesso.'
+                                    , 'success');
+                        },
+                        error:err=>{exibirErro(err)}
+                    })
+                }
+            });
+        }
+
         function buscarPessoa(){
             $.ajax({
                 type:'post',
                 datatype:'json',
                 data:{
                 '_token':'{{csrf_token()}}',
-                'nome': $('#inputNomeFiltro').val()
+                'nome': $('#inputNomeFiltro').val(),
+                'ID_TIPO': $('#selectFiltroTipoPessoa').val()
                 },
                 url:"{{route('pessoa.buscar')}}",
                 success:function(r){
                     popularListaPessoas(r);
+                },
+                error:err=>{exibirErro(err)}
+            })
+        }
+
+        function buscarContaBancaria(idPessoa){
+            $.ajax({
+                type:'post',
+                datatype:'json',
+                data:{
+                '_token':'{{csrf_token()}}',
+                'id': idPessoa,
+                },
+                url:"{{route('financeiro.cc.buscar')}}",
+                success:function(r){
+                    $('#inputContaBancariaIDPessoa').val(idPessoa);
+                    popularListaContaBancaria(r);
                 },
                 error:err=>{exibirErro(err)}
             })
@@ -491,26 +686,65 @@
                     classeBagdeValorAberto = 'bg-success';
                 }
 
+                if(Pessoa[i]['ID_TIPO'] == 1){
+                    classeBadgeTipPessoa = 'bg-dark';
+                } else if(Pessoa[i]['ID_TIPO'] == 2){
+                    classeBadgeTipPessoa = 'bg-indigo color-palette';
+                } else {
+                    classeBadgeTipPessoa = 'bg-primary';
+                }
+
                 htmlPessoa += `
                     <tr id="tableRow${Pessoa[i]['ID']}">
                         <td class="tdTexto">${Pessoa[i]['ID']}</td>
                         <td class="tdTexto">${Pessoa[i]['NOME']}</td>
+                        <td class="tdTexto"><span class="badge ${classeBadgeTipPessoa}">${Pessoa[i]['TIPO_PESSOA']}</span></td>
                         <td class="tdTexto">${formatCPForCNPJ(Pessoa[i]['DOCUMENTO'])}</td>
                         <td class="tdTexto">${formatarTelefone(Pessoa[i]['TELEFONE'].toString())}</td>
                         <td class="tdTexto">${Pessoa[i]['EMAIL']}</td>
-                        <td class="tdTexto"><span class="badge ${classeBagdeValorAberto}">${mascaraFinanceira(valorEmAberto)}</span></td>
+                        <td class="tdTexto d-none"><span class="badge ${classeBagdeValorAberto}">${mascaraFinanceira(valorEmAberto)}</span></td>
                         <td>\
                             <center>\
-                                <button class="btn" onclick="verVenda(${Pessoa[i]['ID']})"><i class="fas fa-money-check-alt"></i></button>\
-                                <button class="btn" onclick="verPagamentos(${Pessoa[i]['ID']})"><i class="fas fa-hand-holding-usd"></i></button>\
-                                <button class="btn" onclick="cadastarDocumento(${Pessoa[i]['ID']}, '${Pessoa[i]['NOME']}', '${Pessoa[i]['DOC_PENDENTE']}')"><i class="fas fa-file-alt"></i></button>\
+                                <button class="btn d-none" onclick="verVenda(${Pessoa[i]['ID']})"><i class="fas fa-money-check-alt"></i></button>\
+                                <button class="btn d-none" onclick="verPagamentos(${Pessoa[i]['ID']})"><i class="fas fa-hand-holding-usd"></i></button>\
                                 <button class="btn" onclick="editarPessoa(${Pessoa[i]['ID']})"><i class="fas fa-pen"></i></button>\
+                                <button class="btn" onclick="buscarContaBancaria(${Pessoa[i]['ID']})"><i class="fas fa-university"></i></button>\
+                                <button class="btn" onclick="cadastarDocumento(${Pessoa[i]['ID']}, '${Pessoa[i]['NOME']}', '${Pessoa[i]['DOC_PENDENTE']}')"><i class="fas fa-file-alt"></i></button>\
                                 <button class="btn" onclick="inativarPessoa(${Pessoa[i]['ID']})"><i class="fas fa-trash"></i></button>\
                             </center>\
                         </td>\                        
                     </tr>`;
             }
             $('#tableBodyDadosPessoa').html(htmlPessoa)
+        }
+
+        function popularListaContaBancaria(Dado){
+            var htmlDado = "";
+
+            for(i=0; i< Dado.length; i++){
+                var DadoKeys = Object.keys(Dado[i]);
+                for(j=0;j<DadoKeys.length;j++){
+                    if(Dado[i][DadoKeys[j]] == null){
+                        Dado[i][DadoKeys[j]] = "";
+                    }
+                }
+
+                htmlDado += `
+                    <tr id="tableRow${Dado[i]['ID']}">
+                        <td class="tdTexto">${Dado[i]['BANCO']}</td>
+                        <td class="tdTexto">${Dado[i]['AGENCIA']}</td>
+                        <td class="tdTexto">${Dado[i]['NUMERO']}</td>
+                        <td class="tdTexto">${Dado[i]['PIX']}</td>
+                        <td>\
+                            <center>
+                                <button class="btn" onclick="inativarContaBancaria(${Dado[i]['ID']})"><i class="fas fa-trash"></i></button>
+                            </center>
+                        </td>\                        
+                    </tr>`;
+            }
+            $('#tableBodyDadosContaBancaria').html(htmlDado);
+
+            $('#modal-lista-contas-bancarias').modal('show');
         }
 
         function popularListaVendaFiado(itens){
@@ -754,93 +988,55 @@
             });
         }
 
+        function buscarTipoPessoa(){
+            editarMaterial = false;
+            $.ajax({
+                type:'post',
+                datatype:'json',
+                data:{
+                    '_token':'{{csrf_token()}}',
+                    'TIPO': 'PESSOA_TIPO'
+                },
+                url:"{{route('buscar.situacoes')}}",
+                success:function(r){
+                    popularTipoPessoa(r.dados);
+                },
+                error:err=>{exibirErro(err)}
+            })
+        }
+
+        function popularTipoPessoa(dados){
+            var htmlTabela = `<option value="0">Tipo Cliente</option>`;
+
+            for(i=0; i< dados.length; i++){
+                var materialKeys = Object.keys(dados[i]);
+                for(j=0;j<materialKeys.length;j++){
+                    if(dados[i][materialKeys[j]] == null){
+                        dados[i][materialKeys[j]] = "";
+                    }
+                }
+
+                htmlTabela += `
+                    <option value="${dados[i]['ID_ITEM']}">${dados[i]['VALOR']}</option>`;
+            }
+            $('.selectTipoPessoa').html(htmlTabela)
+        }
+
         $('#btnConfirmar').click(() => {
             inserirPessoa();
+        });
+
+        $('#btnCadastrarContaBancaria').click(() => {
+            cadastrarContaBancaria();
+        });
+
+        $('#btnSalvarContaBancaria').click(() => {
+            inserirContaBancaria();
         });
 
         $('#btnNovoVeiculo').click(() => {
             cadastrarPessoa();
         })
-
-        function formatCPForCNPJ(document) {
-            // Remove caracteres não numéricos
-            document = document.replace(/\D/g, '');
-
-            if (document.length === 11) { // Se o documento tem 11 dígitos, é um CPF
-                // Adicione a máscara de CPF
-                document = document.replace(/^(\d{3})(\d{3})(\d{3})(\d{2})$/, '$1.$2.$3-$4');
-            } else if (document.length === 14) { // Se o documento tem 14 dígitos, é um CNPJ
-                // Adicione a máscara de CNPJ
-                document = document.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5');
-            }
-            
-            return document;
-        }
-
-        function formatarTelefone(numero) {
-            if (typeof numero !== 'string') {
-                return numero;
-            }
-
-            // Remove todos os caracteres não numéricos do número
-            const numeros = numero.replace(/\D/g, '');
-
-            // Verifica se o número tem 10 ou 11 dígitos
-            if (numeros.length === 10) {
-                return `(${numeros.slice(0, 2)}) ${numeros.slice(2, 6)}-${numeros.slice(6, 10)}`;
-            } else if (numeros.length === 11) {
-                return `(${numeros.slice(0, 2)}) ${numeros.slice(2, 7)}-${numeros.slice(7, 11)}`;
-            } else {
-                return numero;
-            }
-        }
-
-        function mascaraTelefone(input) {
-            // Remove qualquer caractere que não seja número do valor do input
-            let numero = input.value.replace(/\D/g, '');
-
-            // Verifica o tamanho do número inserido e formata de acordo
-            if (numero.length === 11) {
-                input.value = numero.replace(/(\d{2})(\d{1})(\d{4})(\d{4})/, '($1) $2 $3-$4');
-            } else if (numero.length === 10) {
-                input.value = numero.replace(/(\d{2})(\d{4})(\d{4})/, '($1) $2-$3');
-            } else {
-                // Se o número não se encaixar em nenhum dos formatos, deixe-o inalterado
-                input.value = numero;
-            }
-        }
-
-        function mascararDocumento(input) {
-            // Remove todos os caracteres não numéricos
-            const valorLimpo = input.value.replace(/\D/g, '');
-
-            if (valorLimpo.length <= 11) {
-                // Formatando como CPF (###.###.###-##)
-                input.value = valorLimpo.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
-            } else {
-                // Formatando como CNPJ (##.###.###/####-##)
-                input.value = valorLimpo.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5');
-            }
-        }
-
-        function exibirErro(err){
-            errorMessage =
-            "<p><b>Exception: </b>"+err.responseJSON.exception+"<p></br>"
-            +"<p><b>File: </b>"+err.responseJSON.file+"<p></br>"
-            +"<p><b>Line: </b>"+err.responseJSON.line+"<p></br>"
-            +"<p><b>Message: </b>"+err.responseJSON.message+"<p></br>";
-
-            Swal.fire(
-                'Request exception',
-                errorMessage,
-                'error'
-            )
-            console.log(err)
-        }
-
-        function mascaraFinanceira(valor){
-            return (valor-0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-        }
 
         $('#btnNovoPagamentoFiado').on('click', function(){
             Swal.fire({
@@ -877,8 +1073,14 @@
                 }
             });
         })
+
+        $('#modal-cadastro-contas-bancarias').on('hidden.bs.modal', function () {
+            
+            $('#modal-lista-contas-bancarias').modal('show');
+        });
         
         $(document).ready(() => {
+            buscarTipoPessoa(); 
             buscarPessoa();
 
             $('#modal-documentacao').on('hidden.bs.modal', function (){

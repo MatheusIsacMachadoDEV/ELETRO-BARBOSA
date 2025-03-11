@@ -30,11 +30,16 @@ class PessoasController extends Controller
     public function buscarPessoa(Request $request){
         $dadosRecebidos = $request->except('_token');
         $nome = $dadosRecebidos['nome'];
+        $filtroIdTipo = "AND 1 = 1";
 
         if($nome != "" && $nome != null){
             $filtro = "AND NOME like '%$nome%'";
         } else {
             $filtro = "AND 1 = 1";
+        }
+
+        if(isset($dadosRecebidos['ID_TIPO']) && $dadosRecebidos['ID_TIPO'] != 0){
+            $filtroIdTipo = "AND ID_TIPO = ".$dadosRecebidos['ID_TIPO'];
         }
 
         if(isset($dadosRecebidos['id'])){
@@ -52,10 +57,16 @@ class PessoasController extends Controller
                             FROM venda_pdv_fiado_pagamento
                            where venda_pdv_fiado_pagamento.STATUS = 'A'
                              AND venda_pdv_fiado_pagamento.ID_PESSOA = pessoa.ID) as VALOR_PAGAMENTO
+                       , (SELECT VALOR
+                            FROM situacoes
+                           where situacoes.STATUS = 'A'
+                             AND situacoes.TIPO = 'PESSOA_TIPO'
+                             AND situacoes.ID_ITEM = pessoa.ID_TIPO) as TIPO_PESSOA
                     FROM pessoa
                    WHERE 1 = 1
                      AND STATUS = 'A'
-                   $filtro";
+                   $filtro
+                   $filtroIdTipo";
         $result = DB::select($query);
 
         return $result;
@@ -66,6 +77,7 @@ class PessoasController extends Controller
         $nome = $dadosRecebidos['nome'];
         $documento = ($dadosRecebidos['documento'] == null ? '00000000000' : $dadosRecebidos['documento']);
         $telefone = $dadosRecebidos['telefone'];
+        $ID_TIPO = $dadosRecebidos['ID_TIPO'];
         $email = ($dadosRecebidos['email'] == null ? '' : $dadosRecebidos['email']);
         $data_nascimento = ($dadosRecebidos['data_nascimento'] == null ? '2024-01-01' : $dadosRecebidos['data_nascimento']);
 
@@ -73,12 +85,14 @@ class PessoasController extends Controller
                                        , `DOCUMENTO`
                                        , `TELEFONE`
                                        , `EMAIL`
-                                       , `DATA_NASCIMENTO`)
+                                       , `DATA_NASCIMENTO`
+                                       , `ID_TIPO`)
                                VALUES ('$nome'
                                       , $documento
                                       , '$telefone'
                                       , '$email'
-                                      , '$data_nascimento')";
+                                      , '$data_nascimento'
+                                      , $ID_TIPO)";
         $result = DB::select($query);
 
         return $result;
@@ -90,6 +104,7 @@ class PessoasController extends Controller
         $nome = $dadosRecebidos['nome'];
         $documento = $dadosRecebidos['documento'];
         $telefone = $dadosRecebidos['telefone'];
+        $ID_TIPO = $dadosRecebidos['ID_TIPO'];
         $email = $dadosRecebidos['email'];
         $data_nascimento = $dadosRecebidos['data_nascimento'];
 
@@ -98,6 +113,7 @@ class PessoasController extends Controller
                     , `DOCUMENTO` = $documento
                     , `TELEFONE` = '$telefone'
                     , `EMAIL` = '$email'
+                    , `ID_TIPO` = $ID_TIPO
                     , `DATA_NASCIMENTO` = '$data_nascimento'
                 WHERE ID = $id";
         $result = DB::select($query);

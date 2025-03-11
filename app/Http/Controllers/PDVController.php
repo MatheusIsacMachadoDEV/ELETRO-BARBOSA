@@ -41,7 +41,8 @@ class PDVController extends Controller
 
     public function contasPagar()
     {
-        return view('contaspagar');
+        $tipo = 0;
+        return view('contaspagar', compact('tipo'));
     }
 
     public function buscarProdutos(Request $request){
@@ -177,12 +178,19 @@ class PDVController extends Controller
             $filtroSituacao = "AND 1 = 1";
         }
 
+        if(isset($dadosRecebidos['TIPO']) && $dadosRecebidos['TIPO'] != '0'){
+            $filtroTipo = "AND ID_ORIGEM = '{$dadosRecebidos['TIPO']}'";
+        } else {
+            $filtroTipo = "AND 1 = 1";
+        }
+
         $query = "SELECT *
                     FROM contas_pagar
                    WHERE STATUS = 'A'
                    $filtro
                    $filtroData
                    $filtroSituacao
+                   $filtroTipo
                    ORDER BY DATA_VENCIMENTO ASC";
         $result = DB::select($query);
 
@@ -560,9 +568,10 @@ class PDVController extends Controller
         $descricao = $dadosRecebidos['descricao'];
         $dataVencimento = $dadosRecebidos['dataVencimento'];
         $observacao = $dadosRecebidos['observacao'];
+        $ID_ORIGEM = $dadosRecebidos['ID_ORIGEM'];
 
-        $query = "INSERT INTO contas_pagar (ID_USUARIO, DESCRICAO, DATA_VENCIMENTO, VALOR, OBSERVACAO) 
-                                    VALUES (0, '$descricao', '$dataVencimento', $valor, '$observacao')";
+        $query = "INSERT INTO contas_pagar (ID_USUARIO, DESCRICAO, DATA_VENCIMENTO, VALOR, OBSERVACAO, ID_ORIGEM) 
+                                    VALUES (0, '$descricao', '$dataVencimento', $valor, '$observacao', $ID_ORIGEM)";
         $result = DB::select($query);
 
         return $result;
@@ -589,12 +598,14 @@ class PDVController extends Controller
         $dataVencimento = $dadosRecebidos['dataVencimento'];
         // $dataPagamento = $dadosRecebidos['dataPagamento'];
         $observacao = $dadosRecebidos['observacao'];
+        $ID_ORIGEM = $dadosRecebidos['ID_ORIGEM'];
 
         $query = "UPDATE contas_pagar 
                      SET OBSERVACAO = '$observacao'
                        , DATA_VENCIMENTO = '$dataVencimento'
                        , VALOR = $valor
                        , OBSERVACAO = '$observacao'
+                       , ID_ORIGEM = $ID_ORIGEM
                     WHERE ID = $idCodigo";
         $result = DB::select($query);
 
