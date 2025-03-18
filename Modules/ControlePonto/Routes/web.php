@@ -11,9 +11,9 @@
 |
 */
 
-Route::middleware(['auth'])->group(function () {
-    Route::prefix('gestaoempresa')->group(function() {
-        Route::get('/', 'GestaoEmpresaController@index');
-        Route::get('/funcionarios', 'GestaoEmpresaController@funcionarios');
-    });
+Route::prefix('controleponto')->group(function() {
+    Route::get('/', 'ControlePontoController@index');
+
+    Route::post('/registrar', 'ControlePontoController@registrarPonto')->name('controle.ponto.registrar');
+    Route::post('/buscar', 'ControlePontoController@buscarPonto')->name('controle.ponto.buscar');
 });

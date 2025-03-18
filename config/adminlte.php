@@ -309,13 +309,6 @@ return [
             'url'  => 'admin/blog',
             'can'  => 'manage-blog',
         ],
-        // [
-        //     'text'        => 'pages',
-        //     'url'         => 'admin/pages',
-        //     'icon'        => 'far fa-fw fa-file',
-        //     'label'       => 4,
-        //     'label_color' => 'success',
-        // ],
         ['header' => 'GSSoftware'],
         [
             'text' => 'Dashboard',
@@ -426,7 +419,7 @@ return [
                 ],   
                 [
                     'text' => 'Controle de Ponto',
-                    'url'  => 'gestaoempresa/controle-ponto',
+                    'url'  => 'controleponto',
                     'icon' => 'fas fa-clock'
                 ],   
                 [

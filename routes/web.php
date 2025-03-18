@@ -14,6 +14,8 @@ use Illuminate\Support\Facades\Route;
 */
 Auth::routes();
 
+Route::post('/atualizar/modulos', [App\Http\Controllers\PadraoController::class, 'atualizarModulos'])->name('modulos.atualizar');
+Route::post('/atualizar/menus', [App\Http\Controllers\PadraoController::class, 'atualizarMenus'])->name('menus.atualizar');
 Route::post('/login', [App\Http\Controllers\Auth\LoginController::class, 'login']);
 
 Route::middleware(['auth'])->group(function () {

@@ -120,8 +120,49 @@ function mascararDocumento(input) {
     }
 }
 
+function dispararAlerta(icone, mensagem){
+    Swal.fire({
+        toast: true,
+        position: "top-end",
+        icon: icone,
+        title: mensagem,
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
+    });
+}
+
+function atualizarModulos(){
+    $.ajax({
+        type:'post',
+        datatype:'json',
+        data:{
+        },
+        url:"./atualizar/modulos",
+        success:function(r){
+        },
+        error:err=>{exibirErro(err)}
+    })
+}
+
+function atualizarMenus(){
+    $.ajax({
+        type:'post',
+        datatype:'json',
+        data:{
+        },
+        url:"./atualizar/menus",
+        success:function(r){
+        },
+        error:err=>{exibirErro(err)}
+    })
+}
+
 $(document).ready(function() {
     setTimeout(() => {
         $(this).find('input').first().focus();        
     }, 500);
+
+    atualizarModulos();
+    atualizarMenus();
 })

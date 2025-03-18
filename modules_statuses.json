@@ -9,5 +9,6 @@
     "Financeiro": true,
     "GestaoEmpresa": true,
     "Agenda": true,
-    "Usuarios": true
+    "Usuarios": true,
+    "ControlePonto": true
 }

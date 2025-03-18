@@ -1,0 +1,11 @@
+{
+    "name": "ControlePonto",
+    "alias": "controleponto",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\ControlePonto\\Providers\\ControlePontoServiceProvider"
+    ],
+    "files": []
+}

@@ -29,7 +29,7 @@ class PessoasController extends Controller
     
     public function buscarPessoa(Request $request){
         $dadosRecebidos = $request->except('_token');
-        $nome = $dadosRecebidos['nome'];
+        $nome = isset($dadosRecebidos['nome']) ? $dadosRecebidos['nome'] : '';
         $filtroIdTipo = "AND 1 = 1";
 
         if($nome != "" && $nome != null){
@@ -66,7 +66,8 @@ class PessoasController extends Controller
                    WHERE 1 = 1
                      AND STATUS = 'A'
                    $filtro
-                   $filtroIdTipo";
+                   $filtroIdTipo
+                   ORDER BY NOME asc";
         $result = DB::select($query);
 
         return $result;

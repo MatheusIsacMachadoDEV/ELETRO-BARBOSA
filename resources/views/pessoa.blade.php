@@ -9,7 +9,7 @@
                 <h1>Cliente</h1>
             </div>
             <div class="col-12 col-md-9 d-flex justify-content-end p-2">
-                <button class="col-md-4 btn btn-block btn-warning" id="btnNovoVeiculo">
+                <button class="col-md-4 btn btn-block btn-warning" id="btnNovaPessoa">
                     <i class="fas fa-user-edit"></i>
                     <span class="ml-1">Nova</span>
                 </button>
@@ -337,7 +337,6 @@
             $('#inputDataNascimento').val('');
             $('#inputEmail').val('');
             $('#selectTipoPessoa').val('0');
-            
 
             $('#modal-cadastro').modal('show');
         }        
@@ -1034,7 +1033,7 @@
             inserirContaBancaria();
         });
 
-        $('#btnNovoVeiculo').click(() => {
+        $('#btnNovaPessoa').click(() => {
             cadastrarPessoa();
         })
 
