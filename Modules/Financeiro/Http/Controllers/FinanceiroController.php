@@ -32,6 +32,11 @@ class FinanceiroController extends Controller
         return view('contaspagar', compact('tipo'));
     }
 
+    public function diaria()
+    {
+        return view('financeiro::diaria');
+    }
+
     public function buscarCRB(Request $request){
         $dadosRecebidos = $request->except('_token');
 
@@ -224,4 +229,91 @@ class FinanceiroController extends Controller
 
         return $result;
     }
+
+    public function buscarDiaria(Request $request)
+    {
+        $dadosRecebidos = $request->except('_token');
+
+        if (isset($dadosRecebidos['filtro']) && strlen($dadosRecebidos['filtro']) > 0) {
+            $filtro = "AND (u.NOME LIKE '%{$dadosRecebidos['filtro']}%')";
+        } else {
+            $filtro = "";
+        }
+
+        $query = "SELECT d.*
+                       , u.name AS NOME_USUARIO 
+                    FROM diaria d
+                   INNER JOIN users u ON d.ID_USUARIO = u.id
+                   WHERE d.STATUS = 'A' $filtro
+                   ORDER BY d.DATA_INICIO DESC";
+        $result['dados'] = DB::select($query);
+
+        return response()->json($result);
+    }
+
+    // Inserir diária
+    public function inserirDiaria(Request $request)
+    {
+        $dadosRecebidos = $request->except('_token');
+
+        $idUsuario = $dadosRecebidos['ID_USUARIO'];
+        $dataInicio = $dadosRecebidos['DATA_INICIO'];
+        $dataFim = $dadosRecebidos['DATA_FIM'];
+        $valorDia = $dadosRecebidos['VALOR_DIA'];
+
+        // Calcula o tempo em dias
+        $tempoDias = (strtotime($dataFim) - strtotime($dataInicio)) / (60 * 60 * 24);
+        $valorTotal = $tempoDias * $valorDia;
+
+        $query = "
+            INSERT INTO diaria (ID_USUARIO, DATA_INICIO, DATA_FIM, TEMPO_DIAS, VALOR_DIA, VALOR_TOTAL, STATUS) 
+            VALUES ($idUsuario, '$dataInicio', '$dataFim', $tempoDias, $valorDia, $valorTotal, 'A')
+        ";
+        DB::insert($query);
+
+        return response()->json(['success' => 'Diária inserida com sucesso!']);
+    }
+
+    // Alterar diária
+    public function alterarDiaria(Request $request)
+    {
+        $dadosRecebidos = $request->except('_token');
+
+        $idDiaria = $dadosRecebidos['ID'];
+        $idUsuario = $dadosRecebidos['ID_USUARIO'];
+        $dataInicio = $dadosRecebidos['DATA_INICIO'];
+        $dataFim = $dadosRecebidos['DATA_FIM'];
+        $valorDia = $dadosRecebidos['VALOR_DIA'];
+
+        // Calcula o tempo em dias e o valor total
+        $tempoDias = (strtotime($dataFim) - strtotime($dataInicio)) / (60 * 60 * 24);
+        $valorTotal = $tempoDias * $valorDia;
+
+        $query = "
+            UPDATE diaria 
+            SET ID_USUARIO = $idUsuario, 
+                DATA_INICIO = '$dataInicio', 
+                DATA_FIM = '$dataFim', 
+                TEMPO_DIAS = $tempoDias, 
+                VALOR_DIA = $valorDia, 
+                VALOR_TOTAL = $valorTotal 
+            WHERE ID = $idDiaria
+        ";
+        DB::update($query);
+
+        return response()->json(['success' => 'Diária alterada com sucesso!']);
+    }
+
+    // Inativar diária
+    public function inativarDiaria(Request $request)
+    {
+        $dadosRecebidos = $request->except('_token');
+        $idDiaria = $dadosRecebidos['ID'];
+
+        $query = "UPDATE diaria SET STATUS = 'I' WHERE ID = $idDiaria";
+        DB::update($query);
+
+        return response()->json(['success' => 'Diária inativada com sucesso!']);
+    }
+
 }

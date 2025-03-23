@@ -16,6 +16,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/contasreceber', 'FinanceiroController@index');
         Route::get('/despesaobra', 'FinanceiroController@despesaObra');
         Route::get('/despesaempresa', 'FinanceiroController@despesaEmpresa');
+        Route::get('/diaria', 'FinanceiroController@diaria');
 
         Route::post('/cadastrar', 'FinanceiroController@inserirCRB')->name('contasreceber.inserir');
         Route::post('/alterar', 'FinanceiroController@alterarCRB')->name('contasreceber.alterar');
@@ -29,5 +30,12 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/cc/buscar', 'FinanceiroController@buscarContaBancaria')->name('financeiro.cc.buscar');
         Route::post('/cc/inserir', 'FinanceiroController@inserirContaBancaria')->name('financeiro.cc.inserir');
         Route::post('/cc/inativar', 'FinanceiroController@inativarContaBancaria')->name('financeiro.cc.inativar');
+
+
+        // Rotas para o CRUD de Diárias
+        Route::post('/diaria/buscar', 'FinanceiroController@buscarDiaria')->name('diaria.buscar');
+        Route::post('/diaria/inserir', 'FinanceiroController@inserirDiaria')->name('diaria.inserir');
+        Route::post('/diaria/alterar', 'FinanceiroController@alterarDiaria')->name('diaria.alterar');
+        Route::post('/diaria/inativar', 'FinanceiroController@inativarDiaria')->name('diaria.inativar');
     });
 });

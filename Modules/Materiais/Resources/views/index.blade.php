@@ -83,26 +83,38 @@
                 </div>
                 <div class="modal-body">
                     <div class="row d-flex">
-                        <div class="form-group col-12 col-md-6">
+                        <div class="form-group col-12 col-md-4">
                             <label>Material</label>
-                            <input type="text" class="form-control form-control-border  col-12" id="inputMaterial">
+                            <input type="text" class="form-control form-control-border  col-12" id="inputMaterial" placeholder="Material">
                             <input type="hidden" class="form-control form-control-border  col-12" id="inputCodMaterial">
                         </div>
-                        <div class="form-group col-12 col-md-3">
+                        <div class="form-group col-12 col-md-4">
                             <label>Marca</label>
                             <select id="selectMaterialMarca" class="form-control  form-control-border">
                                 <option value="0">Selecionar Marca</option>
                             </select>
                         </div>
-                        <div class="form-group col-4 col-md-3">
+
+                        <div class="col-12 col-md-4 row d-flex p-0 m-0">
+                            <div class="col">
+                                <label>Fornecedor</label>
+                                <input type="text" class="form-control form-control-border col-12" placeholder="Fornecedor" id="inputFornecedor">
+                                <input type="hidden" id="inputIDFornecedor">
+                                <div class="col btnLimparFornecedor d-none p-0 m-0">
+                                    <button id="btnLimparFornecedor" class="btnLimparFornecedor btn btn-sm btn-danger d-none col-12"><i class="fas fa-eraser"></i>LIMPAR</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group col-4 col-md-2">
                             <label>Valor</label>
-                            <input type="text" class="form-control form-control-border  col-12" id="inputMaterialValor">
+                            <input type="text" class="form-control form-control-border  col-12" id="inputMaterialValor" placeholder="Valor">
                         </div>
                         <div class="form-group col-4 col-md-2">
                             <label>Quantidade</label>
-                            <input type="text" class="form-control form-control-border  col-12" id="inputMaterialQtde">
+                            <input type="text" class="form-control form-control-border  col-12" id="inputMaterialQtde" placeholder="Quantidade">
                         </div>
-                        <div class="form-group col-4 col-md-3">
+                        <div class="form-group col-4 col-md-2">
                             <label>Tipo do Material</label>
                             <select id="selectMaterialTipo" class="form-control  form-control-border">
                                 <option value="1">Estoque</option>
@@ -116,7 +128,7 @@
                                 <option value="2">Não, retirado</option>
                             </select>
                         </div>
-                        <div class="form-group col-4 col-md-4">
+                        <div class="form-group col-4 col-md-3">
                             <label>Ultima Retirada</label>
                             <input type="datetime-local" class="form-control form-control-border  col-12" id="inputMaterialUltimaRetirada"> 
                         </div>
@@ -241,6 +253,37 @@
             </div> 
         </div> 
     </div> 
+
+    <div class="modal fade" id="modal-kardex" style="display: none;" aria-hidden="true"> 
+        <div class="modal-dialog modal-xl"> 
+            <div class="modal-content"> 
+                <div class="modal-header"> 
+                    <h4 class="modal-title">Lista KARDEX</h4> 
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"> 
+                        <span aria-hidden="true">×</span> 
+                    </button> 
+                </div> 
+                <div class="modal-body"> 
+                    <div class="col-12">
+                        <table class="table table-responsive-xs">
+                            <thead>
+                                <th style="padding-left: 5px!important">Material</th>
+                                <th><center>Data Movimentação</center></th>
+                                <th><center>Usuário</center></th>
+                                <th><center>Tipo</center></th>
+                                <th><center>Origem</center></th>
+                            </thead>
+                            <tbody id="tableBodyKardex">
+                            </tbody>
+                        </table>
+                    </div>
+                </div> 
+                <div class="modal-footer justify-content-between"> 
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Fechar</button>
+                </div> 
+            </div> 
+        </div> 
+    </div> 
 @stop
 
 @section('footer')
@@ -317,6 +360,14 @@
                     $('#selectMaterialDisponivel').val(dadosMaterial['SITUACAO']);
                     $('#inputMaterialUltimaRetirada').val(dadosMaterial['DATA_ULTIMA_RETIRADA']);
 
+                    if(dadosMaterial['ID_FORNECEDOR'] > 0){
+                        $('#inputIDFornecedor').val(dadosMaterial['ID_FORNECEDOR']);
+                        $('#inputFornecedor').val(dadosMaterial['FORNECEDOR']);
+
+                        $('#inputFornecedor').attr('disabled', true); 
+                        $('.btnLimparFornecedor').removeClass('d-none');
+                    }
+
                     $('#modal-cadastro-material').modal('show');
                 },
                 error:err=>{exibirErroAJAX(err)}
@@ -333,6 +384,26 @@
 
             $('#modal-lista-marca').modal('hide');
             $('#modal-cadastro-marca').modal('show');
+        }
+
+        function exibirKardex(idMaterial){
+            $.ajax({
+                type:'post',
+                datatype:'json',
+                data:{
+                   '_token':'{{csrf_token()}}',
+                   'ID_MATERIAL': idMaterial
+                },
+                url:"{{route('material.buscar.kardex')}}",
+                success:function(r){
+                    var dadosKardex = r.dados;
+
+                    popularTabelaKardex(dadosKardex);
+
+                    $('#modal-kardex').modal('show');
+                },
+                error:err=>{exibirErroAJAX(err)}
+            })
         }
 
         function buscarMaterial(){
@@ -399,9 +470,22 @@
                     tipoMaterial = 'Obra';
                 }
 
-                btnAcoes = ` <button class="btn" onclick="gerarEtiqueta(${produto[i]['ID']})"><i class="fas fa-tag"></i></button>
-                             <button class="btn" onclick="exibirModalEdicaoMaterial(${produto[i]['ID']})"><i class="fas fa-pen"></i></button>
-                             <button class="btn" onclick="inativarMaterial(${produto[i]['ID']})"><i class="fas fa-trash"></i></button>`;
+                btnEtiqueta = `<li class="dropdown-item" onclick="gerarEtiqueta(${produto[i]['ID']})"><span class="btn"><i class="fas fa-tag"></i> Gerar Etiqueta</span></li>`;
+                btnEditar = `<li class="dropdown-item" onclick="exibirModalEdicaoMaterial(${produto[i]['ID']})"><span class="btn"><i class="fas fa-pen"></i> Editar</span></li>`;
+                btnKardex = `<li class="dropdown-item" onclick="exibirKardex(${produto[i]['ID']})"><span class="btn"><i class="fas fa-clipboard-list"></i> Relatório KARDEX</span></li>`;
+                btnGerarInativar = `<li class="dropdown-item" onclick="inativarMaterial(${produto[i]['ID']})"><span class="btn"><i class="fas fa-trash"></i> Inativar</span></li>`;
+
+                btnAcoes = `<div class="input-group-prepend show justify-content-center" style="text-align: center">
+                                <button type="button" class="btn btn-sm btn-warning dropdown-toggle" data-toggle="dropdown" aria-expanded="true">
+                                    Ações
+                                </button>
+                                <ul class="dropdown-menu">
+                                    ${btnEtiqueta}
+                                    ${btnEditar}
+                                    ${btnKardex}
+                                    ${btnGerarInativar}
+                                </ul>
+                            </div>`;
 
                 htmlTabela += `
                     <tr id="tableRow${produto[i]['ID']}" class="d-none d-lg-table-row">
@@ -488,6 +572,57 @@
             }
             $('#tableBodyDadosMarca').html(htmlTabela)
         }
+        
+        function popularTabelaKardex(dados){
+            var htmlTabela = "";
+
+            for(i=0; i< dados.length; i++){
+                var materialKeys = Object.keys(dados[i]);
+                for(j=0;j<materialKeys.length;j++){
+                    if(dados[i][materialKeys[j]] == null){
+                        dados[i][materialKeys[j]] = "";
+                    }
+                }
+
+                var dataMovimentacao = moment(dados[i]['DATA_CADASTRO']).format('DD/MM/YYYY HH:mm');
+
+                htmlTabela += `
+                    <tr id="tableRow${dados[i]['ID']}" class="d-none d-lg-table-row">
+                        <td class="tdTexto" style="padding-left: 5px!important">${dados[i]['MATERIAL']}</td>
+                        <td class="tdTexto"><center>${dataMovimentacao}</center></td>
+                        <td class="tdTexto"><center>${dados[i]['USUARIO']}</center></td>
+                        <td class="tdTexto"><center>${dados[i]['TIPO_MOVIMENTACAO']}</center></td>
+                        <td class="tdTexto"><center>${dados[i]['ORIGEM']}</center></td>
+                    </tr>
+                    
+                    <tr id="tableRow${dados[i]['ID']}" class="d-table-row d-lg-none">
+                        <td>
+                            <div class="col-12">
+                                <center>
+                                    <b>${dados[i]['MATERIAL']} </b>
+                                </center>
+                            </div>
+                            <div class="col-12 row d-flex justify-content-between">
+                                <div class="col-6">
+                                    <b>Origem: </b>${dados[i]['ORIGEM']}
+                                </div>
+                                <div class="col-6">
+                                    <b>Tipo: </b>${dados[i]['TIPO_MOVIMENTACAO']}
+                                </div>
+                            </div>
+                            <div class="col-12 row d-flex justify-content-between">
+                                <div class="col-6">
+                                    ${dataMovimentacao}
+                                </div>
+                                <div class="col-6">
+                                    ${dados[i]['USUARIO']}
+                                </div>
+                            </div>
+                        </td>
+                    </tr>`;
+            }
+            $('#tableBodyKardex').html(htmlTabela)
+        }
 
         function popularSelectMarca(dados){
             var htmlTabela = `<option value="0">Selecionar Marca</option>`;
@@ -532,6 +667,7 @@
                 var disponivel = $('#selectMaterialDisponivel').val();
                 var ultimaRetirada = $('#inputMaterialUltimaRetirada').val();
                 var tipoMaterial = $('#selectMaterialTipo').val();
+                var idFornecedor = $('#inputIDFornecedor').val();
             
                 if(codMaterial == 0){
                     $.ajax({
@@ -545,7 +681,8 @@
                         'QTDE': QTDE,
                         'disponivel': disponivel,
                         'ultimaRetirada': ultimaRetirada,
-                        'TIPO_MATERIAL': tipoMaterial
+                        'TIPO_MATERIAL': tipoMaterial,
+                        'ID_FORNECEDOR': idFornecedor
                         },
                         url:"{{route('material.inserir')}}",
                         success:function(r){
@@ -575,6 +712,7 @@
                         'ultimaRetirada': ultimaRetirada,
                         'TIPO_MATERIAL': tipoMaterial,
                         'ID': codMaterial,
+                        'ID_FORNECEDOR': idFornecedor
                         },
                         url:"{{route('material.alterar')}}",
                         success:function(r){
@@ -584,7 +722,7 @@
                             Swal.fire(
                                 'Sucesso!',
                                 'Material alterado com sucesso.',
-                                'success',
+                                'success'
                             )
                         },
                         error:err=>{exibirErro(err)}
@@ -705,11 +843,53 @@
             $('#inputMaterialQtde').val('')
             $('#selectMaterialDisponivel').val('1')
             $('#inputMaterialUltimaRetirada').val('')
+
+            limparCampo('inputFornecedor', 'inputIDFornecedor', 'btnLimparFornecedor');
         }
 
         function gerarEtiqueta(idMaterial){
             window.open(`{{env('APP_URL')}}/materiais/etiqueta/${idMaterial}`)
         }
+
+        $("#inputFornecedor").autocomplete({
+            source: function(request, cb){
+                param = request.term;
+                campoBuscado = param;
+                $.ajax({
+                    url:"{{route('pessoa.buscar')}}",
+                    method: 'post',
+                    data:{
+                        '_token': '{{csrf_token()}}',
+                        'nome': param,
+                        'ID_TIPO': 3
+                    },
+                    dataType: 'json',
+                    success: function(r){
+                        result = $.map(r, function(obj){
+                            return {
+                                label: obj.info,
+                                value: obj.NOME,
+                                data : obj
+                            };
+                        });
+                        cb(result);
+                    },
+                    error: err=>{
+                        console.log(err)
+                    }
+                });
+            },
+            select:function(e, selectedData) {
+                if (selectedData.item.label != 'Nenhum Veículo Encontrado.'){
+                    $('#inputFornecedor').val(selectedData.item.data.NOME);
+                    $('#inputIDFornecedor').val(selectedData.item.data.ID);
+                    $('#inputFornecedor').attr('disabled', true); 
+                    $('.btnLimparFornecedor').removeClass('d-none');
+                } else {
+                    limparCampo('inputFornecedor', 'inputIDFornecedor', 'btnLimparFornecedor');
+                }
+            }
+        });
 
         $('#modal-cadastro-marca').on('hidden.bs.modal', function () {
             exibirModalListaMarca();
@@ -733,6 +913,10 @@
 
         $('#btnCadastrarMarca').click(() => {
             exibirModalCadastroMarca();
+        });
+
+        $('#btnLimparFornecedor').click(() => {
+            limparCampo('inputFornecedor', 'inputIDFornecedor', 'btnLimparFornecedor');
         });
 
         $('#selectFiltroTipo').on('change', () => {

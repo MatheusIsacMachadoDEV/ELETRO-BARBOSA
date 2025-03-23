@@ -9,6 +9,8 @@ use DB;
 use Config;
 use PDF;
 use DateTime;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 
 class ComprasController extends Controller
 {
@@ -23,6 +25,7 @@ class ComprasController extends Controller
 
     public function buscarOrdemCompra(Request $request){
         $dadosRecebidos = $request->except('_token');
+        $idUsuario = auth()->user()->id;
 
         if(isset($dadosRecebidos['DATA_INICIO']) && isset($dadosRecebidos['DATA_FIM'])){
             $filtroData = "AND ordem_compra.DATA_CADASTRO BETWEEN '{$dadosRecebidos['DATA_INICIO']} 00:00:00'
@@ -61,6 +64,12 @@ class ComprasController extends Controller
             $filtro = 'AND 1 = 1';
         }
 
+        if(Gate::allows('ADMINISTRADOR')){
+            $filtroUsuario = "AND 1 = 1";
+        } else {
+            $filtroUsuario = "AND ID_USUARIO = $idUsuario";
+        }
+
         $query = "SELECT ordem_compra.*
                        , (SELECT name
                             FROM users
@@ -75,6 +84,7 @@ class ComprasController extends Controller
                    $filtroSituacao
                    $filtroID
                    $filtroData
+                   $filtroUsuario
                    ORDER BY ordem_compra.DATA_CADASTRO DESC";
         $result['dados'] = DB::select($query);
         $result['query'] = $query;

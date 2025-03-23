@@ -19,6 +19,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/buscar', 'MateriaisController@buscarMaterial')->name('material.busca');
         Route::post('/buscar/marca', 'MateriaisController@buscarMarca')->name('material.busca.marca');
         Route::post('/buscar/movimento', 'MateriaisController@buscarMaterialMovimento')->name('material.buscar.movimento');
+        Route::post('/buscar/kardex', 'MateriaisController@buscarMaterialKardex')->name('material.buscar.kardex');
         Route::post('/inserir', 'MateriaisController@inserirMaterial')->name('material.inserir');
         Route::post('/inserir/marca', 'MateriaisController@inserirMarca')->name('material.inserir.marca');
         Route::post('/inserir/retiradda-devolucao', 'MateriaisController@inserirRetiradaDevolucao')->name('material.inserir.devolucao');

@@ -382,6 +382,11 @@ return [
                     'icon' => 'fas fa-percentage'
                 ],
                 [
+                    'text' => 'Diárias',
+                    'url'  => 'financeiro/diaria',
+                    'icon' => 'fas fa-comment-dollar'
+                ],
+                [
                     'text' => 'Folha de Pagamento',
                     'url'  => 'financeiro/folha-pagamento',
                     'icon' => 'fas fa-wallet'

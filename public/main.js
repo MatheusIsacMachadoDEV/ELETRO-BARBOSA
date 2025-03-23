@@ -1,13 +1,16 @@
+var urlPrincipal = window.location.href.split("/public")[0] + "/public";
+
 function limparMascaraFinanceira(string){
     return string.replace('.', '').replace('R$','').replace(' ','').replace(',', '.');
 }
+
 function limparMascaraTelefonica(string){
     return string.replace(')', '').replace('(','').replace(' ','').replace('-', '');
 }
+
 function mascaraFinanceira(valor){
     return (valor-0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
-
 
 function mascaraDocumento(numero) {
     numero = numero.replace(/\D/g, '');
@@ -46,10 +49,12 @@ function limparCampo(input1, input2, botao, inputsAdicionais){
         $('#btnQRCODE').removeClass('d-none');
     }
 
-    for (let index = 0; index < inputsAdicionais.length; index++) {
-        var inputID = inputsAdicionais[index];
-        var input = $('#' + inputID);
-        input.val('');        
+    if(inputsAdicionais != null){
+        for (let index = 0; index < inputsAdicionais.length; index++) {
+            var inputID = inputsAdicionais[index];
+            var input = $('#' + inputID);
+            input.val('');        
+        }
     }
 }
 
@@ -138,7 +143,7 @@ function atualizarModulos(){
         datatype:'json',
         data:{
         },
-        url:"./atualizar/modulos",
+        url:`${urlPrincipal}/atualizar/modulos`,
         success:function(r){
         },
         error:err=>{exibirErro(err)}
@@ -151,7 +156,7 @@ function atualizarMenus(){
         datatype:'json',
         data:{
         },
-        url:"./atualizar/menus",
+        url:`${urlPrincipal}/atualizar/menus`,
         success:function(r){
         },
         error:err=>{exibirErro(err)}
@@ -159,6 +164,7 @@ function atualizarMenus(){
 }
 
 $(document).ready(function() {
+
     setTimeout(() => {
         $(this).find('input').first().focus();        
     }, 500);

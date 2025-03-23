@@ -1,3 +1,7 @@
+@php
+    date_default_timezone_set('America/Sao_Paulo');
+@endphp
+
 @extends('adminlte::page')
 
 @section('title', 'Compras | GSSoftware')
@@ -96,38 +100,40 @@
                             <textarea class="form-control form-control-border" placeholder="Observações" id="inputCadastroObservacao" maxlength="200"></textarea>
                         </div>
 
-                        <div class="col-12 d-flex justify-content-start">
-                            <span class="right badge badge-info">Itens</span>
-                        </div>
-
-                        <div class="col-6 row d-flex p-0 m-0">
-                            <div class="col">
-                                <input type="text" class="form-control form-control-border col-12" placeholder="Item" id="inputCadastroItem">
-                                <input type="hidden" id="inputCadastroItemID">
+                        <div class="col-12 row d-flex" id="divItens">
+                            <div class="col-12 d-flex justify-content-start">
+                                <span class="right badge badge-info">Itens</span>
                             </div>
-                            <div class="col btnLimparCadastroItem d-none">
-                                <button id="btnLimparCadastroItem" class="btnLimparCadastroItem btn btn-sm btn-danger d-none col-12"><i class="fas fa-eraser"></i> LIMPAR</button>
+    
+                            <div class="col-6 row d-flex p-0 m-0">
+                                <div class="col">
+                                    <input type="text" class="form-control form-control-border col-12" placeholder="Item" id="inputCadastroItem">
+                                    <input type="hidden" id="inputCadastroItemID">
+                                </div>
+                                <div class="col btnLimparCadastroItem d-none">
+                                    <button id="btnLimparCadastroItem" class="btnLimparCadastroItem btn btn-sm btn-danger d-none col-12"><i class="fas fa-eraser"></i> LIMPAR</button>
+                                </div>
                             </div>
-                        </div>
-
-                        <div class="col-6">
-                            <button type="button" class="btn btn-block btn-info" id="btnCadastroAdicionarItem"><i class="fas fa-plus"></i> Item</button>
-                        </div>
-                        
-                        <div class="form-group col-4">
-                            <input type="text" class="form-control form-control-border" placeholder="Item: Quantidade" id="inputCadastroItemQTDE">
-                        </div>
-
-                        <div class="form-group col-4">
-                            <input type="text" class="form-control form-control-border" placeholder="Item: Valor Unitário" id="inputCadastroItemValorUnitario">
-                        </div>
-
-                        <div class="form-group col-4">
-                            <input type="text" class="form-control form-control-border" placeholder="Item: Valor Total" id="inputCadastroItemValorTotal">
-                        </div>
-
-                        <div class="form-group col-12">
-                            <textarea class="form-control form-control-border" placeholder="Item: Observação" id="inputCadastroItemObs"></textarea>
+    
+                            <div class="col-6">
+                                <button type="button" class="btn btn-block btn-info" id="btnCadastroAdicionarItem"><i class="fas fa-plus"></i> Item</button>
+                            </div>
+                            
+                            <div class="form-group col-4">
+                                <input type="text" class="form-control form-control-border" placeholder="Item: Quantidade" id="inputCadastroItemQTDE">
+                            </div>
+    
+                            <div class="form-group col-4">
+                                <input type="text" class="form-control form-control-border" placeholder="Item: Valor Unitário" id="inputCadastroItemValorUnitario">
+                            </div>
+    
+                            <div class="form-group col-4">
+                                <input type="text" class="form-control form-control-border" placeholder="Item: Valor Total" id="inputCadastroItemValorTotal">
+                            </div>
+    
+                            <div class="form-group col-12">
+                                <textarea class="form-control form-control-border" placeholder="Item: Observação" id="inputCadastroItemObs"></textarea>
+                            </div>
                         </div>
 
                         <div class="col-12">
@@ -282,6 +288,43 @@
             })
         }
 
+        function exibirModalVisualizacao(idOrdem){
+            resetarCampos();
+
+            $.ajax({
+                type:'post',
+                datatype:'json',
+                data:{
+                   '_token':'{{csrf_token()}}',
+                   'ID': idOrdem
+                },
+                url:"{{route('compras.buscar.ordem')}}",
+                success:function(r){
+                    var dados = r.dados[0];
+                    $('#divItens').addClass('d-none');
+                    $('#btnCadastroSalvar').addClass('d-none')
+                    $('#divItens').removeClass('d-flex');
+
+                    $('#inputCadastroID').val(idOrdem)
+                    $('#inputCadastroData').val(dados['DATA_CADASTRO'])
+                    $('#inputCadastroObservacao').val(dados['OBSERVACAO'])
+                    $('#inputCadastroValorTotal').val(mascaraFinanceira(dados['VALOR']))
+
+                    $('#inputCadastroID').prop('disabled', true)
+                    $('#inputCadastroData').prop('disabled', true)
+                    $('#inputCadastroObservacao').prop('disabled', true)
+                    $('#inputCadastroValorTotal').prop('disabled', true)
+                    $('#inputCadastroProjeto').prop('disabled', true)
+
+                    dadosItens = dados['ITENS'];
+
+                    popularListaItens(false);
+                    $('#modal-cadastro').modal('show');
+                },
+                error:err=>{exibirErroAJAX(err)}
+            })
+        }
+
         function buscarDados(){
             editar = false;
             $.ajax({
@@ -335,6 +378,7 @@
                 var btnAprovavaco = '';
                 var btnArquivos = '';
                 var btnImprimir = `<li class="dropdown-item" onclick="gerarImpresso(${dados[i]['ID']}, 1)"><span class="btn"><i class="fas fa-print"></i> Imprimir</span></li>`;
+                var btnVisualizar = `<li class="dropdown-item" onclick="exibirModalVisualizacao(${dados[i]['ID']})"><span class="btn"><i class="fas fa-eye"></i> Visualizar</span></li>`;
                 var classeBadgeSituacao = 'bg-warning';
                 var dataFormatada = moment(dados[i]['DATA_CADASTRO']).format('DD/MM/YYYY H:m');
 
@@ -347,8 +391,11 @@
                 } else if(dados[i]['ID_SITUACAO'] == 2){
                     classeBadgeSituacao = 'bg-danger';
                 } else if(dados[i]['STATUS'] == 'A' && dados[i]['ID_SITUACAO'] == 3){
+
+                    @CAN('GESTAO_COMPRAS')
                     btnAprovavaco = `<li class="dropdown-item" onclick="alterarSituacaoOrdem(${dados[i]['ID']}, 1)"><span class="btn"><i class="fas fa-check" style="color: #63E6BE;"></i></span> Aprovar</li>
                                      <li class="dropdown-item" onclick="alterarSituacaoOrdem(${dados[i]['ID']}, 2)"><span class="btn"><i class="fas fa-times" style="color: #ff0000;"></i></span> Reprovar</li>`;
+                    @ENDCAN
                 }
 
                 if(dados[i]['STATUS'] == 'A' && dados[i]['ID_SITUACAO'] == 3){
@@ -365,6 +412,7 @@
                                             <ul class="dropdown-menu ">
                                                 ${btnAprovavaco}
                                                 ${btnAcoes}                                            
+                                                ${btnVisualizar}                                            
                                                 ${btnImprimir}                                            
                                                 ${btnArquivos}                                            
                                             </ul>
@@ -392,7 +440,7 @@
             $('#tableBodyDados').html(htmlTabela);
         }
 
-        function popularListaItens(){
+        function popularListaItens(editarItens = true){
             var htmlTabela = "";
             var dados = dadosItens;
 
@@ -405,6 +453,10 @@
                 }
 
                 btnAcoes = `<button class="btn" onclick="removerItem(${dados[i]['ID_UNICO']})"><i class="fas fa-trash"></i></button>`;
+
+                if(!editarItens){
+                    btnAcoes = '';
+                }
                 
                 htmlTabela += `
                     <tr id="tableRow${dados[i]['ID_UNICO']}" class="d-none d-lg-table-row">
@@ -681,6 +733,18 @@
             $('#inputCadastroItemQTDE').val('')
             $('#inputCadastroItemValorUnitario').val('')
             $('#inputCadastroItemValorTotal').val('')
+
+            $('#divItens').removeClass('d-none');
+            $('#btnCadastroSalvar').removeClass('d-none')
+
+            $('#divItens').addClass('d-flex');
+            
+
+            $('#inputCadastroID').prop('disabled', false)
+            $('#inputCadastroData').prop('disabled', false)
+            $('#inputCadastroObservacao').prop('disabled', false)
+            $('#inputCadastroValorTotal').prop('disabled', false)
+            $('#inputCadastroProjeto').prop('disabled', false)
 
             dadosItens = [];
             valorTotalOrdem = 0;

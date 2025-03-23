@@ -56,6 +56,14 @@ class AuthServiceProvider extends ServiceProvider
             }
         });
 
+        Gate::define('GESTAO_COMPRAS', function () {
+            if(auth()->user()->email == 'adm@adm.com'){                    
+                return true;
+            } else {
+                return false;
+            }
+        });
+
         Gate::define('ORDEM_SERVICO', function () {
             return false;
         });

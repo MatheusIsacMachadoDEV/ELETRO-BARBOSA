@@ -11,6 +11,8 @@ use PDF;
 use Endroid\QrCode\QrCode;
 use Endroid\QrCode\Writer\PngWriter;
 use GuzzleHttp\Psr7\Query;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 
 class MateriaisController extends Controller
 {
@@ -58,6 +60,10 @@ class MateriaisController extends Controller
         }
 
         $query = "SELECT material.*
+                       , (SELECT NOME
+                            FROM PESSOA
+                           WHERE ID = material.ID_FORNECEDOR
+                             AND STATUS = 'A') AS FORNECEDOR
                     FROM material
                    WHERE STATUS = 'A'
                    $filtro
@@ -85,6 +91,7 @@ class MateriaisController extends Controller
     public function buscarMaterialMovimento(Request $request){
         $dadosRecebidos = $request->except('_token');
         $filtroLimit = "";
+        $idUsuario = auth()->user()->id;
         $return = [];
         
         // MONTA O FILTRO DE DATA
@@ -112,12 +119,19 @@ class MateriaisController extends Controller
             $filtroLimit = "LIMIT ".$dadosRecebidos['dadosPorPagina']."
                            OFFSET ".$dadosRecebidos['offset'];
         }
+
+        if(Gate::allows('ADMINISTRADOR')){
+            $filtroUsuario = "AND 1 = 1";
+        } else {
+            $filtroUsuario = "AND ID_PESSOA = $idUsuario";
+        }
         
         $queryCount= " SELECT COUNT(*) as COUNT
                          FROM material_movimento
                         WHERE STATUS = 'A'
                         $filtroBusca
-                        $filtroData";
+                        $filtroData
+                        $filtroUsuario";
         $resultCount = DB::select($queryCount);
         $return['contagem'] = $resultCount[0]->COUNT;
         
@@ -126,8 +140,58 @@ class MateriaisController extends Controller
                     WHERE STATUS = 'A'
                     $filtroData
                     $filtroBusca
+                    $filtroUsuario
                     ORDER BY DATA DESC
                     $filtroLimit";
+        $result = DB::select($query);
+        $return['dados'] = $result;
+        
+        return $return;
+    }
+
+    public function buscarMaterialKardex(Request $request){
+        $dadosRecebidos = $request->except('_token');
+        $filtroLimit = "";
+        $return = [];
+        
+        // MONTA O FILTRO DE BUSCA DE TEXTO
+        if(isset($dadosRecebidos['ID_MATERIAL'])){
+            $filtroMaterial = "AND ID_MATERIAL= '{$dadosRecebidos['ID_MATERIAL']}'";
+        } else {
+            $filtroMaterial = 'AND 1 = 1';
+        }
+        
+        if(isset($dadosRecebidos['dadosPorPagina']) && isset($dadosRecebidos['offset']) && $dadosRecebidos['dadosPorPagina'] != 'todos'){
+            $filtroLimit = "LIMIT ".$dadosRecebidos['dadosPorPagina']."
+                           OFFSET ".$dadosRecebidos['offset'];
+        }
+        
+        $queryCount= " SELECT COUNT(*) as COUNT
+                         FROM KARDEX
+                        WHERE STATUS = 'A'
+                        $filtroMaterial
+                        $filtroLimit";
+        $resultCount = DB::select($queryCount);
+        $return['contagem'] = $resultCount[0]->COUNT;
+        
+        $query = " SELECT (SELECT material.MATERIAL
+                             FROM material
+                            WHERE material.ID = kardex.ID_MATERIAL) AS MATERIAL
+                        , (SELECT situacoes.VALOR
+                             FROM situacoes
+                            WHERE situacoes.ID_ITEM = kardex.TIPO
+                              AND situacoes.TIPO = 'KARDEX') AS TIPO_MOVIMENTACAO
+                        , kardex.DATA_CADASTRO
+                        , kardex.VALOR
+                        , (SELECT name
+                             FROM users
+                            WHERE users.id = kardex.ID_USUARIO) AS USUARIO
+                        , ORIGEM
+                        , ID
+                    FROM kardex
+                   WHERE STATUS = 'A'
+                   $filtroMaterial
+                   $filtroLimit";
         $result = DB::select($query);
         $return['dados'] = $result;
         
@@ -143,6 +207,7 @@ class MateriaisController extends Controller
         $disponivel = $dadosRecebidos['disponivel'];
         $ultimaRetirada = $dadosRecebidos['ultimaRetirada'];
         $TIPO_MATERIAL = $dadosRecebidos['TIPO_MATERIAL'];
+        $idFornecedor = isset($dadosRecebidos['ID_FORNECEDOR']) ? $dadosRecebidos['ID_FORNECEDOR'] : 0;
         $descricaoMarca = '';
 
         if($marca > 0){
@@ -161,6 +226,7 @@ class MateriaisController extends Controller
                             , SITUACAO
                             , DATA_ULTIMA_RETIRADA
                             , TIPO_MATERIAL
+                            , ID_FORNECEDOR
                             ) VALUES (
                             '$material'
                             , $valor
@@ -170,6 +236,7 @@ class MateriaisController extends Controller
                             , $disponivel
                             , '$ultimaRetirada'
                             , $TIPO_MATERIAL
+                            , $idFornecedor
                             )";
         $result = DB::select($query);
 
@@ -241,6 +308,7 @@ class MateriaisController extends Controller
         $disponivel = $dadosRecebidos['disponivel'];
         $ultimaRetirada = strlen($dadosRecebidos['ultimaRetirada']) > 0 ? "'{$dadosRecebidos['ultimaRetirada']}'" : 'null';
         $TIPO_MATERIAL = $dadosRecebidos['TIPO_MATERIAL'];
+        $idFornecedor = isset($dadosRecebidos['ID_FORNECEDOR']) ? $dadosRecebidos['ID_FORNECEDOR'] : 0;
         $descricaoMarca = '';
 
         if($marca > 0){
@@ -259,6 +327,7 @@ class MateriaisController extends Controller
                        , SITUACAO = $disponivel
                        , DATA_ULTIMA_RETIRADA = $ultimaRetirada
                        , TIPO_MATERIAL = $TIPO_MATERIAL
+                       , ID_FORNECEDOR = $idFornecedor
                    WHERE ID = $idMaterial";
         $result = DB::select($query);
 
