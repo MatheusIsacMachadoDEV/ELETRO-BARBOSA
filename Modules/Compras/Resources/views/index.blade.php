@@ -278,6 +278,14 @@
                     $('#inputCadastroData').val(dados['DATA_CADASTRO'])
                     $('#inputCadastroObservacao').val(dados['OBSERVACAO'])
                     $('#inputCadastroValorTotal').val(mascaraFinanceira(dados['VALOR']))
+
+                    $('#inputCadastroProjeto').val(dados['PROJETO']);
+                    $('#inputCadastroIDProjeto').val(dados['ID_PROJETO']);
+
+                    if(dados['ID_PROJETO'] > 0){                        
+                        $('#inputCadastroProjeto').attr('disabled', true);
+                        $('.btnLimparProjeto').removeClass('d-none');
+                    }
                     
                     dadosItens = dados['ITENS'];
 
@@ -315,6 +323,13 @@
                     $('#inputCadastroObservacao').prop('disabled', true)
                     $('#inputCadastroValorTotal').prop('disabled', true)
                     $('#inputCadastroProjeto').prop('disabled', true)
+
+                    $('#inputCadastroProjeto').val(dados['PROJETO']);
+                    $('#inputCadastroIDProjeto').val(dados['ID_PROJETO']);
+
+                    if(dados['ID_PROJETO'] > 0){                        
+                        $('#inputCadastroProjeto').attr('disabled', true);
+                    }
 
                     dadosItens = dados['ITENS'];
 
@@ -517,6 +532,14 @@
                     'warning'
                 );
                 validacao = false;
+            }
+
+            if($('#inputCadastroIDProjeto').val() == 0 && $('#inputCadastroProjeto').val().length > 0){
+                validacao = false;
+                $('#inputCadastroProjeto').addClass('is-invalid')
+                dispararAlerta('warning', 'Projeto inválido!')
+            } else {
+                $('#inputCadastroProjeto').removeClass('is-invalid');
             }
 
             if(validacao){
@@ -745,6 +768,8 @@
             $('#inputCadastroObservacao').prop('disabled', false)
             $('#inputCadastroValorTotal').prop('disabled', false)
             $('#inputCadastroProjeto').prop('disabled', false)
+
+            limparCampo('inputCadastroProjeto', 'inputCadastroIDProjeto', 'btnLimparProjeto');
 
             dadosItens = [];
             valorTotalOrdem = 0;
@@ -1001,6 +1026,48 @@
                 buscarDados();
             }, 1500);
         })
+
+        $("#inputCadastroProjeto").autocomplete({
+            source: function(request, cb) {
+                param = request.term;
+                $.ajax({
+                    url: "{{route('projeto.buscar')}}",
+                    method: 'post',
+                    data: {
+                        '_token': '{{csrf_token()}}',
+                        'filtro': param
+                    },
+                    dataType: 'json',
+                    success: function(r) {
+                        result = $.map(r.dados, function(obj) {
+                            return {
+                                label: obj.info,
+                                value: obj.TITULO,
+                                data: obj
+                            };
+                        });
+                        cb(result);
+                    },
+                    error: err => {
+                        console.log(err);
+                    }
+                });
+            },
+            select: function(e, selectedData) {
+                if (selectedData.item.label != 'Nenhum Funcionário Encontrado.') {
+                    $('#inputCadastroProjeto').val(selectedData.item.data.TITULO);
+                    $('#inputCadastroIDProjeto').val(selectedData.item.data.ID);
+                    $('#inputCadastroProjeto').attr('disabled', true);
+                    $('.btnLimparProjeto').removeClass('d-none');
+                } else {
+                    limparCampo('inputCadastroProjeto', 'inputCadastroIDProjeto', 'btnLimparProjeto');
+                }
+            }
+        });
+
+        $('#btnLimparProjeto').click(function() {
+            limparCampo('inputCadastroProjeto', 'inputCadastroIDProjeto', 'btnLimparProjeto');
+        });
 
         $(document).ready(function() {
             buscarSituacoes();

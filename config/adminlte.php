@@ -413,6 +413,11 @@ return [
                     'icon' => 'fas fa-calendar-alt'
                 ],   
                 [
+                    'text' => 'Projetos',
+                    'url'  => 'projeto',
+                    'icon' => 'fas fa-file-powerpoint'
+                ],  
+                [
                     'text' => 'Clientes',
                     'url'  => 'pessoas',
                     'icon' => 'fas fa-user-edit'

@@ -238,7 +238,7 @@
                 btnInserirPagamento = `<li class="dropdown-item" onclick="pagamentoDiaria(${dados[i]['ID']})"><span class="btn"><i class="fas fa-dollar-sign"></i></span> Inserir Pagamento</li>`;
                 btnEditar = `<li class="dropdown-item" onclick="editarDiaria(${dados[i]['ID']})"><span class="btn"><i class="fas fa-pen"></i></span> Editar</li>`;
                 btnArquivos = `<li class="dropdown-item" onclick="cadastarDocumento(${dados[i]['ID']}, '${dataInicio}')"><span class="btn"><i class="fas fa-file-alt"></i></span> Arquivos</li>`;
-                btnInativar = `<li class="dropdown-item" onclick="cinativarDiaria(${dados[i]['ID']})"><span class="btn"><i class="fas fa-trash"></i></span> Inativar</li>`;
+                btnInativar = `<li class="dropdown-item" onclick="inativarDiaria(${dados[i]['ID']})"><span class="btn"><i class="fas fa-trash"></i></span> Inativar</li>`;
 
                 if(dados[i]['PAGAMENTO_REALIZADO'] == 'S'){
                     btnInserirPagamento = '';

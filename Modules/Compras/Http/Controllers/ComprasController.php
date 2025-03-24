@@ -78,6 +78,9 @@ class ComprasController extends Controller
                             FROM situacoes
                            WHERE situacoes.ID_ITEM = ordem_compra.ID_SITUACAO
                              AND TIPO = 'ORDEM_COMPRA') AS SITUACAO
+                       , (SELECT TITULO
+                            FROM projeto
+                           WHERE projeto.ID = ordem_compra.ID_PROJETO) AS PROJETO
                     FROM ordem_compra
                    WHERE STATUS = 'A'
                    $filtro
@@ -201,16 +204,16 @@ class ComprasController extends Controller
     }
 
     public function inserirDocumentoOrdemCompra(Request $request){
-      $dadosRecebidos = $request->except('_token');
-      $idOrdem = $dadosRecebidos['ID_ORDEM'];
-      $caminhoArquivo = $dadosRecebidos['caminhoArquivo'];
+        $dadosRecebidos = $request->except('_token');
+        $idOrdem = $dadosRecebidos['ID_ORDEM'];
+        $caminhoArquivo = $dadosRecebidos['caminhoArquivo'];
 
-      $query = "INSERT INTO ordem_compra_documento (ID_ORDEM_COMPRA, CAMINHO_DOCUMENTO) 
-                                  VALUES ($idOrdem, '$caminhoArquivo')";
-      $result = DB::select($query);
+        $query = "INSERT INTO ordem_compra_documento (ID_ORDEM_COMPRA, CAMINHO_DOCUMENTO) 
+                                    VALUES ($idOrdem, '$caminhoArquivo')";
+        $result = DB::select($query);
 
-      return $result;
-  }
+        return $result;
+    }
 
     public function alterarOrdemCompra(Request $request){
         $dadosRecebidos = $request->except('_token');

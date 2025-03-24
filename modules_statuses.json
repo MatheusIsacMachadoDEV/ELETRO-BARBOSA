@@ -10,5 +10,6 @@
     "GestaoEmpresa": true,
     "Agenda": true,
     "Usuarios": true,
-    "ControlePonto": true
+    "ControlePonto": true,
+    "Projeto": true
 }

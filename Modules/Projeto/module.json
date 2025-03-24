@@ -1,0 +1,11 @@
+{
+    "name": "Projeto",
+    "alias": "projeto",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\Projeto\\Providers\\ProjetoServiceProvider"
+    ],
+    "files": []
+}
