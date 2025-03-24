@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use DB;
 use DateTime;
+use GuzzleHttp\Psr7\Query;
 use PDF;
 
 class FinanceiroController extends Controller
@@ -240,12 +241,14 @@ class FinanceiroController extends Controller
             $filtro = "";
         }
 
-        $query = "SELECT d.*
-                       , u.name AS NOME_USUARIO 
-                    FROM diaria d
-                   INNER JOIN users u ON d.ID_USUARIO = u.id
-                   WHERE d.STATUS = 'A' $filtro
-                   ORDER BY d.DATA_INICIO DESC";
+        $query = "SELECT diaria.*
+                       , (SELECT NOME
+                            FROM pessoa
+                           WHERE pessoa.ID = diaria.ID_USUARIO) AS NOME_USUARIO 
+                    FROM diaria 
+                   WHERE diaria.STATUS = 'A' 
+                   $filtro
+                   ORDER BY diaria.DATA_INICIO DESC";
         $result['dados'] = DB::select($query);
 
         return response()->json($result);
@@ -256,20 +259,34 @@ class FinanceiroController extends Controller
     {
         $dadosRecebidos = $request->except('_token');
 
-        $idUsuario = $dadosRecebidos['ID_USUARIO'];
+        $idFuncionario = $dadosRecebidos['ID_USUARIO'];
+        $funcionario = $dadosRecebidos['USUARIO'];
         $dataInicio = $dadosRecebidos['DATA_INICIO'];
         $dataFim = $dadosRecebidos['DATA_FIM'];
         $valorDia = $dadosRecebidos['VALOR_DIA'];
+        $descricao = $dadosRecebidos['DESCRICAO'];
+        $idUsuarioInsercao = auth()->user()->id;
+        $codEvento = substr(md5(uniqid()), 0, 6);
 
         // Calcula o tempo em dias
         $tempoDias = (strtotime($dataFim) - strtotime($dataInicio)) / (60 * 60 * 24);
         $valorTotal = $tempoDias * $valorDia;
 
-        $query = "
-            INSERT INTO diaria (ID_USUARIO, DATA_INICIO, DATA_FIM, TEMPO_DIAS, VALOR_DIA, VALOR_TOTAL, STATUS) 
-            VALUES ($idUsuario, '$dataInicio', '$dataFim', $tempoDias, $valorDia, $valorTotal, 'A')
-        ";
+        $query = "INSERT INTO diaria (DESCRICAO, ID_USUARIO, DATA_INICIO, DATA_FIM, TEMPO_DIAS, VALOR_DIA, VALOR_TOTAL, STATUS, ID_USUARIO_INSERCAO) 
+                              VALUES ('$descricao', $idFuncionario, '$dataInicio', '$dataFim', $tempoDias, $valorDia, $valorTotal, 'A', $idUsuarioInsercao)";
         DB::insert($query);
+
+        $queryUsuario = "SELECT ID_USUARIO
+                           FROM pessoa
+                          WHERE ID = $idFuncionario";
+        $idUsuario = DB::select($queryUsuario)[0]->ID_USUARIO;
+
+        $dataInicioDiaria = "$dataInicio 08:00:00";
+        $dataFimDiaria = "$dataFim 18:00:00";
+
+        $queryEvento = "INSERT INTO agenda_evento(ID_USUARIO, CODEVENTO, TITULO, RESPONSAVEL, ID_LOCAL, PRECO, OBSERVACAO, COR_EVENTO, DATA_INI, DATA_FIM, CLIENTE, DIA_TODO, ID_PESSOA, VISUALIZADO, DATA_VISUALIZACAO)
+                                    VALUES( $idUsuario, '$codEvento', 'Diária: $descricao', '$funcionario', 0, 0, 'Diária: $descricao - Duração:  $tempoDias - Valor: $valorTotal', '_b1hix88l9', '$dataInicioDiaria', '$dataFimDiaria', 'gss_eletro_barbosa', 0, 0, 'N', NULL)";
+        DB::select($queryEvento);
 
         return response()->json(['success' => 'Diária inserida com sucesso!']);
     }
@@ -284,21 +301,21 @@ class FinanceiroController extends Controller
         $dataInicio = $dadosRecebidos['DATA_INICIO'];
         $dataFim = $dadosRecebidos['DATA_FIM'];
         $valorDia = $dadosRecebidos['VALOR_DIA'];
+        $descricao = $dadosRecebidos['DESCRICAO'];
 
         // Calcula o tempo em dias e o valor total
         $tempoDias = (strtotime($dataFim) - strtotime($dataInicio)) / (60 * 60 * 24);
         $valorTotal = $tempoDias * $valorDia;
 
-        $query = "
-            UPDATE diaria 
-            SET ID_USUARIO = $idUsuario, 
-                DATA_INICIO = '$dataInicio', 
-                DATA_FIM = '$dataFim', 
-                TEMPO_DIAS = $tempoDias, 
-                VALOR_DIA = $valorDia, 
-                VALOR_TOTAL = $valorTotal 
-            WHERE ID = $idDiaria
-        ";
+        $query = "UPDATE diaria 
+                     SET ID_USUARIO = $idUsuario, 
+                         DATA_INICIO = '$dataInicio', 
+                         DATA_FIM = '$dataFim', 
+                         TEMPO_DIAS = $tempoDias, 
+                         VALOR_DIA = $valorDia, 
+                         VALOR_TOTAL = $valorTotal ,
+                         DESCRICAO = $descricao
+                   WHERE ID = $idDiaria";
         DB::update($query);
 
         return response()->json(['success' => 'Diária alterada com sucesso!']);
@@ -314,6 +331,34 @@ class FinanceiroController extends Controller
         DB::update($query);
 
         return response()->json(['success' => 'Diária inativada com sucesso!']);
+    }
+
+    public function pagarDiaria(Request $request)
+    {
+        $dadosRecebidos = $request->except('_token');
+        $idDiaria = $dadosRecebidos['ID'];
+        $idUsuario = auth()->user()->id;
+
+        $query = "UPDATE diaria 
+                     SET PAGAMENTO_REALIZADO = 'S'
+                       , DATA_PAGAMENTO = NOW()
+                   WHERE ID = $idDiaria";
+        DB::update($query);
+
+        $queryDadosDiaria = "SELECT DESCRICAO
+                                  , VALOR_TOTAL
+                               FROM diaria
+                              WHERE ID = $idDiaria";
+        $dadosDiaria = DB::select($queryDadosDiaria)[0];
+
+        $descricaoDiaria = $dadosDiaria->DESCRICAO;
+        $valorDiaria = $dadosDiaria->VALOR_TOTAL;
+
+        $queryCPG = "INSERT INTO contas_pagar (ID_USUARIO, DESCRICAO, DATA_VENCIMENTO, VALOR, SITUACAO, DATA_PAGAMENTO, OBSERVACAO, ID_ORIGEM) 
+                                    VALUES ($idUsuario, '$descricaoDiaria', now(), $valorDiaria, 'PAGA', now(), 'CPG referente à diária: $idDiaria - $descricaoDiaria', 6)";
+        $result = DB::select($queryCPG);
+
+        return response()->json(['success' => 'Diária paga com sucesso!']);
     }
 
 }

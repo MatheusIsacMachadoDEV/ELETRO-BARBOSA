@@ -1,6 +1,6 @@
 @extends('adminlte::page')
 
-@section('title', 'Retirada/Devolução | GSSoftware')
+@section('title', 'Usuários | GSSoftware')
 
 @section('content')
     <div class="content-title">

@@ -78,6 +78,14 @@
                             </select>
                         </div>
 
+                        <div class="form-group col-12 d-none" id="divUsuario">
+                            <input type="text" class="form-control form-control-border" id="inputUsuario" placeholder="Usuário">
+                            <input type="hidden" id="inputIDUsuario">
+                            <div class="btnLimparUsuario d-none">
+                                <button id="btnLimparUsuario" class="btn btn-sm btn-danger mt-2"><i class="fas fa-eraser"></i> LIMPAR</button>
+                            </div>
+                        </div>
+
                         <div class="form-group col-6">
                             <input type="text" class="form-control form-control-border" maxlength="16" id="inputTelefone" oninput="mascaraTelefone(this)" placeholder="Telefone">
                         </div>
@@ -306,6 +314,7 @@
 @stop
 
 @section('css')
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
     <link rel="stylesheet" href="{{env('APP_URL')}}/main.css">
     <style>
         .table{
@@ -331,12 +340,7 @@
         function cadastrarPessoa(){
             inserindoPessoa = true;
 
-            $('#inputNome').val('');
-            $('#inputDocumento').val('');
-            $('#inputTelefone').val('');
-            $('#inputDataNascimento').val('');
-            $('#inputEmail').val('');
-            $('#selectTipoPessoa').val('0');
+            resetarCamposCadastro();
 
             $('#modal-cadastro').modal('show');
         }        
@@ -369,6 +373,13 @@
                 }
             }
 
+            if($('#selectTipoPessoa').val() == 2 && ($('#inputIDUsuario').val() == '0' || $('#inputIDUsuario').val() == '')){
+                $('#inputUsuario').addClass('is-invalid');
+                validacao = false;
+            } else {
+                $('#inputUsuario').removeClass('is-invalid');
+            }
+
             if(validacao){
 
                 if(inserindoPessoa){                    
@@ -382,7 +393,8 @@
                         'telefone': $('#inputTelefone').val().replace(new RegExp(' ', 'g'), '').replace(')', '').replace('(', '').replace('-', ''),
                         'email': $('#inputEmail').val(),
                         'data_nascimento': $('#inputDataNascimento').val(),
-                        'ID_TIPO': $('#selectTipoPessoa').val()
+                        'ID_TIPO': $('#selectTipoPessoa').val(),
+                        'ID_USUARIO': $('#inputIDUsuario').val()
                         },
                         url:"{{route('pessoa.inserir')}}",
                         success:function(r){
@@ -410,7 +422,8 @@
                         'telefone': $('#inputTelefone').val().replace(new RegExp(' ', 'g'), '').replace(')', '').replace('(', '').replace('-', ''),
                         'email': $('#inputEmail').val(),
                         'data_nascimento': $('#inputDataNascimento').val(),
-                        'ID_TIPO': $('#selectTipoPessoa').val()
+                        'ID_TIPO': $('#selectTipoPessoa').val(),
+                        'ID_USUARIO': $('#inputIDUsuario').val()
                         },
                         url:"{{route('pessoa.alterar')}}",
                         success:function(r){
@@ -511,6 +524,24 @@
                     $('#inputEmail').val(r[0]['EMAIL']);
                     $('#inputDataNascimento').val(r[0]['DATA_NASCIMENTO']);
                     $('#selectTipoPessoa').val(r[0]['ID_TIPO']);
+
+                    if($('#selectTipoPessoa').val() == 2){
+                        $('#divUsuario').removeClass('d-none');
+
+                        $('#inputIDUsuario').val(r[0]['ID_USUARIO']);
+                        $('#inputUsuario').val(r[0]['USUARIO']);
+
+
+                        if(r[0]['ID_USUARIO'] > 0){
+                            $('#inputUsuario').attr('disabled', true);
+                            $('.btnLimparUsuario').removeClass('d-none');
+                        } else {                            
+                            limparCampo('inputUsuario', 'inputIDUsuario', 'btnLimparUsuario');
+                        }
+                    } else {
+                        $('#divUsuario').addClass('d-none');
+                        limparCampo('inputUsuario', 'inputIDUsuario', 'btnLimparUsuario');
+                    }
 
                     $('#modal-cadastro').modal('show')
                 },
@@ -1021,6 +1052,17 @@
             $('.selectTipoPessoa').html(htmlTabela)
         }
 
+        function resetarCamposCadastro(){
+            $('#inputNome').val('');
+            $('#inputDocumento').val('');
+            $('#inputTelefone').val('');
+            $('#inputDataNascimento').val('');
+            $('#inputEmail').val('');
+            $('#selectTipoPessoa').val('0');
+
+            limparCampo('inputUsuario', 'inputIDUsuario', 'btnLimparUsuario');
+        }
+
         $('#btnConfirmar').click(() => {
             inserirPessoa();
         });
@@ -1035,6 +1077,15 @@
 
         $('#btnNovaPessoa').click(() => {
             cadastrarPessoa();
+        })
+
+        $('#selectTipoPessoa').on('change', () => {
+            if($('#selectTipoPessoa').val() == 2){
+                $('#divUsuario').removeClass('d-none');
+            } else {
+                $('#divUsuario').addClass('d-none');
+                limparCampo('inputUsuario', 'inputIDUsuario', 'btnLimparUsuario');
+            }
         })
 
         $('#btnNovoPagamentoFiado').on('click', function(){
@@ -1071,7 +1122,50 @@
                     }
                 }
             });
-        })
+        });
+
+        $("#inputUsuario").autocomplete({
+            source: function(request, cb) {
+                param = request.term;
+                $.ajax({
+                    url: "{{route('usuarios.buscar')}}",
+                    method: 'post',
+                    data: {
+                        '_token': '{{csrf_token()}}',
+                        'FILTRO_BUSCA': param,
+                        'FILTRO_ADICIONAL': 'SEM_FUNCIONARIO'
+                    },
+                    dataType: 'json',
+                    success: function(r) {
+                        result = $.map(r.dados, function(obj) {
+                            return {
+                                label: obj.info,
+                                value: obj.NAME,
+                                data: obj
+                            };
+                        });
+                        cb(result);
+                    },
+                    error: err => {
+                        console.log(err);
+                    }
+                });
+            },
+            select: function(e, selectedData) {
+                if (selectedData.item.label != 'Nenhum Funcionário Encontrado.') {
+                    $('#inputUsuario').val(selectedData.item.data.NAME);
+                    $('#inputIDUsuario').val(selectedData.item.data.ID);
+                    $('#inputUsuario').attr('disabled', true);
+                    $('.btnLimparUsuario').removeClass('d-none');
+                } else {
+                    limparCampo('inputUsuario', 'inputIDUsuario', 'btnLimparUsuario');
+                }
+            }
+        });
+
+        $('#btnLimparUsuario').click(function() {
+            limparCampo('inputUsuario', 'inputIDUsuario', 'btnLimparUsuario');
+        });
 
         $('#modal-cadastro-contas-bancarias').on('hidden.bs.modal', function () {
             

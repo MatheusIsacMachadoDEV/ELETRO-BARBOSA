@@ -36,12 +36,13 @@
                     <thead>
                         <tr>
                             <th>Funcionário</th>
-                            <th>Data Início</th>
-                            <th>Data Fim</th>
-                            <th>Tempo (Dias)</th>
-                            <th>Valor por Dia</th>
-                            <th>Valor Total</th>
-                            <th>Ações</th>
+                            <th><center>Data Início</center></th>
+                            <th><center>Data Fim</center></th>
+                            <th><center>Tempo (Dias)</center></th>
+                            <th><center>Valor por Dia</center></th>
+                            <th><center>Valor Total</center></th>
+                            <th><center>Paga</center></th>
+                            <th><center>Ações</center></th>
                         </tr>
                     </thead>
                     <tbody id="tableBodyDiarias">
@@ -99,7 +100,7 @@
     </div>
     
     <div class="modal fade" id="modal-diaria" tabindex="-1" role="dialog" aria-labelledby="modalDiariaLabel" aria-hidden="true">
-        <div class="modal-dialog" role="document">
+        <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="modalDiariaLabel">Cadastrar Diária</h5>
@@ -108,10 +109,14 @@
                     </button>
                 </div>
                 <div class="modal-body">
+
+                    <div class="form-group">
+                        <input type="text" class="form-control form-control-border" placeholder="Descrição" id="inputDescricao">
+                    </div>
+
                     <!-- Autocomplete de Funcionário -->
                     <div class="form-group">
-                        <label>Funcionário</label>
-                        <input type="text" class="form-control" id="inputFuncionario" placeholder="Funcionário">
+                        <input type="text" class="form-control form-control-border" id="inputFuncionario" placeholder="Funcionário">
                         <input type="hidden" id="inputIDFuncionario">
                         <div class="btnLimparFuncionario d-none">
                             <button id="btnLimparFuncionario" class="btn btn-sm btn-danger mt-2"><i class="fas fa-eraser"></i> LIMPAR</button>
@@ -120,24 +125,22 @@
 
                     <!-- Data Início e Data Fim -->
                     <div class="form-group">
-                        <label>Data Início</label>
-                        <input type="date" class="form-control" id="inputDataInicio">
+                        <label>Inicio</label>
+                        <input type="date" class="form-control form-control-border" id="inputDataInicio">
                     </div>
                     <div class="form-group">
-                        <label>Data Fim</label>
-                        <input type="date" class="form-control" id="inputDataFim">
+                        <label>Fim</label>
+                        <input type="date" class="form-control form-control-border" id="inputDataFim">
                     </div>
 
                     <!-- Valor por Dia -->
                     <div class="form-group">
-                        <label>Valor por Dia</label>
-                        <input type="number" class="form-control" id="inputValorDia">
+                        <input type="number" class="form-control form-control-border" id="inputValorDia" placeholder="Valor Por Dia">
                     </div>
 
                     <!-- Valor Total (calculado automaticamente) -->
                     <div class="form-group">
-                        <label>Valor Total</label>
-                        <input type="number" class="form-control" id="inputValorTotal" readonly>
+                        <input type="number" class="form-control form-control-border" id="inputValorTotal" readonly placeholder="Valor Total">
                     </div>
 
                     <input type="hidden" id="inputIDDiaria" value="0">
@@ -192,6 +195,8 @@
     <script>
 
         function exibirModalCadastro(){
+            resetarCamposCadastro();
+
             $('#modal-diaria').modal('show');
         }
     
@@ -214,36 +219,139 @@
         }
     
         // Popular lista de diárias
-        function popularTabelaDados(diarias) {
-            let html = '';
-            diarias.forEach(diaria => {
-                html += `
+        function popularTabelaDados(dados) {
+            var htmlTabela = "";
+
+            for(i=0; i< dados.length; i++){
+                var Keys = Object.keys(dados[i]);
+                for(j=0;j<Keys.length;j++){
+                    if(dados[i][Keys[j]] == null){
+                        dados[i][Keys[j]] = "";
+                    }
+                }
+
+                var diariaPaga = dados[i]['PAGAMENTO_REALIZADO'] == 'S' ? 'Sim' : 'Não';
+                var classeDiariaPaga = dados[i]['PAGAMENTO_REALIZADO'] == 'S' ? 'bg-success' : 'bg-danger';
+                var dataInicio = moment(dados[i]['DATA_INICIO']).format('DD/MM/YYYY')
+                var dataFim = moment(dados[i]['DATA_FIM']).format('DD/MM/YYYY')
+
+                btnInserirPagamento = `<li class="dropdown-item" onclick="pagamentoDiaria(${dados[i]['ID']})"><span class="btn"><i class="fas fa-dollar-sign"></i></span> Inserir Pagamento</li>`;
+                btnEditar = `<li class="dropdown-item" onclick="editarDiaria(${dados[i]['ID']})"><span class="btn"><i class="fas fa-pen"></i></span> Editar</li>`;
+                btnArquivos = `<li class="dropdown-item" onclick="cadastarDocumento(${dados[i]['ID']}, '${dataInicio}')"><span class="btn"><i class="fas fa-file-alt"></i></span> Arquivos</li>`;
+                btnInativar = `<li class="dropdown-item" onclick="cinativarDiaria(${dados[i]['ID']})"><span class="btn"><i class="fas fa-trash"></i></span> Inativar</li>`;
+
+                if(dados[i]['PAGAMENTO_REALIZADO'] == 'S'){
+                    btnInserirPagamento = '';
+                }
+
+                var btnOpcoes = ` <div class="input-group-prepend show justify-content-center" style="text-align: center">
+                                            <button type="button" class="btn btn-sm btn-warning dropdown-toggle" data-toggle="dropdown" aria-expanded="true">
+                                                Ações
+                                            </button>
+                                            <ul class="dropdown-menu ">
+                                                ${btnInserirPagamento}
+                                                ${btnEditar}
+                                                ${btnInativar}                                            
+                                                ${btnArquivos}                                          
+                                            </ul>
+                                        </div>`;
+
+                htmlTabela += `
                     <tr>
-                        <td>${diaria.NOME_USUARIO}</td>
-                        <td>${diaria.DATA_INICIO}</td>
-                        <td>${diaria.DATA_FIM}</td>
-                        <td>${diaria.TEMPO_DIAS} dias</td>
-                        <td>R$ ${diaria.VALOR_DIA}</td>
-                        <td>R$ ${diaria.VALOR_TOTAL}</td>
+                        <td>${dados[i]['NOME_USUARIO']}</td>
+                        <td><center>${dataInicio}</center></td>
+                        <td><center>${dataFim}</center></td>
+                        <td><center>${dados[i]['TEMPO_DIAS']} dias</center></td>
+                        <td><center>${mascaraFinanceira(dados[i]['VALOR_DIA'])}</center></td>
+                        <td><center>${mascaraFinanceira(dados[i]['VALOR_TOTAL'])}</center></td>
+                        <td><center><span class="badge ${classeDiariaPaga}">${diariaPaga}</span></center></td>
                         <td>
-                            <button class="btn btn-sm btn-warning" onclick="editarDiaria(${diaria.ID})">Editar</button>
-                            <button class="btn btn-sm btn-danger" onclick="inativarDiaria(${diaria.ID})">Inativar</button>
+                            <center>
+                                ${btnOpcoes}
+                            </center>
                         </td>
                     </tr>
                 `;
-            });
-            $('#tableBodyDiarias').html(html);
+            }
+            $('#tableBodyDiarias').html(htmlTabela);
+        }
+
+        function salvarDiaria(){
+            var validacao = true;
+            var mensagemErro = 'Verifique os campos obrigatórios!';
+            const inputs = [
+                'inputFuncionario',
+                'inputIDFuncionario',
+                'inputDataInicio',
+                'inputDataFim',
+                'inputValorTotal',
+                'inputDescricao',
+                'inputValorDia'
+            ];
+            
+            for(i = 0; i< inputs.length; i++){
+                if($('#'+inputs[i]).val() == '' || (inputs[i] == 'inputIDFuncionario' && $('#'+inputs[i]).val() == 0) ){
+                    if(inputs[i] == 'inputIDFuncionario'){
+                        $('#inputFuncionario').addClass('is-invalid');
+                    } else {
+                        $('#'+inputs[i]).addClass('is-invalid');
+                    }
+                    validacao = false;                    
+                }else{
+                    $('#'+inputs[i]).removeClass('is-invalid');
+                }
+            }
+
+            if(validacao){
+                const idDiaria = $('#inputIDDiaria').val();
+                const idUsuario = $('#inputIDFuncionario').val();
+                const usuario = $('#inputFuncionario').val();
+                const dataInicio = $('#inputDataInicio').val();
+                const dataFim = $('#inputDataFim').val();
+                const valorDia = $('#inputValorDia').val();
+                const valorTotal = $('#inputValorTotal').val();
+                const descricao = $('#inputDescricao').val();
+
+                const url = idDiaria == 0 ? "{{route('diaria.inserir')}}" : "{{route('diaria.alterar')}}";
+                const data = {
+                    '_token': '{{csrf_token()}}',
+                    'ID': idDiaria,
+                    'ID_USUARIO': idUsuario,
+                    'DATA_INICIO': dataInicio,
+                    'DATA_FIM': dataFim,
+                    'DESCRICAO': descricao,
+                    'USUARIO': usuario,
+                    'VALOR_DIA': valorDia
+                };
+
+                $.ajax({
+                    type: 'post',
+                    url: url,
+                    data: data,
+                    success: function(r) {
+                        $('#modal-diaria').modal('hide');
+                        buscarDados();
+                        Swal.fire('Sucesso!', 'Diária salva com sucesso.', 'success');
+                    },
+                    error: err => {
+                        console.log(err);
+                        Swal.fire('Erro!', 'Ocorreu um erro ao salvar a diária.', 'error');
+                    }
+                });
+            } else {
+                dispararAlerta('warning', mensagemErro);
+            }            
         }
     
         // Editar Diária
         function editarDiaria(idDiaria) {
             $.ajax({
                 type: 'post',
-                url: "{{route('diaria.buscar')}}",
                 data: {
                     '_token': '{{csrf_token()}}',
                     'ID': idDiaria
                 },
+                url: "{{route('diaria.buscar')}}",
                 success: function(r) {
                     const diaria = r.dados[0];
                     $('#inputIDDiaria').val(diaria.ID);
@@ -253,6 +361,10 @@
                     $('#inputDataFim').val(diaria.DATA_FIM);
                     $('#inputValorDia').val(diaria.VALOR_DIA);
                     $('#inputValorTotal').val(diaria.VALOR_TOTAL);
+
+                    $('#inputFuncionario').attr('disabled', true);
+                    $('.btnLimparFuncionario').removeClass('d-none');
+
                     $('#modal-diaria').modal('show');
                 },
                 error: err => {
@@ -291,6 +403,48 @@
             });
         }
 
+        function pagamentoDiaria(idDiaria) {
+            Swal.fire({
+                title: 'Deseja informar o pagamento da diária?',
+                text: 'Será inserido um CPG, já pago, refente ao pagamento dessa diária.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Sim',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        type: 'post',
+                        url: "{{route('diaria.pagar')}}",
+                        data: {
+                            '_token': '{{csrf_token()}}',
+                            'ID': idDiaria
+                        },
+                        success: function(r) {
+                            dispararAlerta('success', 'Diária paga com sucesso.');
+
+                            buscarDados();
+                        },
+                        error: err => {
+                            console.log(err);
+                        }
+                    });
+                }
+            });
+        }
+
+        function resetarCamposCadastro(){
+            $('#inputIDDiaria').val('');
+            $('#inputFuncionario').val('');
+            $('#inputIDFuncionario').val('0');
+            $('#inputDataInicio').val('');
+            $('#inputDataFim').val('');
+            $('#inputValorDia').val('');
+            $('#inputValorTotal').val('');
+
+            limparCampo('inputFuncionario', 'inputIDFuncionario', 'btnLimparFuncionario');
+        }
+
         // Limpar campo de funcionário
         $('#btnLimparFuncionario').click(function() {
             limparCampo('inputFuncionario', 'inputIDFuncionario', 'btnLimparFuncionario');
@@ -311,42 +465,7 @@
 
         // Inserir/Editar Diária
         $('#btnConfirmarDiaria').click(function() {
-            const idDiaria = $('#inputIDDiaria').val();
-            const idUsuario = $('#inputIDFuncionario').val();
-            const dataInicio = $('#inputDataInicio').val();
-            const dataFim = $('#inputDataFim').val();
-            const valorDia = $('#inputValorDia').val();
-            const valorTotal = $('#inputValorTotal').val();
-
-            if (!idUsuario || !dataInicio || !dataFim || !valorDia) {
-                alert('Preencha todos os campos!');
-                return;
-            }
-
-            const url = idDiaria == 0 ? "{{route('diaria.inserir')}}" : "{{route('diaria.alterar')}}";
-            const data = {
-                '_token': '{{csrf_token()}}',
-                'ID': idDiaria,
-                'ID_USUARIO': idUsuario,
-                'DATA_INICIO': dataInicio,
-                'DATA_FIM': dataFim,
-                'VALOR_DIA': valorDia
-            };
-
-            $.ajax({
-                type: 'post',
-                url: url,
-                data: data,
-                success: function(r) {
-                    $('#modal-diaria').modal('hide');
-                    buscarDados();
-                    Swal.fire('Sucesso!', 'Diária salva com sucesso.', 'success');
-                },
-                error: err => {
-                    console.log(err);
-                    Swal.fire('Erro!', 'Ocorreu um erro ao salvar a diária.', 'error');
-                }
-            });
+            salvarDiaria();
         });
 
         // Autocomplete de Funcionário

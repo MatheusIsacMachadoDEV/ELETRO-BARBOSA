@@ -35,6 +35,7 @@ Route::middleware(['auth'])->group(function () {
         // Rotas para o CRUD de Diárias
         Route::post('/diaria/buscar', 'FinanceiroController@buscarDiaria')->name('diaria.buscar');
         Route::post('/diaria/inserir', 'FinanceiroController@inserirDiaria')->name('diaria.inserir');
+        Route::post('/diaria/inserir/pagamento', 'FinanceiroController@pagarDiaria')->name('diaria.pagar');
         Route::post('/diaria/alterar', 'FinanceiroController@alterarDiaria')->name('diaria.alterar');
         Route::post('/diaria/inativar', 'FinanceiroController@inativarDiaria')->name('diaria.inativar');
     });

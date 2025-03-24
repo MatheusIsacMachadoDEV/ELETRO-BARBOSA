@@ -62,6 +62,9 @@ class PessoasController extends Controller
                            where situacoes.STATUS = 'A'
                              AND situacoes.TIPO = 'PESSOA_TIPO'
                              AND situacoes.ID_ITEM = pessoa.ID_TIPO) as TIPO_PESSOA
+                       , (SELECT name
+                            FROM users
+                           WHERE users.id = pessoa.ID_USUARIO) as USUARIO
                     FROM pessoa
                    WHERE 1 = 1
                      AND STATUS = 'A'
@@ -79,6 +82,7 @@ class PessoasController extends Controller
         $documento = ($dadosRecebidos['documento'] == null ? '00000000000' : $dadosRecebidos['documento']);
         $telefone = $dadosRecebidos['telefone'];
         $ID_TIPO = $dadosRecebidos['ID_TIPO'];
+        $ID_USUARIO = $dadosRecebidos['ID_USUARIO'];
         $email = ($dadosRecebidos['email'] == null ? '' : $dadosRecebidos['email']);
         $data_nascimento = ($dadosRecebidos['data_nascimento'] == null ? '2024-01-01' : $dadosRecebidos['data_nascimento']);
 
@@ -87,13 +91,15 @@ class PessoasController extends Controller
                                        , `TELEFONE`
                                        , `EMAIL`
                                        , `DATA_NASCIMENTO`
-                                       , `ID_TIPO`)
+                                       , `ID_TIPO`
+                                       , `ID_USUARIO`)
                                VALUES ('$nome'
                                       , $documento
                                       , '$telefone'
                                       , '$email'
                                       , '$data_nascimento'
-                                      , $ID_TIPO)";
+                                      , $ID_TIPO
+                                      , $ID_USUARIO)";
         $result = DB::select($query);
 
         return $result;
@@ -108,6 +114,7 @@ class PessoasController extends Controller
         $ID_TIPO = $dadosRecebidos['ID_TIPO'];
         $email = $dadosRecebidos['email'];
         $data_nascimento = $dadosRecebidos['data_nascimento'];
+        $ID_USUARIO = $dadosRecebidos['ID_USUARIO'];
 
         $query = "UPDATE `pessoa` 
                     SET `NOME` = '$nome'
@@ -116,6 +123,7 @@ class PessoasController extends Controller
                     , `EMAIL` = '$email'
                     , `ID_TIPO` = $ID_TIPO
                     , `DATA_NASCIMENTO` = '$data_nascimento'
+                    , `ID_USUARIO` = '$ID_USUARIO'
                 WHERE ID = $id";
         $result = DB::select($query);
 

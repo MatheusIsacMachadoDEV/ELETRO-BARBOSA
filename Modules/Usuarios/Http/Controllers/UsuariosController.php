@@ -38,6 +38,14 @@ class UsuariosController extends Controller
         } else {
             $filtroID = 'AND 1 = 1';
         }
+
+        if(isset($dadosRecebidos['FILTRO_ADICIONAL']) && $dadosRecebidos['FILTRO_ADICIONAL'] == 'SEM_FUNCIONARIO'){
+            $filtroID = "AND (SELECT COUNT(*)
+                                FROM pessoa
+                               WHERE ID_USUARIO = users.ID) = 0";
+        } else {
+            $filtroID = 'AND 1 = 1';
+        }
         
         if(isset($dadosRecebidos['dadosPorPagina']) && isset($dadosRecebidos['offset']) && $dadosRecebidos['dadosPorPagina'] != 'todos'){
             $filtroLimit = "LIMIT ".$dadosRecebidos['dadosPorPagina']."

@@ -115,6 +115,14 @@
                             </select>
                         </div>
 
+                        <div class="form-group col-12" id="divUsuario">
+                            <input type="text" class="form-control form-control-border" id="inputUsuario" placeholder="Usuário">
+                            <input type="hidden" id="inputIDUsuario">
+                            <div class="btnLimparUsuario d-none">
+                                <button id="btnLimparUsuario" class="btn btn-sm btn-danger mt-2"><i class="fas fa-eraser"></i> LIMPAR</button>
+                            </div>
+                        </div>
+
                         <div class="form-group col-6">
                             <input type="text" class="form-control form-control-border" maxlength="16" id="inputTelefone" oninput="mascaraTelefone(this)" placeholder="Telefone">
                         </div>
@@ -178,21 +186,10 @@
         $('#inputValor').maskMoney({ prefix: 'R$ ', allowNegative: true, thousands: '.', decimal: ',' , allowZero: true});
         $('#inputQtde').mask('000000000');
 
-        function exibirModalCadastro(){
-            resetarCampos();
-            buscarMarca();
-            $('#modal-cadastro').modal('show');
-        }
-
         function cadastrarPessoa(){
             inserindoPessoa = true;
 
-            $('#inputNome').val('');
-            $('#inputDocumento').val('');
-            $('#inputTelefone').val('');
-            $('#inputDataNascimento').val('');
-            $('#inputEmail').val('');
-            $('#selectTipoPessoa').val('2');
+            resetarCamposCadastro();
 
             $('#modal-cadastro').modal('show');
         }  
@@ -200,14 +197,18 @@
         function inserirPessoa() {
             validacao = true;
 
-            var inputIDs = ['inputNome', 'inputTelefone', 'selectTipoPessoa'];
+            var inputIDs = ['inputNome', 'inputTelefone', 'selectTipoPessoa', 'inputUsuario', 'inputIDUsuario'];
 
             for (var i = 0; i < inputIDs.length; i++) {
                 var inputID = inputIDs[i];
                 var $input = $('#' + inputID);
                 
-                if ($input.val() === '' || $input == 'ID_TIPO' && $input.val() == '0') {
-                    $input.addClass('is-invalid');
+                if ($input.val() === '' || $input == 'inputIDUsuario' && $input.val() == '0') {
+                    if($input == 'inputIDUsuario' && $input.val() == '0'){
+                        $('#inputUsuario').addClass('is-invalid');
+                    } else {
+                        $input.addClass('is-invalid');
+                    }
                     validacao = false;
                 } else {
                     $input.removeClass('is-invalid');
@@ -227,7 +228,8 @@
                         'telefone': $('#inputTelefone').val().replace(new RegExp(' ', 'g'), '').replace(')', '').replace('(', '').replace('-', ''),
                         'email': $('#inputEmail').val(),
                         'data_nascimento': $('#inputDataNascimento').val(),
-                        'ID_TIPO': $('#selectTipoPessoa').val()
+                        'ID_TIPO': $('#selectTipoPessoa').val(),
+                        'ID_USUARIO': $('#inputIDUsuario').val()
                         },
                         url:"{{route('pessoa.inserir')}}",
                         success:function(r){
@@ -255,7 +257,8 @@
                         'telefone': $('#inputTelefone').val().replace(new RegExp(' ', 'g'), '').replace(')', '').replace('(', '').replace('-', ''),
                         'email': $('#inputEmail').val(),
                         'data_nascimento': $('#inputDataNascimento').val(),
-                        'ID_TIPO': $('#selectTipoPessoa').val()
+                        'ID_TIPO': $('#selectTipoPessoa').val(),
+                        'ID_USUARIO': $('#inputIDUsuario').val()
                         },
                         url:"{{route('pessoa.alterar')}}",
                         success:function(r){
@@ -281,8 +284,7 @@
                 datatype:'json',
                 data:{
                 '_token':'{{csrf_token()}}',
-                'id': idPessoa,
-                'nome': ''
+                'id': idPessoa
                 },
                 url:"{{route('pessoa.buscar')}}",
                 success:function(r){
@@ -295,6 +297,14 @@
                     $('#inputEmail').val(r[0]['EMAIL']);
                     $('#inputDataNascimento').val(r[0]['DATA_NASCIMENTO']);
                     $('#selectTipoPessoa').val(r[0]['ID_TIPO']);
+                    $('#inputIDUsuario').val(r[0]['ID_USUARIO']);
+                    $('#inputUsuario').val(r[0]['USUARIO']);
+
+
+                    if(r[0]['ID_USUARIO'] > 0){
+                        $('#inputUsuario').attr('disabled', true);
+                        $('.btnLimparUsuario').removeClass('d-none');
+                    }
 
                     $('#modal-cadastro').modal('show')
                 },
@@ -361,6 +371,8 @@
                     }
                 }
 
+                btnInativar = `<li class="dropdown-item" onclick="inativarPessoa(${dados[i]['ID']})"><span class="btn"><i class="fas fa-trash"></i></span> Inativar</li>`;
+                btnEditar = `<li class="dropdown-item" onclick="editarPessoa(${dados[i]['ID']})"><span class="btn"><i class="fas fa-pen"></i></span> Editar</li>`;
                 btnContasBancarias = `<li class="dropdown-item" onclick="exibirContasBancarias(${dados[i]['ID']})"><span class="btn"><i class="fas fa-university"></i></span> Contas Bancárias</li>`;
                 btnApontamentos = `<li class="dropdown-item" onclick="exibirApontamentos(${dados[i]['ID']})"><span class="btn"><i class="fas fa-clock"></i></span> Apontamentos</li>`;
                 btnEquipamentos = `<li class="dropdown-item" onclick="exibirEquipamentos(${dados[i]['ID']})"><span class="btn"><i class="fas fa-hard-hat"></i></span> Equipamentos</li>`;
@@ -372,11 +384,13 @@
                                 Ações
                             </button>
                             <ul class="dropdown-menu ">
+                                ${btnEditar}
                                 ${btnContasBancarias}
                                 ${btnApontamentos}                                       
                                 ${btnEquipamentos}                                       
                                 ${btnUniformes}                                       
                                 ${btnArquivos}                                            
+                                ${btnInativar}
                             </ul>
                         </div>
                     `;
@@ -432,12 +446,66 @@
             $('.selectTipoPessoa').html(htmlTabela)
         }
 
+        function resetarCamposCadastro(){
+            $('#inputNome').val('');
+            $('#inputDocumento').val('');
+            $('#inputTelefone').val('');
+            $('#inputDataNascimento').val('');
+            $('#inputEmail').val('');
+            $('#selectTipoPessoa').val('2');
+
+            limparCampo('inputUsuario', 'inputIDUsuario', 'btnLimparUsuario');
+        }
+
         $('#btnNovaPessoa').click(() => {
             cadastrarPessoa();
         })
 
         $('#btnConfirmar').click(() => {
             inserirPessoa();
+        });
+
+        $("#inputUsuario").autocomplete({
+            source: function(request, cb) {
+                param = request.term;
+                $.ajax({
+                    url: "{{route('usuarios.buscar')}}",
+                    method: 'post',
+                    data: {
+                        '_token': '{{csrf_token()}}',
+                        'FILTRO_BUSCA': param,
+                        'FILTRO_ADICIONAL': 'SEM_FUNCIONARIO'
+                    },
+                    dataType: 'json',
+                    success: function(r) {
+                        result = $.map(r.dados, function(obj) {
+                            return {
+                                label: obj.info,
+                                value: obj.NAME,
+                                data: obj
+                            };
+                        });
+                        cb(result);
+                    },
+                    error: err => {
+                        console.log(err);
+                    }
+                });
+            },
+            select: function(e, selectedData) {
+                if (selectedData.item.label != 'Nenhum Funcionário Encontrado.') {
+                    $('#inputUsuario').val(selectedData.item.data.NAME);
+                    $('#inputIDUsuario').val(selectedData.item.data.ID);
+                    $('#inputUsuario').attr('disabled', true);
+                    $('.btnLimparUsuario').removeClass('d-none');
+                } else {
+                    limparCampo('inputUsuario', 'inputIDUsuario', 'btnLimparUsuario');
+                }
+            }
+        });
+
+        $('#btnLimparUsuario').click(function() {
+            limparCampo('inputUsuario', 'inputIDUsuario', 'btnLimparUsuario');
         });
 
         $(document).ready(function() {
