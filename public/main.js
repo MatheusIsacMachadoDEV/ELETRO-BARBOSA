@@ -163,6 +163,14 @@ function atualizarMenus(){
     })
 }
 
+function mascaraData(data){
+    return moment(data).format('DD/MM/YYYY')
+}
+
+function mascaraDataHora(data){
+    return moment(data).format('DD/MM/YYYY HH:mm')
+}
+
 $(document).ready(function() {
 
     setTimeout(() => {

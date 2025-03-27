@@ -4,56 +4,138 @@
 
 @section('content')
 
-    <div class="content-title">
-        <div class="row d-flex">
-            <div class="col-3 d-none d-md-block">
-                <h1>Projetos</h1>
-            </div>
-            <div class="col-12 col-md-9 d-flex justify-content-end p-2">
-                <div class="col-12 col-md-6 row d-flex d-flex justify-content-end ">
-                    <div class="col-12 col-md-6">
-                        <button class="btn btn-block btn-warning" id="btnNovo">
-                            <i class="fas fa-plus"></i>
-                            <span class="ml-1">Novo Projeto</span>
-                        </button>
+    <div id="divLista">
+        <div class="content-title">
+            <div class="row d-flex">
+                <div class="col-3 d-none d-md-block">
+                    <h1>Projetos</h1>
+                </div>
+                <div class="col-12 col-md-9 d-flex justify-content-end p-2">
+                    <div class="col-12 col-md-6 row d-flex d-flex justify-content-end ">
+                        <div class="col-12 col-md-6">
+                            <button class="btn btn-block btn-warning" id="btnNovo">
+                                <i class="fas fa-plus"></i>
+                                <span class="ml-1">Novo Projeto</span>
+                            </button>
+                        </div>
                     </div>
+                </div>
+            </div>
+        </div>
+    
+        <div class="content-body">
+            <div class="card">
+                <div class="card-header">
+                    <div class="row d-flex m-0 p-0">
+                        <div class="col-12">
+                            <input type="text" class="form-control form-control-border" id="inputFiltro" placeholder="Projeto / Cliente / Ano do Projeto" >
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Título</th>
+                                <th><center>Cliente</center></th>
+                                <th><center>Início</center></th>
+                                <th><center>Fim</center></th>
+                                <th><center>Valor</center></th>
+                                <th><center>Pagamento</center></th>
+                                <th><center>Ações</center></th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBodyProjetos">
+                            <!-- Dados dos projetos serão preenchidos aqui -->
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="content-body">
-        <div class="card">
-            <div class="card-header">
-                <div class="row d-flex m-0 p-0">
-                    <div class="col-12 col-md-6">
-                        <input type="text" class="form-control form-control-border" id="inputFiltro" placeholder="Filtro" onkeyup="buscarDados()">
+    <div class="card d-none" id="divDetalhesProjeto">
+        <div class="card-header">
+            <h3 class="card-title">Detalhes do Projeto</h3>
+
+            <div class="card-tools">
+            <button type="button" class="btn btn-tool" id="btnFecharModalDetalhes">
+                <i class="fas fa-times"></i>
+            </button>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="row p-2">
+            <div class="col-12 col-md-12 col-lg-8 order-2 order-md-1">
+                <div class="row">
+                <div class="col-12 col-sm-4">
+                    <div class="info-box bg-light">
+                        <div class="info-box-content" id="divSpanValorProjeto">
+                            <span class="info-box-text text-center text-muted">Valor Projeto</span>
+                            <span class="info-box-number text-center text-muted mb-0" id="spanValorProjeto">R$ 10.000,00</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-sm-4">
+                    <div class="info-box bg-light">
+                        <div class="info-box-content" id="divSpanGastosProjeto">
+                            <span class="info-box-text text-center text-muted">Gastos do Projeto</span>
+                            <span class="info-box-number text-center text-muted mb-0" id="spanGastosProjeto">R$ 5.000,00</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-sm-4">
+                    <div class="info-box bg-light">
+                    <div class="info-box-content" id="divSpanGastosProjeto">
+                        <span class="info-box-text text-center text-muted">Data de Entrega</span>
+                        <span class="info-box-number text-center text-muted mb-0" id="spanDataEntregaProjeto">20/05/2025</span>
+                    </div>
+                    </div>
+                </div>
+                </div>
+                <div class="row">
+                    <div class="col-12 m-2">
+                        <h4>Gastos Recentes</h4>
+                        <div id="divGastosRecente">
+                            
+                        </div>
                     </div>
                 </div>
             </div>
-            <div class="card-body">
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>Título</th>
-                            <th><center>Descrição</center></th>
-                            <th><center>Início</center></th>
-                            <th><center>Fim</center></th>
-                            <th><center>Valor</center></th>
-                            <th><center>Pagamento</center></th>
-                            <th><center>Ações</center></th>
-                        </tr>
-                    </thead>
-                    <tbody id="tableBodyProjetos">
-                        <!-- Dados dos projetos serão preenchidos aqui -->
-                    </tbody>
-                </table>
+            <div class="col-12 col-md-12 col-lg-4 order-1 order-md-2">
+
+                <h3 class="text-primary"><i class="fas fa-project-diagram"></i> <span id="spanTituloProjeto">Titulo do Projeto</span></h3>
+                <p class="text-muted" id="spanDescricaoProjeto">Descrição do projeto</p>
+                <br>
+                <div class="text-muted">
+                    <p class="text-sm">Cliente
+                        <b class="d-block" id="spanClienteProjeto">Eletro Barbosa</b>
+                    </p>
+                    <p class="text-sm">Responsável
+                        <b class="d-block" id="spanUsuarioProjeto">Usuário</b>
+                    </p>
+                </div>
+
+                <h5 class="mt-5 text-muted">Arquivos do Projeto</h5>
+                <ul class="list-unstyled" id="ulArquivosProjeto">
+                    <li>
+                        <a class="btn-link text-secondary"><i class="far fa-fw fa-file-word"></i> Functional-requirements.docx</a>
+                    </li>
+                </ul>
+
+                <div class="text-center mt-5 mb-3" id="divBotoesProjeto">
+                    <button class="btn btn-sm btn-danger" id="btnAdicionarGastos">Adicionar Gastos</button>
+                    <button class="btn btn-sm btn-dark" id="btnAdicionarArquivos">Adicionar Arquivos</button>
+                    <button class="btn btn-sm btn-primary" id="concluirProjeto">Concluir Projeto</button>
+                </div>
+            </div>
             </div>
         </div>
+        <!-- /.card-body -->
     </div>
 
     <!-- Modal de Cadastro/Edição de Projeto -->
-    <div class="modal fade" id="modal-projeto" tabindex="-1" role="dialog" aria-labelledby="modalProjetoLabel" aria-hidden="true">
+    <div class="modal fade" id="modal-projeto" tabindex="-1" role="dialog">
         <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
                 <div class="modal-header">
@@ -71,6 +153,16 @@
                         <div class="form-group">
                             <label>Descrição</label>
                             <textarea class="form-control form-control-border" id="inputDescricao" placeholder="Descrição do Projeto"></textarea>
+                        </div>
+                        <div class="col-12 row d-flex p-0 m-0">
+                            <label class="col-12 m-0 p-0">Cliente</label>
+                            <div class="col  m-0 p-0">
+                                <input type="text" class="form-control form-control-border col-12" placeholder="Cliente" id="inputCliente">
+                                <input type="hidden" id="inputIDCliente">
+                            </div>
+                            <div class="col btnLimparCliente d-none m-0 p-0">
+                                <button id="btnLimparCliente" class="btnLimparCliente btn btn-sm btn-danger d-none col-12"><i class="fas fa-eraser"></i>LIMPAR</button>
+                            </div>
                         </div>
                         <div class="form-group">
                             <label>Data Início</label>
@@ -94,6 +186,131 @@
             </div>
         </div>
     </div>
+
+    <div class="modal fade" id="modal-gasto" style="display: none;" aria-hidden="true"> 
+        <div class="modal-dialog"> 
+            <div class="modal-content"> 
+                <div class="modal-header"> 
+                    <h4 class="modal-title">Adicionar Gasto</h4> 
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"> 
+                        <span aria-hidden="true">×</span> 
+                    </button> 
+                </div> 
+                <div class="modal-body"> 
+                    <div class="form-group">
+                        <label>Titulo</label>
+                        <input type="text" class="form-control form-control-border" placeholder="Titulo" id="inpuGastoTitulo">
+                    </div> 
+                    <div class="form-group">
+                        <label>Valor</label>
+                        <input type="text" class="form-control form-control-border" placeholder="R$ 0,00" id="inpuGastoValor">
+                    </div> 
+                    <div class="form-group">
+                        <label>Vencimento</label>
+                        <input type="date" class="form-control form-control-border" id="inputGastoVencimento" value="{{date('Y-m-d')}}">
+                    </div> 
+                    <div class="form-group">
+                        <label>Descrição</label>
+                        <textarea class="form-control form-control-border" id="inputGastoDescricao" placeholder="Descrição" rows="4"></textarea>
+                    </div> 
+                </div> 
+                <div class="modal-footer justify-content-between"> 
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Fechar</button> 
+                    <button type="button" class="btn btn-primary" id="btnSalvarGasto">Salvar</button> 
+                </div> 
+            </div> 
+        </div> 
+    </div> 
+
+    <div class="modal fade" id="modal-documentacao">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content p-0">
+                <div class="modal-header">
+                    <h5 class="modal-title" >Documentos do Projeto <span id="titleDocumento"></span></h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="">
+                                <div class="">
+                                    <input type="hidden" id="inputIDProjeto">
+                                    <div class="input-group">
+                                        <div class="custom-file">
+                                            <input type="file" class="custom-file-input" id="inputArquivoDocumentacao" onchange="validaDocumento()">
+                                            <label class="custom-file-label" for="inputArquivoDocumentacao" id="labelInputArquivoDocumentacao">Selecionar Arquivos</label>
+                                        </div>
+                                        <div class="input-group-append">
+                                            <button class="input-group-text" onclick="salvarDocumento()">Enviar</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <table class="table table-responsive-xs">
+                                <thead>
+                                    <tr>
+                                        <th>Projeto</th>
+                                        <th>Documento</th>
+                                        <th><center>Ações</center></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tableBodyDocumentos">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modal-pessoa" style="display: none;" aria-hidden="true"> 
+        <div class="modal-dialog modal-lg"> 
+            <div class="modal-content"> 
+                <div class="modal-header"> 
+                    <h4 class="modal-title">Participantes do Projeto</h4> 
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"> 
+                        <span aria-hidden="true">×</span> 
+                    </button> 
+                </div> 
+                <div class="modal-body">
+                    <div class="row d-flex">
+                        <input type="hidden" id="inputIdProjetoPessoa">
+                        <div class="form-group col-6 col-md-8">
+                            <select id="selectPessoa" class="form-control form-control-border">
+                                <option value="0">Selecionar Participante</option>
+                            </select>
+                        </div>
+
+                        <div class="col-6 col-md-4">
+                            <button type="button" class="btn btn-block btn-info" id="btnSalvarPessoa"><i class="fas fa-plus"></i></button>
+                        </div>
+
+                        <div class="col-12">
+                            <table class="table table-responsive-xs">
+                                <thead>
+                                    <th>Nome</th>
+                                    <th><center>Açoes</center></th>
+                                </thead>
+                                <tbody id="tbodyDadosPessoa">                                    
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div> 
+                <div class="modal-footer justify-content-between"> 
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Fechar</button>
+                </div> 
+            </div> 
+        </div> 
+    </div> 
 @stop
 
 @section('footer')
@@ -132,6 +349,12 @@
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 
     <script>
+        $('#inpuGastoValor').maskMoney({ prefix: 'R$ ', allowNegative: true, thousands: '.', decimal: ',' });
+
+        let idProjetoSelecionado = 0;
+        var buscarDetalhesProjetoSelecionado = false;
+        var timeoutFiltro = 0;
+
         // Buscar Projetos
         function buscarDados() {
             $.ajax({
@@ -145,12 +368,83 @@
                     popularTabelaDados(r.dados);
                 },
                 error: err => {
-                    console.log(err);
+                    exibirErro(err);
+                }
+            });
+        }
+
+        function buscarPessoaProjeto(idProjeto) {
+            $.ajax({
+                type: 'post',
+                url: "{{route('projeto.buscar.pessoa')}}",
+                data: {
+                    '_token': '{{csrf_token()}}',
+                    'ID_PROJETO': idProjeto
+                },
+                success: function(r) {
+                    $('#inputIdProjetoPessoa').val(idProjeto);
+    
+                    buscarPessoaDisponivelProjeto(idProjeto);
+
+                    popularTabelaPessoaProjeto(r.dados);
+
+                    $('#modal-pessoa').modal('show');
+                },
+                error: err => {
+                    exibirErro(err);
+                }
+            });
+        }
+
+        function buscarPessoaDisponivelProjeto(idProjeto) {
+            $.ajax({
+                type: 'post',
+                url: "{{route('pessoa.buscar')}}",
+                data: {
+                    '_token': '{{csrf_token()}}',
+                    'ID_TIPO': 3,
+                    'ID_PROJETO': idProjeto
+                },
+                success: function(r) {
+                    popularSelectPessoaDisponivelProjeto(r);
+                },
+                error: err => {
+                    exibirErro(err);
                 }
             });
         }
 
         // Popular lista de projetos
+        function popularSelectPessoaDisponivelProjeto(dados) {
+            let htmlTabela = '<option value="0">Selecionar Participante </option>';
+            var contador = 0;
+            dados.forEach(pessoa => {
+                htmlTabela += `
+                    <option value="${pessoa.ID}">
+                        ${pessoa.NOME}
+                    </option>
+                `;
+            });
+            $('#selectPessoa').html(htmlTabela);
+        }
+
+        function popularTabelaPessoaProjeto(dados) {
+            let htmlTabela = '';
+            dados.forEach(projeto => {
+                htmlTabela += `
+                    <tr>
+                        <td>${projeto.PESSOA}</td>
+                        <td>
+                            <center>
+                               <button class="btn" onclick="inativarPessoaProjeto(${projeto.ID})"><i class="fas fa-trash"></i></button>
+                            </center>
+                        </td>
+                    </tr>
+                `;
+            });
+            $('#tbodyDadosPessoa').html(htmlTabela);
+        }
+
         function popularTabelaDados(dados) {
             let htmlTabela = '';
             dados.forEach(projeto => {
@@ -159,6 +453,9 @@
                 const pagamento = projeto.PAGAMENTO_REALIZADO === 'S' ? 'Pago' : 'Pendente';
 
                 btnEditar = `<li class="dropdown-item" onclick="editarProjeto(${projeto.ID})"><span class="btn"><i class="fas fa-pen"></i></span> Editar</li>`;
+                btnArquivos = `<li class="dropdown-item" onclick="cadastarDocumento(${projeto.ID}, '${projeto.TITULO}')"><span class="btn"><i class="fas fa-file"></i></span> Arquivos</li>`;
+                btnPessoas = `<li class="dropdown-item" onclick="buscarPessoaProjeto(${projeto.ID}, '${projeto.TITULO}')"><span class="btn"><i class="fas fa-user"></i></span> Participantes</li>`;
+                btnVisualizar = `<li class="dropdown-item" onclick="detalhesProjeto(${projeto.ID})"><span class="btn"><i class="fas fa-cogs"></i></span> Gestão do Projeto</li>`;
                 btnInativar = `<li class="dropdown-item" onclick="inativarProjeto(${projeto.ID})"><span class="btn"><i class="fas fa-trash"></i></span> Inativar</li>`;
 
                 var btnOpcoes = ` <div class="input-group-prepend show justify-content-center" style="text-align: center">
@@ -166,7 +463,10 @@
                                                 Ações
                                             </button>
                                             <ul class="dropdown-menu">
+                                                ${btnVisualizar}
                                                 ${btnEditar}
+                                                ${btnArquivos}
+                                                ${btnPessoas}
                                                 ${btnInativar}
                                             </ul>
                                         </div>`;
@@ -174,10 +474,10 @@
                 htmlTabela += `
                     <tr>
                         <td>${projeto.TITULO}</td>
-                        <td><center>${projeto.DESCRICAO}</center></td>
+                        <td><center>${projeto.CLIENTE}</center></td>
                         <td><center>${dataInicio}</center></td>
                         <td><center>${dataFim}</center></td>
-                        <td><center>R$ ${projeto.VALOR.toFixed(2)}</center></td>
+                        <td><center>${mascaraFinanceira(projeto.VALOR)}</center></td>
                         <td><center>${pagamento}</center></td>
                         <td>
                             <center>
@@ -188,6 +488,36 @@
                 `;
             });
             $('#tableBodyProjetos').html(htmlTabela);
+        }
+
+        function concluirProjeto(){
+            Swal.fire({
+                title: 'Deseja realmente concluir o projeto?',
+                text: 'Será inserido um contas a receber referente ao valor do projeto.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Sim',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        type: 'post',
+                        url: "{{route('projeto.concluir')}}",
+                        data: {
+                            '_token': '{{csrf_token()}}',
+                            'ID_PROJETO': idProjetoSelecionado
+                        },
+                        success: function(r) {
+                            dispararAlerta('success', 'Projeto concluido com sucesso!');
+
+                            detalhesProjeto(idProjetoSelecionado);
+                        },
+                        error: err => {
+                            exibirErro(err)
+                        }
+                    });
+                }
+            });
         }
 
         function salvarProjeto() {
@@ -204,6 +534,13 @@
                 }
             });
 
+            if($('#inputIDCliente').val() == 0){
+                $('#inputCliente').addClass('is-invalid');
+                validacao = false;
+            } else {
+                $('#inputCliente').removeClass('is-invalid');
+            }
+
             if (!validacao) {
                 Swal.fire('Atenção!', 'Preencha todos os campos obrigatórios.', 'warning');
                 return;
@@ -216,6 +553,7 @@
             const dataInicio = $('#inputDataInicio').val();
             const dataFim = $('#inputDataFim').val();
             const valor = $('#inputValor').val();
+            const idCliente = $('#inputIDCliente').val();
 
             // Define a URL e os dados com base no ID do projeto
             const url = idProjeto == 0 ? "{{route('projeto.inserir')}}" : "{{route('projeto.alterar')}}";
@@ -226,7 +564,8 @@
                 'DESCRICAO': descricao,
                 'DATA_INICIO': dataInicio,
                 'DATA_FIM': dataFim,
-                'VALOR': valor
+                'VALOR': valor,
+                'ID_CLIENTE': idCliente
             };
 
             // Requisição AJAX
@@ -246,6 +585,91 @@
             });
         }
 
+        function salvarGasto(){
+            var validacao = true;
+
+            inputs = [
+                'inpuGastoTitulo',
+                'inputGastoDescricao',
+                'inputGastoVencimento'
+            ]
+            
+            for(i = 0; i< inputs.length; i++){
+                if($('#'+inputs[i]).val() == ''){
+                    $('#'+inputs[i]).addClass('is-invalid');
+                    validacao = false;
+                    
+                }else{
+                    $('#'+inputs[i]).removeClass('is-invalid');
+                };
+            }
+
+            if(limparMascaraFinanceira($('#inpuGastoValor').val()) == 0){
+                validacao = false;
+                $('#inpuGastoValor').addClass('is-invalid')
+            } else {
+                $('#inpuGastoValor').removeClass('is-invalid')
+            }
+
+            if(validacao){
+                $.ajax({
+                    type:'post',
+                    datatype:'json',
+                    data:{
+                    '_token':'{{csrf_token()}}',
+                    'valor': limparMascaraFinanceira($('#inpuGastoValor').val()),
+                    'dataVencimento': $('#inputGastoVencimento').val(),
+                    'descricao': $('#inpuGastoTitulo').val(),
+                    'observacao': $('#inputGastoDescricao').val(),
+                    'ID_ORIGEM': 3,
+                    'ID_PROJETO': idProjetoSelecionado
+                    },
+                    url:"{{route('contaspagar.inserir')}}",
+                    success:function(r){
+                        $('#modal-gasto').modal('hide');
+
+                        detalhesProjeto(idProjetoSelecionado);
+                        dispararAlerta('success', 'Gasto registrado com suceso!');
+                    },
+                    error:err=>{exibirErro(err)}
+                })
+            } else {
+                dispararAlerta('warning', 'Verifique os campos obrigatórios!');
+            }
+        }
+
+        function salvarPessoa(){
+            var idPessoa = $('#selectPessoa').val();
+            var idProjeto = $('#inputIdProjetoPessoa').val();
+            var validacao = true;
+
+            if(idPessoa == 0){
+                dispararAlerta('warning', 'Informe ao menos uma pessoa!');
+                validacao = false;
+            }
+
+            if(validacao){
+                $.ajax({
+                    type:'post',
+                    datatype:'json',
+                    data:{
+                       '_token':'{{csrf_token()}}',
+                       'ID_PROJETO': idProjeto,
+                       'ID_PESSOA': idPessoa
+                    },
+                    url:"{{route('projeto.inserir.pessoa')}}",
+                    success:function(r){
+                        dispararAlerta('success', 'Participante vinculado com sucesso!');
+    
+                        buscarPessoaDisponivelProjeto(idProjeto);
+    
+                        buscarPessoaProjeto(idProjeto);
+                    },
+                    error:err=>{exibirErroAJAX(err)}
+                })
+            }
+        }
+
         function editarProjeto(idProjeto) {
             $.ajax({
                 type: 'post',
@@ -262,6 +686,12 @@
                     $('#inputDataInicio').val(projeto.DATA_INICIO);
                     $('#inputDataFim').val(projeto.DATA_FIM);
                     $('#inputValor').val(projeto.VALOR);
+                    $('#inputIDCliente').val(projeto.ID_CLIENTE);
+                    $('#inputCliente').val(projeto.CLIENTE);
+
+                    $('#inputCliente').attr('disabled', true);
+                    $('.btnLimparCliente').removeClass('d-none');
+
                     $('#modal-projeto').modal('show');
                 },
                 error: err => {
@@ -301,6 +731,128 @@
             });
         }
 
+        function inativarPessoa(idPessoa) {
+            Swal.fire({
+                title: 'Confirmação',
+                text: 'Deseja remover o participante do projeto?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Sim',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        type: 'post',
+                        url: "{{route('projeto.inativar.pessoa')}}",
+                        data: {
+                            '_token': '{{csrf_token()}}',
+                            'ID': idPessoa
+                        },
+                        success: function(r) {
+                            var idProjeto = $('#inputIdProjetoPessoa').val();
+
+                            dispararAlerta('success', 'Participante removido com sucesso!');
+        
+                            buscarPessoaDisponivelProjeto(idProjeto);
+        
+                            buscarPessoaProjeto(idProjeto);
+                        },
+                        error: err => {
+                            console.log(err);
+                            Swal.fire('Erro!', 'Ocorreu um erro ao inativar o projeto.', 'error');
+                        }
+                    });
+                }
+            });
+        }
+
+        function detalhesProjeto(idProjeto){
+            $.ajax({
+                type:'post',
+                datatype:'json',
+                data:{
+                   '_token':'{{csrf_token()}}',
+                   'ID': idProjeto
+                },
+                url:"{{route('projeto.buscar')}}",
+                success:function(r){
+                    var dadosProjeto = r.dados[0];
+                    var htmlGastos = '';
+                    var htmlDocumento = '';
+                    var badgeSituacao = 'bg-warning'
+                    var situacaoProjeto = 'EM ANDAMENTO';
+
+                    idProjetoSelecionado = idProjeto;
+
+                    if(dadosProjeto.PAGAMENTO_REALIZADO == 'S'){
+                        $('#divBotoesProjeto').addClass('d-none');
+                        badgeSituacao = 'bg-success';
+                        situacaoProjeto = 'CONCLUÍDO';
+                    } else {
+                        $('#divBotoesProjeto').removeClass('d-none');
+                    }
+
+                    $('#spanValorProjeto').html(mascaraFinanceira(dadosProjeto['VALOR']));
+                    $('#spanGastosProjeto').html(mascaraFinanceira(dadosProjeto['VALOR_GASTO']));
+                    $('#spanDataEntregaProjeto').html(moment(dadosProjeto['DATA_FIM']).format('DD/MM/YYYY'));
+                    $('#spanTituloProjeto').html(`${dadosProjeto['TITULO']} <span class="badge ${badgeSituacao}">${situacaoProjeto}</span>`);
+                    $('#spanDescricaoProjeto').html(dadosProjeto['DESCRICAO']);
+                    $('#spanClienteProjeto').html(dadosProjeto['CLIENTE']);
+                    $('#spanUsuarioProjeto').html(dadosProjeto['NOME_USUARIO']);
+                    $('#spanGastosProjeto').html(mascaraFinanceira(dadosProjeto['VALOR_GASTO']));                    
+
+                    dadosProjeto.DOCUMENTO.forEach(projeto => {
+                        documentoCaminho = projeto['CAMINHO_DOCUMENTO'].split('/')[3];
+                        htmlDocumento += `
+                            <li>
+                                <a class="btn-link text-secondary" onclick="verDocumento('${projeto['CAMINHO_DOCUMENTO']}')"><i class="far fa-fw fa-file-word"></i> ${documentoCaminho}</a>
+                            </li>`;
+                    });
+
+                    dadosProjeto.GASTOS_PROJETO.forEach(projeto => {
+                        htmlGastos += `
+                            <div class="post">
+
+                                <div class="user-block">
+                                    <img class="img-circle img-bordered-sm" src="{{env('APP_URL')}}/vendor/adminlte/dist/img/dinheiro.jpg" alt="user image">
+                                    <span class="username">
+                                        <span>${projeto['DESCRICAO']} - Inserido em: ${mascaraData(projeto['DATA_INSERCAO'])}</span>
+                                    </span>
+                                    <span class="description">${mascaraFinanceira(projeto['VALOR'])}</span>
+                                </div>
+
+                                <p class="pl-3">
+                                    ${projeto['OBSERVACAO']}
+                                    <br>
+                                    ${projeto['DATA_PAGAMENTO'] != null ? `Pago em: ${moment(projeto['DATA_PAGAMENTO']).format('DD/MM/YYYY')}` : ''}
+                                    Inserido por: ${projeto['NOME_USUARIO']}
+                                </p>
+                            </div>`;
+
+                    });
+
+                    $('#ulArquivosProjeto').html(htmlDocumento);
+                    $('#divGastosRecente').html(htmlGastos);
+
+                    $('#divLista').slideUp();
+
+                    $('#divDetalhesProjeto').removeClass('d-none');
+                    $('#divDetalhesProjeto').slideDown();
+
+                },
+                error:err=>{exibirErro(err)}
+            })
+        }
+
+        function adicionarGasto(){
+            $('#inpuGastoTitulo').val('');
+            $('#inpuGastoValor').val('');
+            $('#inputGastoDescricao').val('');
+            $('#inputGastoVencimento').val(moment().format('YYYY-MM-DD'));
+
+            $('#modal-gasto').modal('show');
+        }
+
         function resetarCamposCadastro() {
             // Limpa os campos do formulário
             $('#inputIDProjeto').val('0'); // Reseta o ID do projeto (0 indica novo projeto)
@@ -316,7 +868,171 @@
             $('#inputDataInicio').removeClass('is-invalid');
             $('#inputDataFim').removeClass('is-invalid');
             $('#inputValor').removeClass('is-invalid');
+
+            limparCampo('inputCliente', 'inputIDCliente', 'btnLimparCliente');
         }
+
+        // DOCUMENTOS
+            function buscarDocumentos(){
+                $.ajax({
+                    type:'post',
+                    datatype:'json',
+                    data:{
+                        '_token':'{{csrf_token()}}',                    
+                        'ID_PROJETO': $('#inputIDProjeto').val(),
+                    },
+                    url:"{{route('projeto.buscar.documento')}}",
+                    success:function(r){
+                        popularListaDocumentos(r.dados);
+                    },
+                    error:err=>{exibirErro(err)}
+                })
+            }  
+
+            function cadastarDocumento(idProjeto, descricaoProjeto, buscar = false){
+                buscarDetalhesProjetoSelecionado = buscar;
+
+                $('#titleDocumento').text(idProjeto);
+                $('#inputIDProjeto').val(idProjeto);
+
+                buscarDocumentos();
+
+                $('#modal-documentacao').modal('show');
+            }  
+
+            function inativarDocumento(idDocumento){
+                Swal.fire({
+                    title: 'Confirmação',
+                    text: 'Deseja inativar o documento?',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Sim',
+                    cancelButtonText: 'Cancelar'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $.ajax({
+                            type:'post',
+                            datatype:'json',
+                            data:{
+                                '_token':'{{csrf_token()}}',
+                                'idDocumento': idDocumento
+                            },
+                            url:"{{route('projeto.inativar.documento')}}",
+                            success:function(r){
+                                Swal.fire('Sucesso!'
+                                        , 'Documento inativado com sucesso.'
+                                        , 'success');
+                                buscarDocumentos();
+                            },
+                            error:err=>{exibirErro(err)}
+                        })
+                    }
+                });
+            }
+
+            function verDocumento(caminhoDocumento){
+                url = "{{env('APP_URL')}}/"+caminhoDocumento;
+
+                window.open(url, '_blank');
+            }
+
+            function popularListaDocumentos(Documento){
+                var htmlDocumento = "";
+
+                for(i=0; i< Documento.length; i++){
+                    var DocumentoKeys = Object.keys(Documento[i]);
+                    for(j=0;j<DocumentoKeys.length;j++){
+                        if(Documento[i][DocumentoKeys[j]] == null){
+                            Documento[i][DocumentoKeys[j]] = "";
+                            }
+                        }
+                    
+                    documentoCaminho = Documento[i]['CAMINHO_DOCUMENTO'];
+                    documentoCaminho = documentoCaminho.split('/')[3];
+                    
+                    htmlDocumento += `
+                        <tr id="tableRow${Documento[i]['ID']}">
+                            <td class="tdTexto">${Documento[i]['PROJETO']}</td>
+                            <td class="tdTexto"><span style="text-decoration: underline; cursor: pointer;" onclick="verDocumento('${Documento[i]['CAMINHO_DOCUMENTO']}')">${documentoCaminho}</span></td>
+                                <td>\
+                                    <center>\
+                                    <button class="btn" onclick="inativarDocumento(${Documento[i]['ID']})"><i class="fas fa-trash"></i></button>\
+                                    </center>\
+                                </td>\                      
+                            </tr>`;
+                    }
+                $('#tableBodyDocumentos').html(htmlDocumento)
+            }  
+
+            function validaDocumento(){
+                if ($("#inputArquivoDocumentacao")[0].files.length > 0) {
+                    $('#labelInputArquivoDocumentacao').html($("#inputArquivoDocumentacao")[0].files[0].name);
+                } else {
+                    $('#labelInputArquivoDocumentacao').html('Selecionar Arquivos');
+                }
+            }
+
+            function salvarDocumento(){
+                if($("#inputArquivoDocumentacao")[0].files.length > 0){
+                    uploadArquivo();
+                } else {
+                    Swal.fire('Atenção!'
+                            , 'Selecione um documento para vincular à venda.'
+                            , 'error');
+                }
+            }
+
+            function uploadArquivo(){
+                var dataAnexo = new FormData();
+                anexoCaminho = "";
+                idProjeto = $('#inputIDProjeto').val();
+                dataAnexo.append('meuArquivo', document.getElementById('inputArquivoDocumentacao').files[0]);
+                dataAnexo.append('ID', idProjeto);
+
+                $.ajax({
+                    processData: false,
+                    contentType: false,
+                    type : 'POST',
+                    data : dataAnexo,
+                    url : "{{env('APP_URL')}}/salvarDocumentacao.php",
+                    success : function(resultUpload) {
+                        if(resultUpload != "error"){
+                            anexoCaminho = resultUpload;
+                            $.ajax({
+                                type:'post',
+                                datatype:'json',
+                                data:{
+                                    '_token':'{{csrf_token()}}',
+                                    'caminhoArquivo': resultUpload,
+                                    'ID_PROJETO': idProjeto,
+                                    'caminho': anexoCaminho
+                                },
+                                url:"{{route('projeto.inserir.documento')}}",
+                                success:function(resultInsert){
+
+                                    buscarDocumentos();                                
+                                    $("#inputArquivoDocumentacao").val('');
+                                    validaDocumento();
+
+                                    Swal.fire('Sucesso!'
+                                            , 'Documento salvo com sucesso.'
+                                            , 'success');
+                                },
+                                error:err=>{exibirErro(err)}
+                            })  
+                        }else{
+                            console.log(r)
+                            Swal.fire(
+                                'Atenção!',
+                                'Erro ao enviar Anexo.',
+                                'error'
+                            )
+                        }
+                    },
+                    error: err=>{exibirErro(err)}
+                });
+            }
+        // FIM
 
         // Abrir modal de cadastro
         $('#btnNovo').click(function() {
@@ -329,6 +1045,89 @@
         $('#btnConfirmarProjeto').click(function() {
             salvarProjeto();
         });
+
+        $("#inputCliente").autocomplete({
+            source: function(request, cb) {
+                param = request.term;
+                $.ajax({
+                    url: "{{route('pessoa.buscar')}}",
+                    method: 'post',
+                    data: {
+                        '_token': '{{csrf_token()}}',
+                        'FILTRO_BUSCA': param,
+                        'ID_TIPO': 1
+                    },
+                    dataType: 'json',
+                    success: function(r) {
+                        result = $.map(r, function(obj) {
+                            return {
+                                label: obj.info,
+                                value: obj.NOME,
+                                data: obj
+                            };
+                        });
+                        cb(result);
+                    },
+                    error: err => {
+                        console.log(err);
+                    }
+                });
+            },
+            select: function(e, selectedData) {
+                if (selectedData.item.label != 'Nenhum Funcionário Encontrado.') {
+                    $('#inputCliente').val(selectedData.item.data.NOME);
+                    $('#inputIDCliente').val(selectedData.item.data.ID);
+                    $('#inputCliente').attr('disabled', true);
+                    $('.btnLimparCliente').removeClass('d-none');
+                } else {
+                    limparCampo('inputCliente', 'inputIDCliente', 'btnLimparCliente');
+                }
+            }
+        });
+
+        $('#inputFiltro').on('keyup', () => {
+            clearTimeout(timeoutFiltro);
+
+            timeoutFiltro = setTimeout(() => {
+                buscarDados();
+            }, 1500);
+        })
+
+        $('#btnLimparCliente').on('click', () => {
+            limparCampo('inputCliente', 'inputIDCliente', 'btnLimparCliente');
+        })
+
+        $('#btnAdicionarGastos').on('click', () => {
+            adicionarGasto();
+        })
+
+        $('#btnSalvarGasto').on('click', () => {
+            salvarGasto();
+        });
+
+        $('#btnAdicionarArquivos').on('click', () => {
+            cadastarDocumento(idProjetoSelecionado, idProjetoSelecionado, true);
+        })
+
+        $('#btnFecharModalDetalhes').on('click', () => {
+            $('#divLista').slideDown();
+
+            $('#divDetalhesProjeto').slideUp();
+        });
+
+        $('#btnSalvarPessoa').on('click', () => {
+            salvarPessoa();
+        });
+
+        $('#concluirProjeto').on('click', () => {
+            concluirProjeto();
+        });
+
+        $('#modal-documentacao').on('hidden.bs.modal', function () {
+            if(buscarDetalhesProjetoSelecionado){
+                detalhesProjeto(idProjetoSelecionado);
+            }
+        }); 
 
         $(document).ready(function() {
             buscarDados();

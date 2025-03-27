@@ -31,6 +31,7 @@ class PessoasController extends Controller
         $dadosRecebidos = $request->except('_token');
         $nome = isset($dadosRecebidos['nome']) ? $dadosRecebidos['nome'] : '';
         $filtroIdTipo = "AND 1 = 1";
+        $filtroIdProjeto = "AND 1 = 1";
 
         if($nome != "" && $nome != null){
             $filtro = "AND NOME like '%$nome%'";
@@ -40,6 +41,14 @@ class PessoasController extends Controller
 
         if(isset($dadosRecebidos['ID_TIPO']) && $dadosRecebidos['ID_TIPO'] != 0){
             $filtroIdTipo = "AND ID_TIPO = ".$dadosRecebidos['ID_TIPO'];
+        }
+
+        if(isset($dadosRecebidos['ID_PROJETO'])){
+            $filtroIdProjeto = "AND (SELECT COUNT(*)
+                                       FROM projeto_pessoa
+                                      WHERE projeto_pessoa.ID_PESSOA = pessoa.ID
+                                        AND projeto_pessoa.STATUS = 'A'
+                                        AND projeto_pessoa.ID_PROJETO = {$dadosRecebidos['ID_PROJETO']}) = 0 ";
         }
 
         if(isset($dadosRecebidos['id'])){
@@ -70,6 +79,7 @@ class PessoasController extends Controller
                      AND STATUS = 'A'
                    $filtro
                    $filtroIdTipo
+                   $filtroIdProjeto
                    ORDER BY NOME asc";
         $result = DB::select($query);
 

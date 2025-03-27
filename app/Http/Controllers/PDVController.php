@@ -569,9 +569,11 @@ class PDVController extends Controller
         $dataVencimento = $dadosRecebidos['dataVencimento'];
         $observacao = $dadosRecebidos['observacao'];
         $ID_ORIGEM = $dadosRecebidos['ID_ORIGEM'];
+        $ID_PROJETO = $dadosRecebidos['ID_PROJETO'];
+        $idUsuario = auth()->user()->id;
 
-        $query = "INSERT INTO contas_pagar (ID_USUARIO, DESCRICAO, DATA_VENCIMENTO, VALOR, OBSERVACAO, ID_ORIGEM) 
-                                    VALUES (0, '$descricao', '$dataVencimento', $valor, '$observacao', $ID_ORIGEM)";
+        $query = "INSERT INTO contas_pagar (ID_USUARIO, DESCRICAO, DATA_VENCIMENTO, VALOR, OBSERVACAO, ID_ORIGEM, ID_PROJETO) 
+                                    VALUES ($idUsuario, '$descricao', '$dataVencimento', $valor, '$observacao', $ID_ORIGEM, $ID_PROJETO)";
         $result = DB::select($query);
 
         return $result;
@@ -599,6 +601,7 @@ class PDVController extends Controller
         // $dataPagamento = $dadosRecebidos['dataPagamento'];
         $observacao = $dadosRecebidos['observacao'];
         $ID_ORIGEM = $dadosRecebidos['ID_ORIGEM'];
+        $ID_PROJETO = $dadosRecebidos['ID_PROJETO'];
 
         $query = "UPDATE contas_pagar 
                      SET OBSERVACAO = '$observacao'
@@ -606,6 +609,7 @@ class PDVController extends Controller
                        , VALOR = $valor
                        , OBSERVACAO = '$observacao'
                        , ID_ORIGEM = $ID_ORIGEM
+                       , ID_PROJETO = $ID_PROJETO
                     WHERE ID = $idCodigo";
         $result = DB::select($query);
 

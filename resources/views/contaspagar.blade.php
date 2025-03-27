@@ -85,12 +85,22 @@
                             <input type="text" inputmode="numeric" class="form-control form-control-border" id="inputValorCPG" placeholder="Valor Contas Pagar">
                         </div>
 
-                            <div class="form-group col-12 col-md-4">
-                                <select class="form-control form-control-border" id="selectOrigem">
-                                    <option value="0">Selecionar Origem</option>
-                                </select>
+                        <div class="form-group col-12 col-md-4">
+                            <select class="form-control form-control-border" id="selectOrigem">
+                                <option value="0">Selecionar Origem</option>
+                            </select>
+                        </div>
+
+                        <div class="col-12 row d-none p-0 m-0" id="divSelecionarProjeto">
+                            <div class="col">
+                                <input type="text" class="form-control form-control-border col-12" placeholder="Projeto" id="inputProjeto">
+                                <input type="hidden" id="inputIDProjeto">
                             </div>
-                        
+                            <div class="col btnLimparProjeto d-none m-0 p-0">
+                                <button id="btnLimparProjeto" class="btnLimparProjeto btn btn-sm btn-danger d-none col-12"><i class="fas fa-eraser"></i>LIMPAR</button>
+                            </div>
+                        </div>
+                    
                         <div class="form-group col-12">
                             <textarea maxlength="150" class="form-control form-control-border" id="inputObservacaoCPG" placeholder="Observações"></textarea>
                         </div>
@@ -184,7 +194,7 @@
     <script src="https://cdn.jsdelivr.net/npm/moment@2.29.1/moment.min.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
     <script>
-        var tipoCPG = '0';
+        var tipoCPG = '{{$tipo}}';
 
         $('#inputValorCPG').maskMoney({ prefix: 'R$ ', allowNegative: true, thousands: '.', decimal: ',' });
 
@@ -251,6 +261,8 @@
             $('#inputDataVencimentoCPG').val(moment().format('YYYY-MM-DD'));
             $('#inputValorCPG').val(mascaraFinanceira('0'));
             $('#inputCodCPG').val('0');
+
+            limparCampo('inputProjeto', 'inputIDProjeto', 'btnLimparProjeto');
             
             if(tipoCPG > 0){
                 $('#selectOrigem').val(tipoCPG);
@@ -279,6 +291,13 @@
                 }
             }
 
+            if($('#selectOrigem').val() == 3 && $('#inputIDProjeto').val() == 0){
+                $('#inputProjeto').addClass('is-invalid');
+                validacao = false;
+            } else {
+                $('#inputProjeto').removeClass('is-invalid');
+            }
+
             if(validacao){
                 valorCPG = $('#inputValorCPG').val();
                 valorCPG = valorCPG.replace('.', '').replace('R$','').replace(' ','').replace(',', '.');
@@ -294,6 +313,7 @@
                         'descricao': $('#inputDescricaoCPG').val(),
                         'observacao': $('#inputObservacaoCPG').val(),
                         'ID_ORIGEM': $('#selectOrigem').val(),
+                        'ID_PROJETO': $('#inputIDProjeto').val()
                         },
                         url:"{{route('contaspagar.inserir')}}",
                         success:function(r){
@@ -321,6 +341,7 @@
                         'observacao': $('#inputObservacaoCPG').val(),
                         'idCodigo': $('#inputCodCPG').val(),
                         'ID_ORIGEM': $('#selectOrigem').val(),
+                        'ID_PROJETO': $('#inputIDProjeto').val()
                         },
                         url:"{{route('contaspagar.alterar')}}",
                         success:function(r){
@@ -718,16 +739,68 @@
         $('#btnComprovantes').click(() => {
             cadastarDocumento();
         })
+
+        $("#inputProjeto").autocomplete({
+            source: function(request, cb) {
+                param = request.term;
+                $.ajax({
+                    url: "{{route('projeto.buscar')}}",
+                    method: 'post',
+                    data: {
+                        '_token': '{{csrf_token()}}',
+                        'filtro': param
+                    },
+                    dataType: 'json',
+                    success: function(r) {
+                        result = $.map(r.dados, function(obj) {
+                            return {
+                                label: obj.info,
+                                value: obj.TITULO,
+                                data: obj
+                            };
+                        });
+                        cb(result);
+                    },
+                    error: err => {
+                        console.log(err);
+                    }
+                });
+            },
+            select: function(e, selectedData) {
+                if (selectedData.item.label != 'Nenhum Funcionário Encontrado.') {
+                    $('#inputProjeto').val(selectedData.item.data.TITULO);
+                    $('#inputIDProjeto').val(selectedData.item.data.ID);
+                    $('#inputProjeto').attr('disabled', true);
+                    $('.btnLimparProjeto').removeClass('d-none');
+                } else {
+                    limparCampo('inputProjeto', 'inputIDProjeto', 'btnLimparProjeto');
+                }
+            }
+        });
+
+        $('#btnLimparProjeto').on('click', () => {
+            limparCampo('inputProjeto', 'inputIDProjeto', 'btnLimparProjeto');
+        });
+
+        $('#selectOrigem').on('change', () => {
+
+            if($('#selectOrigem').val() == 3){
+                $('#divSelecionarProjeto').removeClass('d-none');
+            } else {
+                $('#divSelecionarProjeto').addClass('d-none');
+                limparCampo('inputProjeto', 'inputIDProjeto', 'btnLimparProjeto');
+            }
+        })
         
         $(document).ready(() => {
-            tipoCPG = '{{$tipo}}';
 
             if(tipoCPG == '2'){
-                $('#tituloPagina').html('Despesa da Empresa')
+                $('#tituloPagina').html('Despesa da Empresa');
             } else if(tipoCPG == '3'){                
-                $('#tituloPagina').html('Despesa de Obra')
+                $('#tituloPagina').html('Despesa de Projeto');
+                $('#divSelecionarProjeto').removeClass('d-none');
             } else if(tipoCPG == '0'){
-                $('#tituloPagina').html('Contas a Pagar')
+                $('#tituloPagina').html('Contas a Pagar');
             }
 
             buscarOrigem();

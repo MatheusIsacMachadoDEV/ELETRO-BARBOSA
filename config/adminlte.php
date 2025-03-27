@@ -367,7 +367,7 @@ return [
                     'icon' => 'fas fa-file-invoice-dollar'
                 ],
                 [
-                    'text' => 'Despesas de Obra',
+                    'text' => 'Despesas de Projeto',
                     'url'  => 'financeiro/despesaobra',
                     'icon' => 'fas fa-hard-hat'
                 ],
