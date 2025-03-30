@@ -46,6 +46,15 @@ class ControlePontoController extends Controller
         } else {
             $filtroBusca = 'AND 1 = 1';
         }
+
+        if(isset($dadosRecebidos['ID_FUNCIONARIO'])){
+            $filtroFuncionario = "AND (SELECT COUNT(*)
+                                   FROM pessoa
+                                  WHERE pessoa.ID_USUARIO = ponto_eletronico.ID_USUARIO
+                                    AND pessoa.ID = '{$dadosRecebidos['ID_FUNCIONARIO']}') > 0";
+        } else {
+            $filtroFuncionario = 'AND 1 = 1';
+        }
         
         if(isset($dadosRecebidos['dadosPorPagina']) && isset($dadosRecebidos['offset']) && $dadosRecebidos['dadosPorPagina'] != 'todos'){
             $filtroLimit = "LIMIT ".$dadosRecebidos['dadosPorPagina']."
@@ -63,7 +72,8 @@ class ControlePontoController extends Controller
                         WHERE 1 = 1
                         $filtroBusca
                         $filtroData
-                        $filtroPonto ";
+                        $filtroPonto
+                        $filtroFuncionario ";
         $resultCount = DB::select($queryCount);
         $return['contagem'] = $resultCount[0]->COUNT;
         
@@ -75,7 +85,8 @@ class ControlePontoController extends Controller
                     WHERE 1 = 1
                     $filtroData
                     $filtroBusca
-                    $filtroPonto 
+                    $filtroPonto
+                    $filtroFuncionario
                     ORDER BY DATA_ENTRADA DESC
                     $filtroLimit";
         $result = DB::select($query);

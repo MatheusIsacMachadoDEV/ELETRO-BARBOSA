@@ -272,14 +272,14 @@ class FinanceiroController extends Controller
         $tempoDias = (strtotime($dataFim) - strtotime($dataInicio)) / (60 * 60 * 24);
         $valorTotal = $tempoDias * $valorDia;
 
-        $query = "INSERT INTO diaria (DESCRICAO, ID_USUARIO, DATA_INICIO, DATA_FIM, TEMPO_DIAS, VALOR_DIA, VALOR_TOTAL, STATUS, ID_USUARIO_INSERCAO) 
-                              VALUES ('$descricao', $idFuncionario, '$dataInicio', '$dataFim', $tempoDias, $valorDia, $valorTotal, 'A', $idUsuarioInsercao)";
-        DB::insert($query);
-
         $queryUsuario = "SELECT ID_USUARIO
                            FROM pessoa
                           WHERE ID = $idFuncionario";
         $idUsuario = DB::select($queryUsuario)[0]->ID_USUARIO;
+
+        $query = "INSERT INTO diaria (DESCRICAO, ID_USUARIO, DATA_INICIO, DATA_FIM, TEMPO_DIAS, VALOR_DIA, VALOR_TOTAL, STATUS, ID_USUARIO_INSERCAO) 
+                              VALUES ('$descricao', $idUsuario , '$dataInicio', '$dataFim', $tempoDias, $valorDia, $valorTotal, 'A', $idUsuarioInsercao)";
+        DB::insert($query);
 
         $dataInicioDiaria = "$dataInicio 08:00:00";
         $dataFimDiaria = "$dataFim 18:00:00";

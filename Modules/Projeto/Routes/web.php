@@ -26,6 +26,12 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/inativar', 'ProjetoController@inativarProjeto')->name('projeto.inativar');
         Route::post('/inativar/documento', 'ProjetoController@inativarDocumento')->name('projeto.inativar.documento');
         Route::post('/inativar/pessoa', 'ProjetoController@inativarPessoa')->name('projeto.inativar.pessoa');
+        Route::post('/inativar/etapa', 'ProjetoController@inativarEtapa')->name('projeto.inativar.etapa');
         Route::post('/concluir', 'ProjetoController@concluirProjeto')->name('projeto.concluir');
+
+        // Rotas para Etapas de Projeto
+        Route::post('/etapa/buscar', 'ProjetoController@buscarEtapa')->name('projeto.etapa.buscar');
+        Route::post('/etapa/inserir', 'ProjetoController@inserirEtapa')->name('projeto.etapa.inserir');
+        Route::post('/etapa/concluir', 'ProjetoController@concluirEtapa')->name('projeto.etapa.concluir');
     });
 });

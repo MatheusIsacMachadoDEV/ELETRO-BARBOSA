@@ -418,7 +418,7 @@ return [
                     'icon' => 'fas fa-file-powerpoint'
                 ],  
                 [
-                    'text' => 'Clientes',
+                    'text' => 'Pessoas',
                     'url'  => 'pessoas',
                     'icon' => 'fas fa-user-edit'
                 ],   

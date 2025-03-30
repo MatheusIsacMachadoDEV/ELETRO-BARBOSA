@@ -114,6 +114,15 @@ class MateriaisController extends Controller
         } else {
             $filtroBusca = 'AND 1 = 1';
         }
+
+        if(isset($dadosRecebidos['ID_FUNCIONARIO'])){
+            $filtroFuncionario = "AND (SELECT COUNT(*)
+                                   FROM pessoa
+                                  WHERE pessoa.ID_USUARIO = material_movimento.ID_PESSOA
+                                    AND pessoa.ID = '{$dadosRecebidos['ID_FUNCIONARIO']}') > 0";
+        } else {
+            $filtroFuncionario = 'AND 1 = 1';
+        }
         
         if(isset($dadosRecebidos['dadosPorPagina']) && isset($dadosRecebidos['offset']) && $dadosRecebidos['dadosPorPagina'] != 'todos'){
             $filtroLimit = "LIMIT ".$dadosRecebidos['dadosPorPagina']."
@@ -131,6 +140,7 @@ class MateriaisController extends Controller
                         WHERE STATUS = 'A'
                         $filtroBusca
                         $filtroData
+                        $filtroFuncionario
                         $filtroUsuario";
         $resultCount = DB::select($queryCount);
         $return['contagem'] = $resultCount[0]->COUNT;
@@ -140,6 +150,7 @@ class MateriaisController extends Controller
                     WHERE STATUS = 'A'
                     $filtroData
                     $filtroBusca
+                    $filtroFuncionario
                     $filtroUsuario
                     ORDER BY DATA DESC
                     $filtroLimit";

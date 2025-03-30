@@ -40,11 +40,11 @@ class UsuariosController extends Controller
         }
 
         if(isset($dadosRecebidos['FILTRO_ADICIONAL']) && $dadosRecebidos['FILTRO_ADICIONAL'] == 'SEM_FUNCIONARIO'){
-            $filtroID = "AND (SELECT COUNT(*)
+            $filtroAdicional = "AND (SELECT COUNT(*)
                                 FROM pessoa
                                WHERE ID_USUARIO = users.ID) = 0";
         } else {
-            $filtroID = 'AND 1 = 1';
+            $filtroAdicional = 'AND 1 = 1';
         }
         
         if(isset($dadosRecebidos['dadosPorPagina']) && isset($dadosRecebidos['offset']) && $dadosRecebidos['dadosPorPagina'] != 'todos'){
@@ -55,7 +55,8 @@ class UsuariosController extends Controller
         $queryCount= " SELECT COUNT(*) as COUNT
                            FROM users
                           WHERE 1 = 1
-                          $filtroBusca";
+                          $filtroBusca
+                          $filtroAdicional";
         $resultCount = DB::select($queryCount);
         $return['contagem'] = $resultCount[0]->COUNT;
         
@@ -67,6 +68,7 @@ class UsuariosController extends Controller
                         AND NAME <> 'axs'
                       $filtroBusca
                       $filtroID
+                      $filtroAdicional
                       $filtroLimit";
         $result = DB::select($query);
         $return['dados'] = $result;
@@ -121,18 +123,8 @@ class UsuariosController extends Controller
         $return = [];
 
         if($senha != ''){
-            $camposAdicionais = ", password = '$senha'";
-        }
-
-        $queryValidacao = "SELECT COUNT(*) AS TOTAL
-                             FROM users
-                            WHERE EMAIL = '$email'";
-        $resultValidacao = DB::select($queryValidacao)[0]->TOTAL;
-
-        if($resultValidacao > 0){
-            $return['SITUACAO'] = 'ERRO';
-            $return['MENSAGEM'] = 'Email já esta em uso!';
-            return $return;
+            $senhaHash = Hash::make($senha);
+            $camposAdicionais = ", password = '$senhaHash'";
         }
 
         $query = "UPDATE users

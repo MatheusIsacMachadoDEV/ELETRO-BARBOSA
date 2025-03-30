@@ -21,5 +21,10 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/uniforme/inserir', 'GestaoEmpresaController@inserirUniforme')->name('uniforme.inserir');
         Route::post('/uniforme/alterar', 'GestaoEmpresaController@alterarUniforme')->name('uniforme.alterar');
         Route::post('/uniforme/inativar', 'GestaoEmpresaController@inativarUniforme')->name('uniforme.inativar');
+
+        // Rotas para Uniformes do Usuário
+        Route::post('/uniforme/usuario/buscar', 'GestaoEmpresaController@buscarUniformeUsuario')->name('uniforme.usuario.buscar');
+        Route::post('/uniforme/usuario/inserir', 'GestaoEmpresaController@inserirUniformeUsuario')->name('uniforme.usuario.inserir');
+        Route::post('/uniforme/usuario/remover', 'GestaoEmpresaController@inativarUniformeUsuario')->name('uniforme.usuario.remover');
     });
 });

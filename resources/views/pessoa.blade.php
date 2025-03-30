@@ -6,7 +6,7 @@
     <div class="content-title">
         <div class="row d-flex">
             <div class="col-3 d-none d-md-block">
-                <h1>Cliente</h1>
+                <h1>Pessoas</h1>
             </div>
             <div class="col-12 col-md-9 d-flex justify-content-end p-2">
                 <button class="col-md-4 btn btn-block btn-warning" id="btnNovaPessoa">
@@ -26,7 +26,7 @@
                     </div>
                     <div class="col-12 col-md-4">
                         <select class="form-control form-control-border selectTipoPessoa" id="selectFiltroTipoPessoa" onchange="buscarPessoa()">
-                            <option value="0">Tipo Cliente</option>
+                            <option value="0">Tipo Pessoa</option>
                         </select>
                     </div>
                 </div>
@@ -56,7 +56,7 @@
         <div class="modal-dialog modal-xl">
             <div class="modal-content p-0">
                 <div class="modal-header">
-                    <h5 class="modal-title" >Cadastro de Cliente</h5>
+                    <h5 class="modal-title" >Cadastro de Pessoa</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -74,7 +74,7 @@
 
                         <div class="col-12 col-md-4 ">
                             <select class="form-control form-control-border col-12 selectTipoPessoa" id="selectTipoPessoa">
-                                <option value="0">Tipo Cliente</option>
+                                <option value="0">Tipo Pessoa</option>
                             </select>
                         </div>
 
@@ -86,14 +86,26 @@
                             </div>
                         </div>
 
-                        <div class="form-group col-6">
+                        <div class="form-group col-12 col-md-4">
                             <input type="text" class="form-control form-control-border" maxlength="16" id="inputTelefone" oninput="mascaraTelefone(this)" placeholder="Telefone">
                         </div>
-                        <div class="form-group col-12">
+                        <div class="form-group col-12 col-md-4">
                             <input type="text" class="form-control form-control-border" maxlength="48" id="inputEmail" placeholder="Email">
                         </div>
                         <div class="form-group col-12 col-md-4">
                             <input type="date"  class="form-control form-control-border" id="inputDataNascimento" placeholder="Data de Nascimento">
+                        </div>
+                        <div class="form-group col-12 col-md-8">
+                            <input type="text"  class="form-control form-control-border" id="inputRua" placeholder="Rua">
+                        </div>
+                        <div class="form-group col-12 col-md-4">
+                            <input type="text"  class="form-control form-control-border" id="inputNumero" placeholder="Nº">
+                        </div>
+                        <div class="form-group col-12 col-md-6">
+                            <input type="text"  class="form-control form-control-border" id="inputCidade" placeholder="Cidade">
+                        </div>
+                        <div class="form-group col-12 col-md-6">
+                            <input type="text"  class="form-control form-control-border" id="inputEstado" placeholder="Estado">
                         </div>
                     </div>
                 </div>
@@ -394,7 +406,11 @@
                         'email': $('#inputEmail').val(),
                         'data_nascimento': $('#inputDataNascimento').val(),
                         'ID_TIPO': $('#selectTipoPessoa').val(),
-                        'ID_USUARIO': $('#inputIDUsuario').val()
+                        'ID_USUARIO': $('#inputIDUsuario').val(),
+                        'ESTADO': $('#inputEstado').val(),
+                        'CIDADE': $('#inputCidade').val(),
+                        'NUMERO': $('#inputNumero').val(),
+                        'RUA': $('#inputRua').val(),
                         },
                         url:"{{route('pessoa.inserir')}}",
                         success:function(r){
@@ -423,7 +439,11 @@
                         'email': $('#inputEmail').val(),
                         'data_nascimento': $('#inputDataNascimento').val(),
                         'ID_TIPO': $('#selectTipoPessoa').val(),
-                        'ID_USUARIO': $('#inputIDUsuario').val()
+                        'ID_USUARIO': $('#inputIDUsuario').val(),
+                        'ESTADO': $('#inputEstado').val(),
+                        'CIDADE': $('#inputCidade').val(),
+                        'NUMERO': $('#inputNumero').val(),
+                        'RUA': $('#inputRua').val(),
                         },
                         url:"{{route('pessoa.alterar')}}",
                         success:function(r){
@@ -524,6 +544,10 @@
                     $('#inputEmail').val(r[0]['EMAIL']);
                     $('#inputDataNascimento').val(r[0]['DATA_NASCIMENTO']);
                     $('#selectTipoPessoa').val(r[0]['ID_TIPO']);
+                    $('#inputEstado').val(r[0]['ESTADO']);
+                    $('#inputCidade').val(r[0]['CIDADE']);
+                    $('#inputNumero').val(r[0]['NUMERO']);
+                    $('#inputRua').val(r[0]['RUA']);
 
                     if($('#selectTipoPessoa').val() == 2){
                         $('#divUsuario').removeClass('d-none');
@@ -1036,7 +1060,7 @@
         }
 
         function popularTipoPessoa(dados){
-            var htmlTabela = `<option value="0">Tipo Cliente</option>`;
+            var htmlTabela = `<option value="0">Tipo Pessoa</option>`;
 
             for(i=0; i< dados.length; i++){
                 var materialKeys = Object.keys(dados[i]);

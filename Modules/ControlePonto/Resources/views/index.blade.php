@@ -203,6 +203,12 @@
                     tempoApontamento =  `${horas}:${minutos}:${segundos}`;
                 } else {
                     tempoApontamentoAberto = moment.duration(moment().diff(moment(dados[i]['DATA_ENTRADA']))).asSeconds();
+
+                    let diff = moment.duration(moment().diff(moment(dados[i]['DATA_ENTRADA'])));
+                    let horas = String(Math.floor(diff.asHours())).padStart(2, '0');
+                    let minutos = String(diff.minutes()).padStart(2, '0');
+                    let segundos = String(diff.seconds()).padStart(2, '0');
+                    tempoApontamento =  `${horas}:${minutos}:${segundos}`;
                 }
 
                 htmlTabela += `
@@ -222,8 +228,6 @@
                 `;
             }
 
-            console.log('tempoApontamentoAberto ', tempoApontamentoAberto)
-            iniciarContagem(tempoApontamentoAberto.toFixed(0));
             
             $('#tableBodyDados').html(htmlTabela);
         }

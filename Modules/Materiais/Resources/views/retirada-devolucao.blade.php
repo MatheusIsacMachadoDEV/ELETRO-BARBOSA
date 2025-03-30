@@ -410,6 +410,10 @@
             $('#inputDevolucaoData').removeClass('is-invalid');
             $('#inputDevolucaoData').val(moment().format('YYYY-MM-DD HH:mm'))
 
+            
+            limparCampo('inputDevolucaoEquipamento', 'inputDevolucaoIDEquipamento', 'btnLimpar');
+            limparCampo('inputDevolucaoPessoa', 'inputDevolucaoIDPessoa', 'btnLimparPessoa');
+
 
             $('.btnLimpar').addClass('d-none');
         }
@@ -570,7 +574,7 @@
                     $('#inputDevolucaoPessoa').attr('disabled', true); 
                     $('.btnLimparPessoa').removeClass('d-none');
                 } else {
-                    limparCampo('inputDevolucaoPessoa', 'inputDevolucaoIDPessoa', 'btnLimpar');
+                    limparCampo('inputDevolucaoPessoa', 'inputDevolucaoIDPessoa', 'btnLimparPessoa');
                 }
             }
         });

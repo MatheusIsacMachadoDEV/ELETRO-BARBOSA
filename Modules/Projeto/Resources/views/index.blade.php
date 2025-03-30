@@ -42,6 +42,7 @@
                                 <th><center>Fim</center></th>
                                 <th><center>Valor</center></th>
                                 <th><center>Pagamento</center></th>
+                                <th><center>Conclusão</center></th>
                                 <th><center>Ações</center></th>
                             </tr>
                         </thead>
@@ -68,25 +69,33 @@
             <div class="row p-2">
             <div class="col-12 col-md-12 col-lg-8 order-2 order-md-1">
                 <div class="row">
-                <div class="col-12 col-sm-4">
+                <div class="col-12 col-sm-3">
                     <div class="info-box bg-light">
                         <div class="info-box-content" id="divSpanValorProjeto">
                             <span class="info-box-text text-center text-muted">Valor Projeto</span>
-                            <span class="info-box-number text-center text-muted mb-0" id="spanValorProjeto">R$ 10.000,00</span>
+                            <span class="info-box-number text-center text-muted mb-0 bg-info" id="spanValorProjeto">R$ 10.000,00</span>
                         </div>
                     </div>
                 </div>
-                <div class="col-12 col-sm-4">
+                <div class="col-12 col-sm-3">
                     <div class="info-box bg-light">
                         <div class="info-box-content" id="divSpanGastosProjeto">
                             <span class="info-box-text text-center text-muted">Gastos do Projeto</span>
-                            <span class="info-box-number text-center text-muted mb-0" id="spanGastosProjeto">R$ 5.000,00</span>
+                            <span class="info-box-number text-center text-muted mb-0 bg-danger" id="spanGastosProjeto">R$ 5.000,00</span>
                         </div>
                     </div>
                 </div>
-                <div class="col-12 col-sm-4">
+                <div class="col-12 col-sm-3">
                     <div class="info-box bg-light">
-                    <div class="info-box-content" id="divSpanGastosProjeto">
+                    <div class="info-box-content" id="divSpanLucroProjeto">
+                        <span class="info-box-text text-center text-muted">Lucro do Projeto</span>
+                        <span class="info-box-number text-center text-muted mb-0 bg-success" id="spanLucroProjeto">R$ 5.000,00</span>
+                    </div>
+                    </div>
+                </div>
+                <div class="col-12 col-sm-3">
+                    <div class="info-box bg-light">
+                    <div class="info-box-content" id="divSpanDataEntregaProjeto">
                         <span class="info-box-text text-center text-muted">Data de Entrega</span>
                         <span class="info-box-number text-center text-muted mb-0" id="spanDataEntregaProjeto">20/05/2025</span>
                     </div>
@@ -311,6 +320,49 @@
             </div> 
         </div> 
     </div> 
+
+    <div class="modal fade" id="modalEtapasProjeto" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Etapas do Projeto</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="inputIDProjeto">
+                    
+                    <!-- Formulário de cadastro -->
+                    <div class="row mb-3">
+                        <div class="col-10">
+                            <input type="text" class="form-control" id="inputDescricaoEtapa" placeholder="Descreva a nova etapa">
+                        </div>
+                        <div class="col-2">
+                            <button class="btn btn-primary w-100" id="btnSalvarEtapa">Salvar</button>
+                        </div>
+                    </div>
+                    
+                    <!-- Lista de etapas -->
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th width="60%">Descrição</th>
+                                <th width="20%">Situação</th>
+                                <th width="20%">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableEtapasProjeto">
+                            <!-- Dados serão carregados aqui -->
+                        </tbody>
+                    </table>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+                </div>
+            </div>
+        </div>
+    </div>
 @stop
 
 @section('footer')
@@ -336,6 +388,18 @@
         }
         .ui-autocomplete {
             z-index: 1050;
+        }
+
+        .progress {
+            border-radius: 10px;
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);
+        }
+
+        .progress-bar {
+            font-size: 12px;
+            line-height: 20px;
+            font-weight: bold;
+            transition: width 0.6s ease;
         }
     </style>
 @stop
@@ -402,7 +466,7 @@
                 url: "{{route('pessoa.buscar')}}",
                 data: {
                     '_token': '{{csrf_token()}}',
-                    'ID_TIPO': 3,
+                    'ID_TIPO': 2,
                     'ID_PROJETO': idProjeto
                 },
                 success: function(r) {
@@ -451,10 +515,26 @@
                 const dataInicio = moment(projeto.DATA_INICIO).format('DD/MM/YYYY');
                 const dataFim = moment(projeto.DATA_FIM).format('DD/MM/YYYY');
                 const pagamento = projeto.PAGAMENTO_REALIZADO === 'S' ? 'Pago' : 'Pendente';
+                const porcentagem = projeto.PORCENTAGEM_ETAPA == null ? 0 : projeto.PORCENTAGEM_ETAPA;
+                
+                // Criação do gráfico de progresso
+                const progressoHTML = `
+                    <div class="progress" style="height: 20px; width: 100px; margin: 0 auto;">
+                        <div class="progress-bar ${porcentagem == 100 ? 'bg-success' : 'bg-info'}" 
+                            role="progressbar" 
+                            style="width: ${porcentagem}%" 
+                            aria-valuenow="${porcentagem}" 
+                            aria-valuemin="0" 
+                            aria-valuemax="100">
+                            ${porcentagem}%
+                        </div>
+                    </div>
+                `;
 
                 btnEditar = `<li class="dropdown-item" onclick="editarProjeto(${projeto.ID})"><span class="btn"><i class="fas fa-pen"></i></span> Editar</li>`;
                 btnArquivos = `<li class="dropdown-item" onclick="cadastarDocumento(${projeto.ID}, '${projeto.TITULO}')"><span class="btn"><i class="fas fa-file"></i></span> Arquivos</li>`;
                 btnPessoas = `<li class="dropdown-item" onclick="buscarPessoaProjeto(${projeto.ID}, '${projeto.TITULO}')"><span class="btn"><i class="fas fa-user"></i></span> Participantes</li>`;
+                btnEtapas = `<li class="dropdown-item" onclick="abrirModalEtapas(${projeto.ID})"><span class="btn"><i class="fas fa-tasks"></i></span> Etapas</li>`;
                 btnVisualizar = `<li class="dropdown-item" onclick="detalhesProjeto(${projeto.ID})"><span class="btn"><i class="fas fa-cogs"></i></span> Gestão do Projeto</li>`;
                 btnInativar = `<li class="dropdown-item" onclick="inativarProjeto(${projeto.ID})"><span class="btn"><i class="fas fa-trash"></i></span> Inativar</li>`;
 
@@ -467,6 +547,7 @@
                                                 ${btnEditar}
                                                 ${btnArquivos}
                                                 ${btnPessoas}
+                                                ${btnEtapas}
                                                 ${btnInativar}
                                             </ul>
                                         </div>`;
@@ -479,6 +560,7 @@
                         <td><center>${dataFim}</center></td>
                         <td><center>${mascaraFinanceira(projeto.VALOR)}</center></td>
                         <td><center>${pagamento}</center></td>
+                        <td><center>${progressoHTML}</center></td>
                         <td>
                             <center>
                                 ${btnOpcoes}
@@ -766,6 +848,37 @@
             });
         }
 
+        function inativarEtapa(idEtapa, idProjeto) {
+            Swal.fire({
+                title: 'Confirmação',
+                text: 'Deseja inativar a etapa do projeto?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Sim',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        type: 'post',
+                        url: "{{route('projeto.inativar.etapa')}}",
+                        data: {
+                            '_token': '{{csrf_token()}}',
+                            'ID_ETAPA': idEtapa
+                        },
+                        success: function(r) {
+                            dispararAlerta('success', 'Etapa inativada com sucesso!');
+                            
+                            carregarEtapas($('#inputIDProjeto').val());
+                        },
+                        error: err => {
+                            console.log(err);
+                            Swal.fire('Erro!', 'Ocorreu um erro ao inativar o projeto.', 'error');
+                        }
+                    });
+                }
+            });
+        }
+
         function detalhesProjeto(idProjeto){
             $.ajax({
                 type:'post',
@@ -794,6 +907,7 @@
 
                     $('#spanValorProjeto').html(mascaraFinanceira(dadosProjeto['VALOR']));
                     $('#spanGastosProjeto').html(mascaraFinanceira(dadosProjeto['VALOR_GASTO']));
+                    $('#spanLucroProjeto').html(mascaraFinanceira(dadosProjeto['VALOR'] - dadosProjeto['VALOR_GASTO']));
                     $('#spanDataEntregaProjeto').html(moment(dadosProjeto['DATA_FIM']).format('DD/MM/YYYY'));
                     $('#spanTituloProjeto').html(`${dadosProjeto['TITULO']} <span class="badge ${badgeSituacao}">${situacaoProjeto}</span>`);
                     $('#spanDescricaoProjeto').html(dadosProjeto['DESCRICAO']);
@@ -871,6 +985,97 @@
 
             limparCampo('inputCliente', 'inputIDCliente', 'btnLimparCliente');
         }
+
+        // MODAL ETAPAS
+            function abrirModalEtapas(idProjeto) {
+                $('#inputIDProjeto').val(idProjeto);
+                carregarEtapas(idProjeto);
+                $('#modalEtapasProjeto').modal('show');
+            }
+
+            // Função para carregar as etapas
+            function carregarEtapas(idProjeto) {
+                $.ajax({
+                    type: 'post',
+                    url: "{{ route('projeto.etapa.buscar') }}",
+                    data: {
+                        '_token': '{{ csrf_token() }}',
+                        'ID_PROJETO': idProjeto
+                    },
+                    success: function(response) {
+                        let html = '';
+                        response.dados.forEach(etapa => {
+                            html += `
+                                <tr>
+                                    <td>${etapa.DESCRICAO}</td>
+                                    <td><span class="badge ${etapa.SITUACAO === 'Pendente' ? 'bg-warning' : 'bg-success'}">${etapa.SITUACAO}</span></td>
+                                    <td>
+                                        ${etapa.SITUACAO === 'Pendente' ? 
+                                            `<i onclick="concluirEtapa(${etapa.ID})" class="fas fa-check"></i>` :
+                                            ``}
+                                        <i class="fas fa-trash" onclick="inativarEtapa(${etapa.ID})"></i>
+                                    </td>
+                                </tr>
+                            `;
+                        });
+                        $('#tableEtapasProjeto').html(html);
+                    }
+                });
+            }
+
+            // Função para salvar nova etapa
+            $('#btnSalvarEtapa').click(function() {
+                const idProjeto = $('#inputIDProjeto').val();
+                const descricao = $('#inputDescricaoEtapa').val();
+                
+                if(!descricao) {
+                    alert('Informe a descrição da etapa');
+                    return;
+                }
+
+                $.ajax({
+                    type: 'post',
+                    url: "{{ route('projeto.etapa.inserir') }}",
+                    data: {
+                        '_token': '{{ csrf_token() }}',
+                        'ID_PROJETO': idProjeto,
+                        'DESCRICAO': descricao
+                    },
+                    success: function() {
+                        $('#inputDescricaoEtapa').val('');
+
+                        dispararAlerta('success', 'Etapa cadastrada com sucesso!');
+
+                        carregarEtapas(idProjeto);
+                    }
+                });
+            });
+
+            // Função para concluir etapa
+            function concluirEtapa(idEtapa) {
+                Swal.fire({
+                    title: 'Confirmação',
+                    text: 'Deseja concluir a etapa do projeto?',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Sim',
+                    cancelButtonText: 'Cancelar'
+                }).then((result) => {
+                    $.ajax({
+                        type: 'post',
+                        url: "{{ route('projeto.etapa.concluir') }}",
+                        data: {
+                            '_token': '{{ csrf_token() }}',
+                            'ID': idEtapa
+                        },
+                        success: function() {
+                            const idProjeto = $('#inputIDProjeto').val();
+                            carregarEtapas(idProjeto);
+                        }
+                    });
+                });
+            }
+        // FIM
 
         // DOCUMENTOS
             function buscarDocumentos(){
@@ -1122,6 +1327,10 @@
         $('#concluirProjeto').on('click', () => {
             concluirProjeto();
         });
+
+        $('#modalEtapasProjeto').on('hidden.bs.modal', function () {
+            buscarDados();
+        }); 
 
         $('#modal-documentacao').on('hidden.bs.modal', function () {
             if(buscarDetalhesProjetoSelecionado){

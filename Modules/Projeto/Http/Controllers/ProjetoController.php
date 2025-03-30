@@ -51,6 +51,17 @@ class ProjetoController extends Controller
                             FROM contas_pagar
                            WHERE contas_pagar.ID_PROJETO = p.ID
                              AND contas_pagar.STATUS = 'A') AS VALOR_GASTO
+                       , ROUND(
+                            (SELECT COUNT(*) 
+                            FROM projeto_etapa 
+                            WHERE projeto_etapa.ID_PROJETO = p.ID 
+                                AND projeto_etapa.STATUS = 'A'
+                                AND projeto_etapa.SITUACAO = 'Concluído') * 100.0 /
+                            NULLIF(
+                            (SELECT COUNT(*) 
+                                FROM projeto_etapa 
+                                WHERE projeto_etapa.ID_PROJETO = p.ID 
+                                AND projeto_etapa.STATUS = 'A'), 0), 2) AS PORCENTAGEM_ETAPA
                     FROM projeto p
                    WHERE p.STATUS = 'A' 
                    $filtro
@@ -118,6 +129,20 @@ class ProjetoController extends Controller
         return response()->json($result);
     }
 
+    public function buscarEtapa(Request $request)
+    {
+        $idProjeto = $request->input('ID_PROJETO');
+        
+        $etapas = DB::select("
+            SELECT * 
+            FROM projeto_etapa 
+            WHERE ID_PROJETO = ? AND STATUS = 'A'
+            ORDER BY DATA_INSERCAO DESC
+        ", [$idProjeto]);
+
+        return response()->json(['dados' => $etapas]);
+    }
+
     // Inserir projeto
     public function inserirProjeto(Request $request)
     {
@@ -164,6 +189,21 @@ class ProjetoController extends Controller
         return $result;
     }
 
+    public function inserirEtapa(Request $request)
+    {
+        $dados = $request->validate([
+            'ID_PROJETO' => 'required|integer',
+            'DESCRICAO' => 'required|string|max:200'
+        ]);
+
+        DB::insert("
+            INSERT INTO projeto_etapa (ID_PROJETO, DESCRICAO, SITUACAO) 
+            VALUES (?, ?, 'Pendente')
+        ", [$dados['ID_PROJETO'], $dados['DESCRICAO']]);
+
+        return response()->json(['success' => 'Etapa cadastrada com sucesso!']);
+    }
+
     // Alterar projeto
     public function alterarProjeto(Request $request)
     {
@@ -204,6 +244,17 @@ class ProjetoController extends Controller
         return response()->json(['success' => 'Projeto inativado com sucesso!']);
     }
 
+    public function inativarEtapa(Request $request)
+    {
+        $dadosRecebidos = $request->except('_token');
+        $idEtapa = $dadosRecebidos['ID_ETAPA'];
+
+        $query = "UPDATE projeto_etapa SET STATUS = 'I' WHERE ID = $idEtapa";
+        DB::update($query);
+
+        return response()->json(['success' => 'Projeto inativado com sucesso!']);
+    }
+
     public function inativarDocumento(Request $request)
     {
         $dadosRecebidos = $request->except('_token');
@@ -238,6 +289,20 @@ class ProjetoController extends Controller
         $result = DB::select($queryCRB);
 
         return response()->json(['success' => 'Documento inativado com sucesso!']);
+    }
+
+    public function concluirEtapa(Request $request)
+    {
+        $idEtapa = $request->input('ID');
+        
+        DB::update("
+            UPDATE projeto_etapa 
+            SET SITUACAO = 'Concluído', 
+                DATA_CONCLUSAO = NOW() 
+            WHERE ID = ?
+        ", [$idEtapa]);
+
+        return response()->json(['success' => 'Etapa concluída com sucesso!']);
     }
 
     public function inativarPessoa(Request $request)

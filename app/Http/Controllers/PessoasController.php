@@ -74,6 +74,15 @@ class PessoasController extends Controller
                        , (SELECT name
                             FROM users
                            WHERE users.id = pessoa.ID_USUARIO) as USUARIO
+                       , (SELECT COUNT(*)
+                            FROM projeto_pessoa
+                           WHERE projeto_pessoa.ID_PESSOA = pessoa.ID
+                             AND projeto_pessoa.STATUS = 'A') as TOTAL_PROJETO
+                       , (SELECT COUNT(*)
+                            FROM diaria
+                           WHERE diaria.ID_USUARIO = pessoa.ID_USUARIO
+                             AND diaria.STATUS = 'A'
+                             AND diaria.DATA_FIM >= CURDATE()) as TOTAL_DIARIA
                     FROM pessoa
                    WHERE 1 = 1
                      AND STATUS = 'A'
@@ -94,6 +103,10 @@ class PessoasController extends Controller
         $ID_TIPO = $dadosRecebidos['ID_TIPO'];
         $ID_USUARIO = $dadosRecebidos['ID_USUARIO'];
         $email = ($dadosRecebidos['email'] == null ? '' : $dadosRecebidos['email']);
+        $ESTADO = ($dadosRecebidos['ESTADO'] == null ? '' : $dadosRecebidos['ESTADO']);
+        $CIDADE = ($dadosRecebidos['CIDADE'] == null ? '' : $dadosRecebidos['CIDADE']);
+        $RUA = ($dadosRecebidos['RUA'] == null ? '' : $dadosRecebidos['RUA']);
+        $NUMERO = ($dadosRecebidos['NUMERO'] == null ? '' : $dadosRecebidos['NUMERO']);
         $data_nascimento = ($dadosRecebidos['data_nascimento'] == null ? '2024-01-01' : $dadosRecebidos['data_nascimento']);
 
         $query = "INSERT INTO `pessoa` ( `NOME`
@@ -102,6 +115,10 @@ class PessoasController extends Controller
                                        , `EMAIL`
                                        , `DATA_NASCIMENTO`
                                        , `ID_TIPO`
+                                       , `ESTADO`
+                                       , `CIDADE`
+                                       , `RUA`
+                                       , `NUMERO`
                                        , `ID_USUARIO`)
                                VALUES ('$nome'
                                       , $documento
@@ -109,6 +126,10 @@ class PessoasController extends Controller
                                       , '$email'
                                       , '$data_nascimento'
                                       , $ID_TIPO
+                                      , '$ESTADO'
+                                      , '$CIDADE'
+                                      , '$RUA'
+                                      , '$NUMERO'
                                       , $ID_USUARIO)";
         $result = DB::select($query);
 
@@ -125,6 +146,10 @@ class PessoasController extends Controller
         $email = $dadosRecebidos['email'];
         $data_nascimento = $dadosRecebidos['data_nascimento'];
         $ID_USUARIO = $dadosRecebidos['ID_USUARIO'];
+        $ESTADO = ($dadosRecebidos['ESTADO'] == null ? '' : $dadosRecebidos['ESTADO']);
+        $CIDADE = ($dadosRecebidos['CIDADE'] == null ? '' : $dadosRecebidos['CIDADE']);
+        $RUA = ($dadosRecebidos['RUA'] == null ? '' : $dadosRecebidos['RUA']);
+        $NUMERO = ($dadosRecebidos['NUMERO'] == null ? '' : $dadosRecebidos['NUMERO']);
 
         $query = "UPDATE `pessoa` 
                     SET `NOME` = '$nome'
@@ -134,6 +159,10 @@ class PessoasController extends Controller
                     , `ID_TIPO` = $ID_TIPO
                     , `DATA_NASCIMENTO` = '$data_nascimento'
                     , `ID_USUARIO` = '$ID_USUARIO'
+                    , `ESTADO` = '$ESTADO'
+                    , `CIDADE` = '$CIDADE'
+                    , `RUA` = '$RUA'
+                    , `NUMERO` = '$NUMERO'
                 WHERE ID = $id";
         $result = DB::select($query);
 
