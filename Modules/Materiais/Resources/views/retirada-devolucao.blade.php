@@ -221,9 +221,20 @@
         $('#inputQtde').mask('000000000');
         let stream;
         let scanning = false;
+        var idFuncionario = '{{$idFuncionario}}';
+        var nomeFuncionario = '{{$nomeFuncionario}}';
+
 
         function exibirModalCadastro(){
             resetarCampos();
+
+            if(idFuncionario != '' && nomeFuncionario != ''){
+                
+                $('#inputDevolucaoPessoa').val(nomeFuncionario);
+                $('#inputDevolucaoIDPessoa').val(idFuncionario);
+                $('#inputDevolucaoPessoa').attr('disabled', true); 
+                $('.btnLimparPessoa').removeClass('d-none');
+            }
             $('#modal-cadastro').modal('show');
         }
 
@@ -545,18 +556,19 @@
                 param = request.term;
                 campoBuscado = param;
                 $.ajax({
-                    url:"{{route('usuarios.buscar')}}",
+                    url:"{{route('pessoa.buscar')}}",
                     method: 'post',
                     data:{
                         '_token': '{{csrf_token()}}',
-                        'FILTRO_BUSCA': param
+                        'FILTRO_BUSCA': param,
+                        'ID_TIPO': 2
                     },
                     dataType: 'json',
                     success: function(r){
                         result = $.map(r.dados, function(obj){
                             return {
                                 label: obj.info,
-                                value: obj.NAME,
+                                value: obj.NOME,
                                 data : obj
                             };
                         });
@@ -569,8 +581,8 @@
             },
             select:function(e, selectedData) {
                 if (selectedData.item.label != 'Nenhum Resultado Encontrado.'){
-                    $('#inputDevolucaoPessoa').val(selectedData.item.data.NAME);
-                    $('#inputDevolucaoIDPessoa').val(selectedData.item.data.ID);
+                    $('#inputDevolucaoPessoa').val(selectedData.item.data.NOME);
+                    $('#inputDevolucaoIDPessoa').val(selectedData.item.data.ID_USUARIO);
                     $('#inputDevolucaoPessoa').attr('disabled', true); 
                     $('.btnLimparPessoa').removeClass('d-none');
                 } else {

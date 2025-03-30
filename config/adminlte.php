@@ -322,17 +322,20 @@ return [
                 [
                     'text' => 'Materiais',
                     'url'  => 'materiais',
-                    'icon' => 'fas fa-plug'
+                    'icon' => 'fas fa-plug',
+                    'can'  => 'ESTOQUE_MATERIAIS'
                 ], 
                 [
                     'text' => 'Retiradas / Devoluções',
                     'url'  => 'materiais/retirada-devolucao',
-                    'icon' => 'fas fa-exchange-alt'
+                    'icon' => 'fas fa-exchange-alt',
+                    'can'  => 'ESTOQUE_RETIRADA'
                 ],
                 [
-                    'text' => 'Relatórios',
+                    'text' => 'Relatórios de Estoque',
                     'url'  => 'materiais/relatorios',
-                    'icon' => 'fas fa-print'
+                    'icon' => 'fas fa-print',
+                    'can'  => 'ESTOQUE_RELATORIO'
                 ], 
             ]
         ], 
@@ -343,12 +346,14 @@ return [
                 [
                     'text' => 'Pedido de Compra',
                     'url'  => 'compras',
-                    'icon' => 'fas fa-shopping-basket'
+                    'icon' => 'fas fa-shopping-basket',
+                    'can'  => 'COMPRAS_PEDIDO'
                 ], 
                 [
-                    'text' => 'Relatórios',
+                    'text' => 'Relatórios de Compras',
                     'url'  => 'compras/relatorios',
-                    'icon' => 'fas fa-print'
+                    'icon' => 'fas fa-print',
+                    'can'  => 'COMPRAS_RELATORIO'
                 ], 
             ]
         ], 
@@ -359,47 +364,55 @@ return [
                 [
                     'text' => 'Contas a Pagar',
                     'url'  => 'contaspagar',
-                    'icon' => 'fas fa-receipt'
+                    'icon' => 'fas fa-receipt',
+                    'can'  => 'FINANCEIRO_CPG'
                 ],  
                 [
                     'text' => 'Contas a Receber',
                     'url'  => 'financeiro/contasreceber',
-                    'icon' => 'fas fa-file-invoice-dollar'
+                    'icon' => 'fas fa-file-invoice-dollar',
+                    'can'  => 'FINANCEIRO_CRB'
                 ],
                 [
                     'text' => 'Despesas de Projeto',
                     'url'  => 'financeiro/despesaobra',
-                    'icon' => 'fas fa-hard-hat'
+                    'icon' => 'fas fa-hard-hat',
+                    'can'  => 'FINANCEIRO_DESPESAS_PROJETO'
                 ],
                 [
                     'text' => 'Despesas da Empresa',
                     'url'  => 'financeiro/despesaempresa',
-                    'icon' => 'fas fa-building'
+                    'icon' => 'fas fa-building',
+                    'can'  => 'FINANCEIRO_DESPESAS_EMPRESA'
                 ],
-                [
-                    'text' => 'Impostos e Tributos',
-                    'url'  => 'financeiro/impostos-tributos',
-                    'icon' => 'fas fa-percentage'
-                ],
+                // [
+                //     'text' => 'Impostos e Tributos',
+                //     'url'  => 'financeiro/impostos-tributos',
+                //     'icon' => 'fas fa-percentage'
+                // ],
                 [
                     'text' => 'Diárias',
                     'url'  => 'financeiro/diaria',
-                    'icon' => 'fas fa-comment-dollar'
+                    'icon' => 'fas fa-comment-dollar',
+                    'can'  => 'FINANCEIRO_DIARIA'
                 ],
                 [
                     'text' => 'Folha de Pagamento',
                     'url'  => 'financeiro/folha-pagamento',
-                    'icon' => 'fas fa-wallet'
+                    'icon' => 'fas fa-wallet',
+                    'can'  => 'FINANCEIRO_FOLHA'
                 ],
                 [
                     'text' => 'Faturamento',
                     'url'  => 'financeiro/faturamento',
-                    'icon' => 'fas fa-dollar-sign'
+                    'icon' => 'fas fa-dollar-sign',
+                    'can'  => 'FINANCEIRO_FATURAMENTO'
                 ],
                 [
                     'text' => 'Relatórios Financeiros',
                     'url'  => 'financeiro/relatorios',
-                    'icon' => 'fas fa-print'
+                    'icon' => 'fas fa-print',
+                    'can'  => 'FINANCEIRO_RELATORIOS'
                 ], 
             ]
         ], 
@@ -410,37 +423,44 @@ return [
                 [
                     'text' => 'Agenda',
                     'url'  => 'agenda',
-                    'icon' => 'fas fa-calendar-alt'
+                    'icon' => 'fas fa-calendar-alt',
+                    'can'  => 'DEPARTAMENTO_PESSOAL_AGENDA'
                 ],   
                 [
                     'text' => 'Projetos',
                     'url'  => 'projeto',
-                    'icon' => 'fas fa-file-powerpoint'
+                    'icon' => 'fas fa-file-powerpoint',
+                    'can'  => 'DEPARTAMENTO_PROJETOS'
                 ],  
                 [
                     'text' => 'Pessoas',
                     'url'  => 'pessoas',
-                    'icon' => 'fas fa-user-edit'
+                    'icon' => 'fas fa-user-edit',
+                    'can'  => 'DEPARTAMENTO_PESSOAL_PESSOAS'
                 ],   
                 [
                     'text' => 'Funcionários',
                     'url'  => 'gestaoempresa/funcionarios',
-                    'icon' => 'fas fa-id-card'
+                    'icon' => 'fas fa-id-card',
+                    'can'  => 'DEPARTAMENTO_PESSOAL_FUNCIONARIO'
                 ],   
                 [
                     'text' => 'Controle de Ponto',
                     'url'  => 'controleponto',
-                    'icon' => 'fas fa-clock'
+                    'icon' => 'fas fa-clock',
+                    'can'  => 'DEPARTAMENTO_PESSOAL_PONTO'
                 ],   
                 [
                     'text' => 'Uniformes e EPI',
                     'url'  => 'gestaoempresa/uniformes',
-                    'icon' => 'fas fa-tshirt'
+                    'icon' => 'fas fa-tshirt',
+                    'can'  => 'DEPARTAMENTO_PESSOAL_UNIFORMES'
                 ],   
                 [
                     'text' => 'Usuários',
                     'url'  => 'usuarios',
-                    'icon' => 'fas fa-users'
+                    'icon' => 'fas fa-users',
+                    'can'  => 'DEPARTAMENTO_PESSOAL_USUARIOS'
                 ]
             ],
         ],

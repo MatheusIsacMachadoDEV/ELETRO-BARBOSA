@@ -18,7 +18,25 @@ class ControlePontoController extends Controller
      */
     public function index()
     {
-        return view('controleponto::index');
+        $idUsuario = auth()->user()->id;
+
+        $query = "SELECT TIMESTAMPDIFF(
+                            SECOND, 
+                            DATA_ENTRADA, 
+                            NOW()
+                         ) AS TOTAL_SEGUNDOS
+                 FROM ponto_eletronico p
+                WHERE p.STATUS = 'A'
+                  AND DATA_SAIDA IS NULL
+                ORDER BY DATA_ENTRADA DESC";
+        $dadosAberto = DB::select($query);
+
+        if(count($dadosAberto) > 0){
+            $tempoAberto = $dadosAberto[0]->TOTAL_SEGUNDOS;
+        } else {
+            $tempoAberto = '0';
+        }
+        return view('controleponto::index', compact('tempoAberto'));
     }
 
     public function buscarPonto(Request $request){
@@ -29,20 +47,21 @@ class ControlePontoController extends Controller
         
         // MONTA O FILTRO DE DATA
         if(isset($dadosRecebidos['DATA_INICIO']) && isset($dadosRecebidos['DATA_TERMINO'])){
-            $filtroData = "AND ponto_eletronico.DATA_ENTRADA BETWEEN '{$dadosRecebidos['DATA_INICIO']} 00:00:00'
-                                                                AND '{$dadosRecebidos['DATA_TERMINO']} 23:59:59'";
+            $filtroData = "(ponto_eletronico.DATA_ENTRADA BETWEEN '{$dadosRecebidos['DATA_INICIO']} 00:00:00'
+                                                               AND '{$dadosRecebidos['DATA_TERMINO']} 23:59:59')";
         } else if(isset($dadosRecebidos['DATA_TERMINO']) && !isset($dadosRecebidos['DATA_INICIO'])){
-            $filtroData = "AND ponto_eletronico.DATA_ENTRADA <= '{$dadosRecebidos['DATA_TERMINO']} 23:59:59'";
+            $filtroData = "ponto_eletronico.DATA_ENTRADA <= '{$dadosRecebidos['DATA_TERMINO']} 23:59:59'";
         } else if(isset($dadosRecebidos['DATA_INICIO']) && !isset($dadosRecebidos['DATA_TERMINO'])){
-            $filtroData = "AND ponto_eletronico.DATA_ENTRADA >= '{$dadosRecebidos['DATA_INICIO']} 00:00:00'";
+            $filtroData = "ponto_eletronico.DATA_ENTRADA >= '{$dadosRecebidos['DATA_INICIO']} 00:00:00'";
         } else {
-            $filtroData = "AND 1 = 1";
+            $filtroData = "1 = 1";
         }
         
         // MONTA O FILTRO DE BUSCA DE TEXTO
         if(isset($dadosRecebidos['FILTRO_BUSCA'])){
-            $filtroParametro = str_replace(' ', '%', $dadosRecebidos['FILTRO_BUSCA']);
-            $filtroBusca = "AND COLUNA LIKE '%filtroParametro%'";
+            $filtroBusca = "AND (SELECT COUNT(*)
+                                   FROM users
+                                  WHERE name like '%{$dadosRecebidos['FILTRO_BUSCA']}%') > 0";
         } else {
             $filtroBusca = 'AND 1 = 1';
         }
@@ -71,7 +90,7 @@ class ControlePontoController extends Controller
                          FROM ponto_eletronico
                         WHERE 1 = 1
                         $filtroBusca
-                        $filtroData
+                        AND ($filtroData OR DATA_SAIDA IS NULL)
                         $filtroPonto
                         $filtroFuncionario ";
         $resultCount = DB::select($queryCount);
@@ -83,7 +102,7 @@ class ControlePontoController extends Controller
                             WHERE ID = ponto_eletronico.ID_USUARIO) AS NOME_USUARIO
                      FROM ponto_eletronico
                     WHERE 1 = 1
-                    $filtroData
+                    AND ($filtroData OR DATA_SAIDA IS NULL)
                     $filtroBusca
                     $filtroPonto
                     $filtroFuncionario

@@ -146,7 +146,8 @@
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
     <script>
         var timeoutContador = 0;
-        
+        var tempoAberto = '{{$tempoAberto}}';
+
         function buscarDados(){
             editar = false;
             $.ajax({
@@ -154,7 +155,7 @@
                 datatype:'json',
                 data:{
                     '_token':'{{csrf_token()}}',
-                    'filtro': $('#inputDescricaoFiltro').val(),
+                    'FILTRO_BUSCA': $('#inputFiltro').val(),
                     'DATA_INICIO': $('#inputFiltroDataInicio').val(),
                     'DATA_TERMINO': $('#inputFiltroDataFim').val(),
                 },
@@ -303,7 +304,6 @@
             }
         }
 
-
         /* Matheus 18/09/2024 09:52:40 - FUNÇÕES GEOLOCALIZAÇÃO */
             var latitudeAtualUsuario = '';
             var longitudeAtualUsuario = '';
@@ -370,6 +370,10 @@
             registrarPonto();
         });
 
+        $('#inputFiltro').on('keyup', () => {
+            buscarDados();
+        });
+
         $('#inputFiltroDataInicio').on('change', () => {
             buscarDados();
         });
@@ -381,6 +385,10 @@
         $(document).ready(function() {
             buscarGeolocalizacaoUsuario();
             buscarDados();
+
+            if(tempoAberto > 0){
+                iniciarContagem(tempoAberto)
+            }
         })
     </script>
 @stop

@@ -27,7 +27,21 @@ class MateriaisController extends Controller
 
     public function retiradaDevolucao()
     {
-        return view('materiais::retirada-devolucao');
+        $idUsuario = auth()->user()->id;
+        $query = "SELECT *
+                    FROM pessoa
+                   where ID_USUARIO = $idUsuario";
+        $dadosFuncionario = DB::select($query);
+
+        if(count($dadosFuncionario) > 0){
+            $idFuncionario = $dadosFuncionario[0]->ID_USUARIO;
+            $nomeFuncionario = $dadosFuncionario[0]->NOME;
+        } else {
+            $idFuncionario = '';
+            $nomeFuncionario = '';
+        }
+
+        return view('materiais::retirada-devolucao', compact('idFuncionario', 'nomeFuncionario'));
     }
 
     public function buscarMaterial(Request $request){

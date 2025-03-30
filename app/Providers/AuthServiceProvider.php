@@ -2,9 +2,9 @@
 
 namespace App\Providers;
 
-// use Illuminate\Support\Facades\Gate;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 use Illuminate\Support\Facades\Gate;
+use DB;
 
 class AuthServiceProvider extends ServiceProvider
 {
@@ -23,33 +23,369 @@ class AuthServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->registerPolicies();
-        Gate::define('GESTAO_PATIO', function () {
-            return false;
-        });
 
-        Gate::define('CAIXA_PDV', function () {
-            return false;
-        });
-
-        Gate::define('GESTAO_PDV', function () {
-            if(auth()->user()->email == 'caixa@kamalu.com'){
-                return false;
-            } else {
-                return false;
-
-            }
-        });
-
-        Gate::define('ADMIN_PDV', function () {
-            if(auth()->user()->email == 'adm@adm.com' || auth()->user()->email == 'administrativo@kamalu.com'){                    
+        Gate::define('ADMINISTRADOR', function () {
+            if(auth()->user()->email == 'adm@adm.com' || auth()->user()->ADMINISTRADOR == 1){                    
                 return true;
             } else {
                 return false;
             }
         });
 
-        Gate::define('ADMINISTRADOR', function () {
-            if(auth()->user()->email == 'adm@adm.com'){                    
+        Gate::define('ESTOQUE_MATERIAIS', function () {
+            $idUsuario = auth()->user()->id;
+
+            $query = "SELECT COUNT(*) AS TOTAL
+                        FROM menus_usuario, menus
+                       WHERE menus_usuario.ID_MENU = menus.ID
+                         AND ID_USUARIO = $idUsuario
+                         AND STATUS = 'A'
+                         AND NOME = 'Materiais'";
+            $validacao = DB::select($query)[0]->TOTAL;
+
+            if((auth()->user()->email == 'adm@adm.com' || auth()->user()->ADMINISTRADOR == 1) || $validacao > 0){
+                return true;
+            } else {
+                return false;
+            }
+        });
+
+        Gate::define('ESTOQUE_RETIRADA', function () {
+            $idUsuario = auth()->user()->id;
+
+            $query = "SELECT COUNT(*) AS TOTAL
+                        FROM menus_usuario, menus
+                       WHERE menus_usuario.ID_MENU = menus.ID
+                         AND ID_USUARIO = $idUsuario
+                         AND STATUS = 'A'
+                         AND NOME = 'Retiradas / Devoluções'";
+            $validacao = DB::select($query)[0]->TOTAL;
+
+            if((auth()->user()->email == 'adm@adm.com' || auth()->user()->ADMINISTRADOR == 1) || $validacao > 0){
+                return true;
+            } else {
+                return false;
+            }
+        });
+
+        Gate::define('ESTOQUE_RELATORIO', function () {
+            $idUsuario = auth()->user()->id;
+
+            $query = "SELECT COUNT(*) AS TOTAL
+                        FROM menus_usuario, menus
+                       WHERE menus_usuario.ID_MENU = menus.ID
+                         AND ID_USUARIO = $idUsuario
+                         AND STATUS = 'A'
+                         AND NOME = 'Relatórios de Estoque'";
+            $validacao = DB::select($query)[0]->TOTAL;
+
+            if((auth()->user()->email == 'adm@adm.com' || auth()->user()->ADMINISTRADOR == 1) || $validacao > 0){
+                return true;
+            } else {
+                return false;
+            }
+        });
+
+        Gate::define('COMPRAS_RELATORIO', function () {
+            $idUsuario = auth()->user()->id;
+
+            $query = "SELECT COUNT(*) AS TOTAL
+                        FROM menus_usuario, menus
+                       WHERE menus_usuario.ID_MENU = menus.ID
+                         AND ID_USUARIO = $idUsuario
+                         AND menus_usuario.STATUS = 'A'
+                         AND menus.NOME = 'Relatórios de Compras'";
+            $validacao = DB::select($query)[0]->TOTAL;
+
+            if((auth()->user()->email == 'adm@adm.com' || auth()->user()->ADMINISTRADOR == 1) || $validacao > 0){
+                return true;
+            } else {
+                return false;
+            }
+        });
+
+        Gate::define('COMPRAS_PEDIDO', function () {
+            $idUsuario = auth()->user()->id;
+
+            $query = "SELECT COUNT(*) AS TOTAL
+                        FROM menus_usuario, menus
+                       WHERE menus_usuario.ID_MENU = menus.ID
+                         AND ID_USUARIO = $idUsuario
+                         AND menus_usuario.STATUS = 'A'
+                         AND menus.NOME = 'Pedido de Compra'";
+            $validacao = DB::select($query)[0]->TOTAL;
+
+            if((auth()->user()->email == 'adm@adm.com' || auth()->user()->ADMINISTRADOR == 1) || $validacao > 0){
+                return true;
+            } else {
+                return false;
+            }
+        });
+
+        Gate::define('FINANCEIRO_CPG', function () {
+            $idUsuario = auth()->user()->id;
+
+            $query = "SELECT COUNT(*) AS TOTAL
+                        FROM menus_usuario, menus
+                       WHERE menus_usuario.ID_MENU = menus.ID
+                         AND ID_USUARIO = $idUsuario
+                         AND menus_usuario.STATUS = 'A'
+                         AND menus.NOME = 'Contas a Pagar'";
+            $validacao = DB::select($query)[0]->TOTAL;
+
+            if((auth()->user()->email == 'adm@adm.com' || auth()->user()->ADMINISTRADOR == 1) || $validacao > 0){
+                return true;
+            } else {
+                return false;
+            }
+        });
+
+        Gate::define('FINANCEIRO_CRB', function () {
+            $idUsuario = auth()->user()->id;
+
+            $query = "SELECT COUNT(*) AS TOTAL
+                        FROM menus_usuario, menus
+                       WHERE menus_usuario.ID_MENU = menus.ID
+                         AND ID_USUARIO = $idUsuario
+                         AND menus_usuario.STATUS = 'A'
+                         AND menus.NOME = 'Contas a Receber'";
+            $validacao = DB::select($query)[0]->TOTAL;
+
+            if((auth()->user()->email == 'adm@adm.com' || auth()->user()->ADMINISTRADOR == 1) || $validacao > 0){
+                return true;
+            } else {
+                return false;
+            }
+        });
+
+        Gate::define('FINANCEIRO_DESPESAS_PROJETO', function () {
+            $idUsuario = auth()->user()->id;
+
+            $query = "SELECT COUNT(*) AS TOTAL
+                        FROM menus_usuario, menus
+                       WHERE menus_usuario.ID_MENU = menus.ID
+                         AND ID_USUARIO = $idUsuario
+                         AND menus_usuario.STATUS = 'A'
+                         AND menus.NOME = 'Despesas de Projeto'";
+            $validacao = DB::select($query)[0]->TOTAL;
+
+            if((auth()->user()->email == 'adm@adm.com' || auth()->user()->ADMINISTRADOR == 1) || $validacao > 0){
+                return true;
+            } else {
+                return false;
+            }
+        });
+
+        Gate::define('FINANCEIRO_DESPESAS_EMPRESA', function () {
+            $idUsuario = auth()->user()->id;
+
+            $query = "SELECT COUNT(*) AS TOTAL
+                        FROM menus_usuario, menus
+                       WHERE menus_usuario.ID_MENU = menus.ID
+                         AND ID_USUARIO = $idUsuario
+                         AND menus_usuario.STATUS = 'A'
+                         AND menus.NOME = 'Despesas da Empresa'";
+            $validacao = DB::select($query)[0]->TOTAL;
+
+            if((auth()->user()->email == 'adm@adm.com' || auth()->user()->ADMINISTRADOR == 1) || $validacao > 0){
+                return true;
+            } else {
+                return false;
+            }
+        });
+
+        Gate::define('FINANCEIRO_DIARIA', function () {
+            $idUsuario = auth()->user()->id;
+
+            $query = "SELECT COUNT(*) AS TOTAL
+                        FROM menus_usuario, menus
+                       WHERE menus_usuario.ID_MENU = menus.ID
+                         AND ID_USUARIO = $idUsuario
+                         AND menus_usuario.STATUS = 'A'
+                         AND menus.NOME = 'Diárias'";
+            $validacao = DB::select($query)[0]->TOTAL;
+
+            if((auth()->user()->email == 'adm@adm.com' || auth()->user()->ADMINISTRADOR == 1) || $validacao > 0){
+                return true;
+            } else {
+                return false;
+            }
+        });
+
+        Gate::define('FINANCEIRO_FOLHA', function () {
+            $idUsuario = auth()->user()->id;
+
+            $query = "SELECT COUNT(*) AS TOTAL
+                        FROM menus_usuario, menus
+                       WHERE menus_usuario.ID_MENU = menus.ID
+                         AND ID_USUARIO = $idUsuario
+                         AND menus_usuario.STATUS = 'A'
+                         AND menus.NOME = 'Folha de Pagamento'";
+            $validacao = DB::select($query)[0]->TOTAL;
+
+            if((auth()->user()->email == 'adm@adm.com' || auth()->user()->ADMINISTRADOR == 1) || $validacao > 0){
+                return true;
+            } else {
+                return false;
+            }
+        });
+
+        Gate::define('FINANCEIRO_FATURAMENTO', function () {
+            $idUsuario = auth()->user()->id;
+
+            $query = "SELECT COUNT(*) AS TOTAL
+                        FROM menus_usuario, menus
+                       WHERE menus_usuario.ID_MENU = menus.ID
+                         AND ID_USUARIO = $idUsuario
+                         AND menus_usuario.STATUS = 'A'
+                         AND menus.NOME = 'Faturamento'";
+            $validacao = DB::select($query)[0]->TOTAL;
+
+            if((auth()->user()->email == 'adm@adm.com' || auth()->user()->ADMINISTRADOR == 1) || $validacao > 0){
+                return true;
+            } else {
+                return false;
+            }
+        });
+
+        Gate::define('FINANCEIRO_RELATORIOS', function () {
+            $idUsuario = auth()->user()->id;
+
+            $query = "SELECT COUNT(*) AS TOTAL
+                        FROM menus_usuario, menus
+                       WHERE menus_usuario.ID_MENU = menus.ID
+                         AND ID_USUARIO = $idUsuario
+                         AND menus_usuario.STATUS = 'A'
+                         AND menus.NOME = 'Relatórios Financeiros'";
+            $validacao = DB::select($query)[0]->TOTAL;
+
+            if((auth()->user()->email == 'adm@adm.com' || auth()->user()->ADMINISTRADOR == 1) || $validacao > 0){
+                return true;
+            } else {
+                return false;
+            }
+        });
+
+        Gate::define('DEPARTAMENTO_PESSOAL_AGENDA', function () {
+            $idUsuario = auth()->user()->id;
+
+            $query = "SELECT COUNT(*) AS TOTAL
+                        FROM menus_usuario, menus
+                       WHERE menus_usuario.ID_MENU = menus.ID
+                         AND ID_USUARIO = $idUsuario
+                         AND menus_usuario.STATUS = 'A'
+                         AND menus.NOME = 'Agenda'";
+            $validacao = DB::select($query)[0]->TOTAL;
+
+            if((auth()->user()->email == 'adm@adm.com' || auth()->user()->ADMINISTRADOR == 1) || $validacao > 0){
+                return true;
+            } else {
+                return false;
+            }
+        });
+
+        Gate::define('DEPARTAMENTO_PROJETOS', function () {
+            $idUsuario = auth()->user()->id;
+
+            $query = "SELECT COUNT(*) AS TOTAL
+                        FROM menus_usuario, menus
+                       WHERE menus_usuario.ID_MENU = menus.ID
+                         AND ID_USUARIO = $idUsuario
+                         AND menus_usuario.STATUS = 'A'
+                         AND menus.NOME = 'Projetos'";
+            $validacao = DB::select($query)[0]->TOTAL;
+
+            if((auth()->user()->email == 'adm@adm.com' || auth()->user()->ADMINISTRADOR == 1) || $validacao > 0){
+                return true;
+            } else {
+                return false;
+            }
+        });
+
+        Gate::define('DEPARTAMENTO_PESSOAL_PESSOAS', function () {
+            $idUsuario = auth()->user()->id;
+
+            $query = "SELECT COUNT(*) AS TOTAL
+                        FROM menus_usuario, menus
+                       WHERE menus_usuario.ID_MENU = menus.ID
+                         AND ID_USUARIO = $idUsuario
+                         AND menus_usuario.STATUS = 'A'
+                         AND menus.NOME = 'Pessoas'";
+            $validacao = DB::select($query)[0]->TOTAL;
+
+            if((auth()->user()->email == 'adm@adm.com' || auth()->user()->ADMINISTRADOR == 1) || $validacao > 0){
+                return true;
+            } else {
+                return false;
+            }
+        });
+
+        Gate::define('DEPARTAMENTO_PESSOAL_FUNCIONARIO', function () {
+            $idUsuario = auth()->user()->id;
+
+            $query = "SELECT COUNT(*) AS TOTAL
+                        FROM menus_usuario, menus
+                       WHERE menus_usuario.ID_MENU = menus.ID
+                         AND ID_USUARIO = $idUsuario
+                         AND menus_usuario.STATUS = 'A'
+                         AND menus.NOME = 'Funcionários'";
+            $validacao = DB::select($query)[0]->TOTAL;
+
+            if((auth()->user()->email == 'adm@adm.com' || auth()->user()->ADMINISTRADOR == 1) || $validacao > 0){
+                return true;
+            } else {
+                return false;
+            }
+        });
+
+        Gate::define('DEPARTAMENTO_PESSOAL_PONTO', function () {
+            $idUsuario = auth()->user()->id;
+
+            $query = "SELECT COUNT(*) AS TOTAL
+                        FROM menus_usuario, menus
+                       WHERE menus_usuario.ID_MENU = menus.ID
+                         AND ID_USUARIO = $idUsuario
+                         AND menus_usuario.STATUS = 'A'
+                         AND menus.NOME = 'Controle de Ponto'";
+            $validacao = DB::select($query)[0]->TOTAL;
+
+            if((auth()->user()->email == 'adm@adm.com' || auth()->user()->ADMINISTRADOR == 1) || $validacao > 0){
+                return true;
+            } else {
+                return false;
+            }
+        });
+
+        Gate::define('DEPARTAMENTO_PESSOAL_UNIFORMES', function () {
+            $idUsuario = auth()->user()->id;
+
+            $query = "SELECT COUNT(*) AS TOTAL
+                        FROM menus_usuario, menus
+                       WHERE menus_usuario.ID_MENU = menus.ID
+                         AND ID_USUARIO = $idUsuario
+                         AND menus_usuario.STATUS = 'A'
+                         AND menus.NOME = 'Uniformes e EPI'";
+            $validacao = DB::select($query)[0]->TOTAL;
+
+            if((auth()->user()->email == 'adm@adm.com' || auth()->user()->ADMINISTRADOR == 1) || $validacao > 0){
+                return true;
+            } else {
+                return false;
+            }
+        });
+
+        Gate::define('DEPARTAMENTO_PESSOAL_USUARIOS', function () {
+            $idUsuario = auth()->user()->id;
+
+            $query = "SELECT COUNT(*) AS TOTAL
+                        FROM menus_usuario, menus
+                       WHERE menus_usuario.ID_MENU = menus.ID
+                         AND ID_USUARIO = $idUsuario
+                         AND menus_usuario.STATUS = 'A'
+                         AND menus.NOME = 'Usuários'";
+            $validacao = DB::select($query)[0]->TOTAL;
+
+            if((auth()->user()->email == 'adm@adm.com' || auth()->user()->ADMINISTRADOR == 1) || $validacao > 0){
                 return true;
             } else {
                 return false;
@@ -57,18 +393,12 @@ class AuthServiceProvider extends ServiceProvider
         });
 
         Gate::define('GESTAO_COMPRAS', function () {
-            if(auth()->user()->email == 'adm@adm.com'){                    
+            if(auth()->user()->email == 'adm@adm.com' || auth()->user()->ADMINISTRADOR == 1){                    
                 return true;
             } else {
                 return false;
             }
         });
 
-        Gate::define('ORDEM_SERVICO', function () {
-            return false;
-        });
-        Gate::define('CARDAPIO', function () {
-            return false;
-        });
     }
 }

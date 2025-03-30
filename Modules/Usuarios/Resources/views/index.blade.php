@@ -126,6 +126,55 @@
             </div>
         </div>
     </div>
+
+    <div class="modal fade" id="modalMenuUsuario" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Vincular Menus ao Usuário</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="inputIDUsuario">
+                    
+                    <!-- Formulário de cadastro -->
+                    <div class="row mb-3">
+                        <div class="col-md-10">
+                            <select class="form-control" id="selectMenu">
+                                <option value="">Selecione um menu</option>
+                                <!-- Opções serão preenchidas via JavaScript -->
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <button class="btn btn-primary w-100" id="btnAdicionarMenu">
+                                <i class="fas fa-plus"></i> Adicionar
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Tabela de menus vinculados -->
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Menu</th>
+                                    <th width="100px">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableMenuUsuario">
+                                <!-- Dados serão carregados aqui -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+                </div>
+            </div>
+        </div>
+    </div>
 @stop
 
 @section('footer')
@@ -197,6 +246,7 @@
                 }
 
                 btnEditar = `<li class="dropdown-item" onclick="alterarUsuario(${dados[i]['ID']})"><span class="btn"><i class="fas fa-pen"></i></span> Alterar</li>`;
+                btnMenus = `<li class="dropdown-item" onclick="abrirModalMenuUsuario(${dados[i]['ID']})"><span class="btn"><i class="fas fa-list"></i></span> Menus</li>`;
                 btnInativar = `<li class="dropdown-item" onclick="inativarUsuario(${dados[i]['ID']})"><span class="btn"><i class="fas fa-trash"></i></span> Inativar</li>`;
 
                 var btnOpcoes = ` <div class="input-group-prepend show justify-content-center" style="text-align: center">
@@ -204,6 +254,7 @@
                                 Ações
                             </button>
                             <ul class="dropdown-menu ">
+                                ${btnMenus}
                                 ${btnEditar}
                                 ${btnInativar}
                             </ul>
@@ -395,6 +446,125 @@
             $('#inputUsuarioSenha').val('')
             $('#inputUsuarioSenhaConfirmacao').val('')
         }
+
+        /* Matheus 29/03/2025 23:52:41 - MENUS */
+            // Função para abrir o modal
+            function abrirModalMenuUsuario(idUsuario) {
+                $('#inputIDUsuario').val(idUsuario);
+                carregarMenusUsuario(idUsuario);
+                carregarOpcoesMenus();
+                $('#modalMenuUsuario').modal('show');
+            }
+
+            // Carrega as opções de menus disponíveis
+            function carregarOpcoesMenus() {
+                $.ajax({
+                    type: 'post',
+                    url: "{{ route('menu.opcoes') }}",
+                    data: {
+                        '_token': '{{ csrf_token() }}',
+                        'ID_USUARIO': $('#inputIDUsuario').val()
+                    },
+                    success: function(response) {
+                        let options = '<option value="">Selecione um menu</option>';
+                        response.forEach(menu => {
+                            options += `<option value="${menu.ID}">${menu.NOME}</option>`;
+                        });
+                        $('#selectMenu').html(options);
+                    },
+                    error:err=>{exibirErro(err)}
+                });
+            }
+
+            // Carrega os menus vinculados ao usuário
+            function carregarMenusUsuario(idUsuario) {
+                $.ajax({
+                    type: 'post',
+                    url: "{{ route('menu.usuario.buscar') }}",
+                    data: {
+                        '_token': '{{ csrf_token() }}',
+                        'ID_USUARIO': idUsuario
+                    },
+                    success: function(response) {
+                        let html = '';
+                        response.dados.forEach(item => {
+                            html += `
+                                <tr>
+                                    <td>${item.NOME}</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-danger" onclick="removerMenuUsuario(${item.ID})">
+                                            <i class="fas fa-trash"></i> Remover
+                                        </button>
+                                    </td>
+                                </tr>
+                            `;
+                        });
+                        $('#tableMenuUsuario').html(html);
+                    },
+                    error:err=>{exibirErro(err)}
+                });
+            }
+
+            // Remove menu do usuário
+            function removerMenuUsuario(id) {
+                Swal.fire({
+                    title: 'Confirmação',
+                    text: 'Deseja realmente desvincular este menu?',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Sim',
+                    cancelButtonText: 'Cancelar'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $.ajax({
+                            type: 'post',
+                            url: "{{ route('menu.usuario.remover') }}",
+                            data: {
+                                '_token': '{{ csrf_token() }}',
+                                'ID': id
+                            },
+                            success: function() {
+                                const idUsuario = $('#inputIDUsuario').val();
+                                carregarMenusUsuario(idUsuario);
+                                carregarOpcoesMenus();
+                            },
+                            error:err=>{exibirErro(err)}
+                        });
+                    }
+                });
+            }
+
+            // Adiciona novo menu ao usuário
+            $('#btnAdicionarMenu').click(function() {
+                const idUsuario = $('#inputIDUsuario').val();
+                const idMenu = $('#selectMenu').val();
+                
+                if(!idMenu) {
+                    alert('Selecione um menu');
+                    return;
+                }
+
+                $.ajax({
+                    type: 'post',
+                    url: "{{ route('menu.usuario.inserir') }}",
+                    data: {
+                        '_token': '{{ csrf_token() }}',
+                        'ID_USUARIO': idUsuario,
+                        'ID_MENU': idMenu
+                    },
+                    success: function(response) {
+                        if(response.error) {
+                            alert(response.error);
+                            return;
+                        }
+                        $('#selectMenu').val('');
+                        carregarMenusUsuario(idUsuario);
+                    },
+                    error:err=>{exibirErro(err)}
+                });
+            });
+
+        /* Matheus 29/03/2025 23:52:49 - MENUS */
 
         $('#btnNovo').click(() => {
             exibirModalCadastro();

@@ -18,5 +18,11 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/alterar', 'UsuariosController@alterarUsuarios')->name('usuarios.alterar');
         Route::post('/inserir', 'UsuariosController@inserirUsuarios')->name('usuarios.inserir');
         Route::post('/inativar', 'UsuariosController@inativarUsuarios')->name('usuarios.inativar');
+
+        // Rotas para Menus do Usuário
+        Route::post('/menu/buscar', 'UsuariosController@buscar')->name('menu.usuario.buscar');
+        Route::post('/menu/inserir', 'UsuariosController@inserir')->name('menu.usuario.inserir');
+        Route::post('/menu/remover', 'UsuariosController@remover')->name('menu.usuario.remover');
+        Route::post('/menu/opcoes', 'UsuariosController@buscarMenus')->name('menu.opcoes');
     });
 });
