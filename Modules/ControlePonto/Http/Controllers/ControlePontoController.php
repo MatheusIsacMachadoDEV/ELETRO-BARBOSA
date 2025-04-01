@@ -128,8 +128,8 @@ class ControlePontoController extends Controller
 
     public function registrarPonto(Request $request){
         $dadosRecebidos = $request->except('_roken');
-        $latitude = $dadosRecebidos['LATITUDE'];
-        $longitude = $dadosRecebidos['LONGITUDE'];
+        $latitude = isset($dadosRecebidos['LATITUDE']) ? $dadosRecebidos['LATITUDE'] : '0';
+        $longitude = isset($dadosRecebidos['LONGITUDE']) ? $dadosRecebidos['LONGITUDE'] : '0';
         $idUsuario = auth()->user()->id;
         $retorno = [];
 

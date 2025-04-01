@@ -336,7 +336,7 @@
         function inserirPagamento(idCPG, descricaoCPG){
             var dataAtual = moment().format('YYYY-MM-DD');
             Swal.fire({
-                title: 'Deseja realmente confirmar o pagamento '+descricaoCPG+'?',
+                title: 'Deseja realmente confirmar o recebimento '+descricaoCPG+'?',
                 html: ' <div class="form-group">\
                             <input type="date" class="form-control form-control-border" id="inputDataPagamento" >\
                         </div>',
@@ -446,7 +446,7 @@
                 var btnAcoes = ``;
                 var tituloConta = `${CPG[i]['DESCRICAO']} <span class="badge bg-info">${mascaraFinanceira(CPG[i]['VALOR'])}</span>`;
                 
-                var btnInserirPagamento = `<li class="dropdown-item" onclick="inserirPagamento(${CPG[i]['ID']}, '${CPG[i]['DESCRICAO']}')"><span class="btn"><i class="fas fa-check"></i> Editar</span></li>`
+                var btnInserirPagamento = `<li class="dropdown-item" onclick="inserirPagamento(${CPG[i]['ID']}, '${CPG[i]['DESCRICAO']}')"><span class="btn"><i class="fas fa-check"></i> Confirmar Pagamento</span></li>`
                 var btnEditar = `<li class="dropdown-item" onclick="editarCPG(${CPG[i]['ID']})"><span class="btn"><i class="fas fa-pen"></i> Editar</span></li>`
                 var btnDocumento = `<li class="dropdown-item" onclick="cadastarDocumento(${CPG[i]['ID']}, '${CPG[i]['DESCRICAO']}')"><span class="btn"><i class="fas fa-file-alt"></i> Documentos</span></li>`
                 var btnInativar = `<li class="dropdown-item" onclick="inativarCPG(${CPG[i]['ID']})"><span class="btn"><i class="fas fa-trash"></i> Inativar</span></li>`
