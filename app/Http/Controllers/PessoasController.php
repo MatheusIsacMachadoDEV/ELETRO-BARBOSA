@@ -136,7 +136,7 @@ class PessoasController extends Controller
         $SALARIO_BASE = (isset($dadosRecebidos['SALARIO_BASE']) ? $dadosRecebidos['SALARIO_BASE'] : '0');
         $CARGO = (isset($dadosRecebidos['CARGO']) ? $dadosRecebidos['CARGO'] : '');
         $HORAS_MENSAIS = (isset($dadosRecebidos['HORAS_MENSAIS']) ? $dadosRecebidos['HORAS_MENSAIS'] : '0');
-        $data_nascimento = (isset($dadosRecebidos['data_nascimento']) ? '2000-01-01' : $dadosRecebidos['data_nascimento']);
+        $data_nascimento = (isset($dadosRecebidos['data_nascimento']) ? $dadosRecebidos['data_nascimento'] : '2000-01-01' );
 
         $query = "INSERT INTO `pessoa` ( `NOME`
                                        , `DOCUMENTO`
