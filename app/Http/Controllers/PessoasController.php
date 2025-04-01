@@ -181,7 +181,7 @@ class PessoasController extends Controller
         $telefone = $dadosRecebidos['telefone'];
         $ID_TIPO = $dadosRecebidos['ID_TIPO'];
         $email = $dadosRecebidos['email'];
-        $data_nascimento = $dadosRecebidos['data_nascimento'];
+        $data_nascimento = isset($dadosRecebidos['data_nascimento']) ? "'{$dadosRecebidos['data_nascimento']}'" : 'null';
         $ID_USUARIO = $dadosRecebidos['ID_USUARIO'];
         $ESTADO = ($dadosRecebidos['ESTADO'] == null ? '' : $dadosRecebidos['ESTADO']);
         $CIDADE = ($dadosRecebidos['CIDADE'] == null ? '' : $dadosRecebidos['CIDADE']);
@@ -197,7 +197,7 @@ class PessoasController extends Controller
                     , `TELEFONE` = '$telefone'
                     , `EMAIL` = '$email'
                     , `ID_TIPO` = $ID_TIPO
-                    , `DATA_NASCIMENTO` = '$data_nascimento'
+                    , `DATA_NASCIMENTO` = $data_nascimento
                     , `ID_USUARIO` = '$ID_USUARIO'
                     , `ESTADO` = '$ESTADO'
                     , `CIDADE` = '$CIDADE'
