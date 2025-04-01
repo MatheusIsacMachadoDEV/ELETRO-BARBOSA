@@ -452,11 +452,7 @@
                             let imageData = context.getImageData(0, 0, canvas.width, canvas.height);
                             let code = jsQR(imageData.data, canvas.width, canvas.height);
                             if (code) {
-                                Swal.fire(
-                                    'CODIGO LIDO QR CODE',
-                                    code.data,
-                                    'success',
-                                );
+                                dispararAlerta("success", 'QR CODE lido com sucesso '+code.data)
                                 $('#inputDevolucaoEquipamento').val(code.data);
                                 setTimeout(() => { $('#inputDevolucaoEquipamento').autocomplete("search"); }, 500);
                                 stopScan();
