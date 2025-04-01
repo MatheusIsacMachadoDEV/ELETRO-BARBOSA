@@ -39,8 +39,8 @@
                         </div>
                     </div>
                     <div class="col-12 d-flex justify-content-end m-0 p-0">
-                        <span class="right badge badge-danger">Pago <span id="spanValorAberto">R$ 0,00</span></span>
-                        <span class="right badge badge-success">Em Aberto <span id="valorPago">R$ 0,00</span></span>
+                        <span class="right badge badge-danger">A receber <span id="spanValorAberto">R$ 0,00</span></span>
+                        <span class="right badge badge-success">Recebido <span id="valorPago">R$ 0,00</span></span>
                     </div>
                 </div>
             </div>
@@ -509,6 +509,10 @@
                         </td>
                     </tr>`;
             }
+
+            $('#spanValorAberto').html(mascaraFinanceira(totalValorAberto))
+            $('#valorPago').html(mascaraFinanceira(totalValorPago))
+
             $('#tableBodyDadosCPG').html(htmlCPG)
         }
         

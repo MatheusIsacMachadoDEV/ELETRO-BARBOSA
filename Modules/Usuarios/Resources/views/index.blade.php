@@ -69,6 +69,9 @@
                         <div class="col-12">
                             <input type="password" class="form-control form-control-border" placeholder="Confirmar Senha" id="inputUsuarioSenhaConfirmacao" >
                         </div>
+                        <div class="col-12">
+                            <input type="checkbox" class="form-control form-control-border" placeholder="Administrador" id="inputUsuarioAdministrador" > Adminsitrador
+                        </div>
                     </div>
                 </div> 
                 <div class="modal-footer justify-content-between"> 

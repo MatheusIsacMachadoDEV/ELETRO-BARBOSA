@@ -132,7 +132,7 @@ class ComprasController extends Controller
     public function inserirOrdemCompra(Request $request){
         $dadosRecebidos = $request->except('_token');
         $data = $dadosRecebidos['data'];
-        $valor = $dadosRecebidos['valorTotal'];
+        $valor = isset($dadosRecebidos['valorTotal']) ? $dadosRecebidos['valorTotal'] : 0;
         $idProjeto = isset($dadosRecebidos['idProjeto']) ? $dadosRecebidos['idProjeto'] : 0;
         $observacao = $dadosRecebidos['observacao'];
         $usuario = auth()->user()->name;
@@ -219,7 +219,7 @@ class ComprasController extends Controller
         $dadosRecebidos = $request->except('_token');
         $idCodigo = $dadosRecebidos['ID'];
         $data = $dadosRecebidos['data'];
-        $valor = $dadosRecebidos['valorTotal'];
+        $valor = isset($dadosRecebidos['valorTotal']) ? $dadosRecebidos['valorTotal'] : 0;
         $idProjeto = isset($dadosRecebidos['idProjeto']) ? $dadosRecebidos['idProjeto'] : 0;
         $observacao = $dadosRecebidos['observacao'];
         $usuario = auth()->user()->name;
