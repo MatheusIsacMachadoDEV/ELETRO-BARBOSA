@@ -75,7 +75,7 @@ class MateriaisController extends Controller
 
         $query = "SELECT material.*
                        , (SELECT NOME
-                            FROM PESSOA
+                            FROM pessoa
                            WHERE ID = material.ID_FORNECEDOR
                              AND STATUS = 'A') AS FORNECEDOR
                     FROM material
