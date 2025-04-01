@@ -133,6 +133,15 @@
                         <div class="form-group col-12 col-md-4">
                             <input type="date"  class="form-control form-control-border" id="inputDataNascimento" placeholder="Data de Nascimento">
                         </div>
+                        <div class="form-group col-12 col-md-4">
+                            <input type="text"  class="form-control form-control-border" id="inputSalarioBase" placeholder="Salario Base">
+                        </div>
+                        <div class="form-group col-12 col-md-4">
+                            <input type="text"  class="form-control form-control-border" id="inputhorasMensais" placeholder="Horas Mensais">
+                        </div>
+                        <div class="form-group col-12 col-md-4">
+                            <input type="text"  class="form-control form-control-border" id="inputCargo" placeholder="Cargo">
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -389,8 +398,10 @@
         var idUsuarioSelecionado = 0;
 
         $('#inputValor').maskMoney({ prefix: 'R$ ', allowNegative: true, thousands: '.', decimal: ',' , allowZero: true});
+        $('#inputSalarioBase').maskMoney({ prefix: 'R$ ', allowNegative: true, thousands: '.', decimal: ',' , allowZero: true});
         $('#inputQtde').mask('000000000');
         $('#inputContaBancariaNumero').mask('0000000000');
+        $('#inputhorasMensais').mask('0000000000');
         $('#inputContaBancariaAgencia').mask('0000');
 
         function cadastrarPessoa(){
@@ -415,13 +426,13 @@
         function inserirPessoa() {
             validacao = true;
 
-            var inputIDs = ['inputNome', 'inputTelefone', 'selectTipoPessoa', 'inputUsuario', 'inputIDUsuario'];
+            var inputIDs = ['inputNome', 'inputTelefone', 'selectTipoPessoa', 'inputUsuario', 'inputIDUsuario', 'inputhorasMensais', 'inputCargo', 'inputSalarioBase'];
 
             for (var i = 0; i < inputIDs.length; i++) {
                 var inputID = inputIDs[i];
                 var $input = $('#' + inputID);
                 
-                if ($input.val() === '' || $input == 'inputIDUsuario' && $input.val() == '0') {
+                if ($input.val() === '' || $input == 'inputIDUsuario' && $input.val() == '0' || $input == 'inputSalarioBase' && limparMascaraFinanceira($input.val()) == 0) {
                     if($input == 'inputIDUsuario' && $input.val() == '0'){
                         $('#inputUsuario').addClass('is-invalid');
                     } else {
@@ -432,6 +443,7 @@
                     $input.removeClass('is-invalid');
                 }
             }
+            
 
             if(validacao){
 
@@ -447,7 +459,10 @@
                         'email': $('#inputEmail').val(),
                         'data_nascimento': $('#inputDataNascimento').val(),
                         'ID_TIPO': $('#selectTipoPessoa').val(),
-                        'ID_USUARIO': $('#inputIDUsuario').val()
+                        'ID_USUARIO': $('#inputIDUsuario').val(),
+                        'SALARIO_BASE': limparMascaraFinanceira($('#inputSalarioBase').val()),
+                        'CARGO': $('#inputCargo').val(),
+                        'HORAS_MENSAIS': $('#inputhorasMensais').val(),
                         },
                         url:"{{route('pessoa.inserir')}}",
                         success:function(r){
@@ -476,7 +491,10 @@
                         'email': $('#inputEmail').val(),
                         'data_nascimento': $('#inputDataNascimento').val(),
                         'ID_TIPO': $('#selectTipoPessoa').val(),
-                        'ID_USUARIO': $('#inputIDUsuario').val()
+                        'ID_USUARIO': $('#inputIDUsuario').val(),
+                        'SALARIO_BASE': limparMascaraFinanceira($('#inputSalarioBase').val()),
+                        'CARGO': $('#inputCargo').val(),
+                        'HORAS_MENSAIS': $('#inputhorasMensais').val(),
                         },
                         url:"{{route('pessoa.alterar')}}",
                         success:function(r){
@@ -562,6 +580,9 @@
                     $('#selectTipoPessoa').val(r[0]['ID_TIPO']);
                     $('#inputIDUsuario').val(r[0]['ID_USUARIO']);
                     $('#inputUsuario').val(r[0]['USUARIO']);
+                    $('#inputhorasMensais').val(r[0]['HORAS_MENSAIS']);
+                    $('#inputCargo').val(r[0]['CARGO']);
+                    $('#inputSalarioBase').val(mascaraFinanceira(r[0]['SALARIO_BASE']));
 
 
                     if(r[0]['ID_USUARIO'] > 0){

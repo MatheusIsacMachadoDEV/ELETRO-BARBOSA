@@ -230,7 +230,7 @@ class MateriaisController extends Controller
         $marca = $dadosRecebidos['marca'];
         $QTDE = $dadosRecebidos['QTDE'];
         $disponivel = $dadosRecebidos['disponivel'];
-        $ultimaRetirada = $dadosRecebidos['ultimaRetirada'];
+        $ultimaRetirada = isset($dadosRecebidos['ultimaRetirada']) ? $dadosRecebidos['ultimaRetirada'] : 'null';
         $TIPO_MATERIAL = $dadosRecebidos['TIPO_MATERIAL'];
         $idFornecedor = isset($dadosRecebidos['ID_FORNECEDOR']) ? $dadosRecebidos['ID_FORNECEDOR'] : 0;
         $descricaoMarca = '';

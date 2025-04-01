@@ -32,6 +32,8 @@ class PessoasController extends Controller
         $nome = isset($dadosRecebidos['nome']) ? $dadosRecebidos['nome'] : '';
         $filtroIdTipo = "AND 1 = 1";
         $filtroIdProjeto = "AND 1 = 1";
+        $filtroPontoEletronico = "AND 1 = 1";
+        $filtroDiaria = "AND diaria.DATA_FIM >= CURDATE()";
 
         if($nome != "" && $nome != null){
             $filtro = "AND NOME like '%$nome%'";
@@ -53,6 +55,20 @@ class PessoasController extends Controller
 
         if(isset($dadosRecebidos['id'])){
             $filtro = "AND ID = ".$dadosRecebidos['id'];
+        }
+
+        if(isset($dadosRecebidos['FILTRO_DIARIA'])){
+            $filtroDiaria = "AND (DATA_FIM BETWEEN STR_TO_DATE(CONCAT(YEAR(CURDATE()), '-{$dadosRecebidos['FILTRO_DIARIA']}-1'), '%Y-%m-%d') 
+                                              AND LAST_DAY(STR_TO_DATE(CONCAT(YEAR(CURDATE()), '-{$dadosRecebidos['FILTRO_DIARIA']}-1'), '%Y-%m-%d')))
+                            AND (DATA_INICIO BETWEEN STR_TO_DATE(CONCAT(YEAR(CURDATE()), '-{$dadosRecebidos['FILTRO_DIARIA']}-1'), '%Y-%m-%d') 
+                                              AND LAST_DAY(STR_TO_DATE(CONCAT(YEAR(CURDATE()), '-{$dadosRecebidos['FILTRO_DIARIA']}-1'), '%Y-%m-%d')))";
+        }
+
+        if(isset($dadosRecebidos['PONTO_ELETRONICO'])){
+            $filtroPontoEletronico = "AND (DATA_ENTRADA BETWEEN STR_TO_DATE(CONCAT(YEAR(CURDATE()), '-{$dadosRecebidos['PONTO_ELETRONICO']}-1'), '%Y-%m-%d') 
+                                              AND LAST_DAY(STR_TO_DATE(CONCAT(YEAR(CURDATE()), '-{$dadosRecebidos['PONTO_ELETRONICO']}-1'), '%Y-%m-%d')))
+                            AND (DATA_SAIDA BETWEEN STR_TO_DATE(CONCAT(YEAR(CURDATE()), '-{$dadosRecebidos['PONTO_ELETRONICO']}-1'), '%Y-%m-%d') 
+                                              AND LAST_DAY(STR_TO_DATE(CONCAT(YEAR(CURDATE()), '-{$dadosRecebidos['PONTO_ELETRONICO']}-1'), '%Y-%m-%d')))";
         }
 
         $query = "SELECT pessoa.*
@@ -82,7 +98,17 @@ class PessoasController extends Controller
                             FROM diaria
                            WHERE diaria.ID_USUARIO = pessoa.ID_USUARIO
                              AND diaria.STATUS = 'A'
-                             AND diaria.DATA_FIM >= CURDATE()) as TOTAL_DIARIA
+                             $filtroDiaria) as TOTAL_DIARIA
+                       , COALESCE((SELECT ROUND(SUM(TIMESTAMPDIFF(SECOND, DATA_ENTRADA, DATA_SAIDA)) / 3600, 2)
+                            FROM ponto_eletronico
+                           WHERE ponto_eletronico.ID_USUARIO = pessoa.ID_USUARIO
+                           $filtroPontoEletronico
+                           GROUP BY ponto_eletronico.ID_USUARIO),0) AS TOTAL_HORAS
+                        , (SELECT SUM(VALOR_TOTAL)
+                            FROM diaria
+                           WHERE diaria.ID_USUARIO = pessoa.ID_USUARIO
+                             AND diaria.STATUS = 'A'
+                             $filtroDiaria) as VALOR_TOTAL_DIARIA
                     FROM pessoa
                    WHERE 1 = 1
                      AND STATUS = 'A'
@@ -98,16 +124,19 @@ class PessoasController extends Controller
     public function inserirPessoa(Request $request){
         $dadosRecebidos = $request->except('_token');
         $nome = $dadosRecebidos['nome'];
-        $documento = ($dadosRecebidos['documento'] == null ? '00000000000' : $dadosRecebidos['documento']);
+        $documento = (isset($dadosRecebidos['documento']) ? $dadosRecebidos['documento'] : '00000000000');
         $telefone = $dadosRecebidos['telefone'];
         $ID_TIPO = $dadosRecebidos['ID_TIPO'];
         $ID_USUARIO = $dadosRecebidos['ID_USUARIO'];
-        $email = ($dadosRecebidos['email'] == null ? '' : $dadosRecebidos['email']);
-        $ESTADO = ($dadosRecebidos['ESTADO'] == null ? '' : $dadosRecebidos['ESTADO']);
-        $CIDADE = ($dadosRecebidos['CIDADE'] == null ? '' : $dadosRecebidos['CIDADE']);
-        $RUA = ($dadosRecebidos['RUA'] == null ? '' : $dadosRecebidos['RUA']);
-        $NUMERO = ($dadosRecebidos['NUMERO'] == null ? '' : $dadosRecebidos['NUMERO']);
-        $data_nascimento = ($dadosRecebidos['data_nascimento'] == null ? '2024-01-01' : $dadosRecebidos['data_nascimento']);
+        $email = (isset($dadosRecebidos['email']) ? $dadosRecebidos['email'] : '');
+        $ESTADO = (isset($dadosRecebidos['ESTADO']) ? $dadosRecebidos['ESTADO'] : '');
+        $CIDADE = (isset($dadosRecebidos['CIDADE']) ? $dadosRecebidos['CIDADE'] : '');
+        $RUA = (isset($dadosRecebidos['RUA']) ? $dadosRecebidos['RUA'] : '');
+        $NUMERO = (isset($dadosRecebidos['NUMERO']) ? $dadosRecebidos['NUMERO'] : '');
+        $SALARIO_BASE = (isset($dadosRecebidos['SALARIO_BASE']) ? $dadosRecebidos['SALARIO_BASE'] : '');
+        $CARGO = (isset($dadosRecebidos['CARGO']) ? $dadosRecebidos['CARGO'] : '');
+        $HORAS_MENSAIS = (isset($dadosRecebidos['HORAS_MENSAIS']) ? $dadosRecebidos['HORAS_MENSAIS'] : '');
+        $data_nascimento = (isset($dadosRecebidos['data_nascimento']) ? '2024-01-01' : $dadosRecebidos['data_nascimento']);
 
         $query = "INSERT INTO `pessoa` ( `NOME`
                                        , `DOCUMENTO`
@@ -119,8 +148,12 @@ class PessoasController extends Controller
                                        , `CIDADE`
                                        , `RUA`
                                        , `NUMERO`
-                                       , `ID_USUARIO`)
-                               VALUES ('$nome'
+                                       , `ID_USUARIO`
+                                       , `HORAS_MENSAIS`
+                                       , `CARGO`
+                                       , `SALARIO_BASE`
+                                       ) VALUES (
+                                       '$nome'
                                       , $documento
                                       , '$telefone'
                                       , '$email'
@@ -130,7 +163,11 @@ class PessoasController extends Controller
                                       , '$CIDADE'
                                       , '$RUA'
                                       , '$NUMERO'
-                                      , $ID_USUARIO)";
+                                      , $ID_USUARIO
+                                      , $HORAS_MENSAIS
+                                      , '$CARGO'
+                                      , $SALARIO_BASE
+                                      )";
         $result = DB::select($query);
 
         return $result;

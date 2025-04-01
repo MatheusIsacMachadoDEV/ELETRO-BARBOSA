@@ -17,6 +17,8 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/despesaobra', 'FinanceiroController@despesaObra');
         Route::get('/despesaempresa', 'FinanceiroController@despesaEmpresa');
         Route::get('/diaria', 'FinanceiroController@diaria');
+        Route::get('/folha-pagamento', 'FinanceiroController@folhaPagamento');
+        Route::get('/impresso/folha-pagamento/{id}', 'FinanceiroController@imprimirFolhaPagamento');
 
         Route::post('/cadastrar', 'FinanceiroController@inserirCRB')->name('contasreceber.inserir');
         Route::post('/alterar', 'FinanceiroController@alterarCRB')->name('contasreceber.alterar');
@@ -31,12 +33,18 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/cc/inserir', 'FinanceiroController@inserirContaBancaria')->name('financeiro.cc.inserir');
         Route::post('/cc/inativar', 'FinanceiroController@inativarContaBancaria')->name('financeiro.cc.inativar');
 
-
         // Rotas para o CRUD de Diárias
         Route::post('/diaria/buscar', 'FinanceiroController@buscarDiaria')->name('diaria.buscar');
         Route::post('/diaria/inserir', 'FinanceiroController@inserirDiaria')->name('diaria.inserir');
         Route::post('/diaria/inserir/pagamento', 'FinanceiroController@pagarDiaria')->name('diaria.pagar');
         Route::post('/diaria/alterar', 'FinanceiroController@alterarDiaria')->name('diaria.alterar');
         Route::post('/diaria/inativar', 'FinanceiroController@inativarDiaria')->name('diaria.inativar');
+
+        // Rotas para o CRUD de folha de pagamento
+        Route::post('/pagamento/buscar', 'FinanceiroController@buscarPagamentoPessoa')->name('pagamento.buscar');
+        Route::post('/pagamento/inserir', 'FinanceiroController@inserirPagamentoPessoa')->name('pagamento.inserir');
+        Route::post('/pagamento/alterar', 'FinanceiroController@alterarPagamentoPessoa')->name('pagamento.alterar');
+        Route::post('/pagamento/inativar', 'FinanceiroController@inativarPagamentoPessoa')->name('pagamento.inativar');
+        Route::post('/pagamento/confirmar', 'FinanceiroController@confirmarPagamentoPessoa')->name('pagamento.confirmar');
     });
 });

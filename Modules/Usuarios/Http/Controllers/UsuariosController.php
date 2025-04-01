@@ -121,6 +121,18 @@ class UsuariosController extends Controller
         $senha = isset($dadosRecebidos['senha']) ? $dadosRecebidos['senha'] : '';
         $return = [];
 
+        $queryValidacao = "SELECT COUNT(*) AS TOTAL
+                             FROM users
+                            WHERE EMAIL = '$email'
+                              AND id <> $ID";
+        $resultValidacao = DB::select($queryValidacao)[0]->TOTAL;
+
+        if($resultValidacao > 0){
+            $return['SITUACAO'] = 'ERRO';
+            $return['MENSAGEM'] = 'Email já esta em uso!';
+            return $return;
+        }
+
         if($senha != ''){
             $senhaHash = Hash::make($senha);
             $camposAdicionais = ", password = '$senhaHash'";

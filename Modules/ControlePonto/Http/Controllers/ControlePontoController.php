@@ -66,6 +66,12 @@ class ControlePontoController extends Controller
             $filtroBusca = 'AND 1 = 1';
         }
 
+        if(isset($dadosRecebidos['ID'])){
+            $filtroID = "AND ID = '{$dadosRecebidos['ID']}'";
+        } else {
+            $filtroID = 'AND 1 = 1';
+        }
+
         if(isset($dadosRecebidos['ID_FUNCIONARIO'])){
             $filtroFuncionario = "AND (SELECT COUNT(*)
                                    FROM pessoa
@@ -88,11 +94,12 @@ class ControlePontoController extends Controller
         
         $queryCount= " SELECT COUNT(*) as COUNT
                          FROM ponto_eletronico
-                        WHERE 1 = 1
+                        WHERE STATUS = 'A'
                         $filtroBusca
                         AND ($filtroData OR DATA_SAIDA IS NULL)
                         $filtroPonto
-                        $filtroFuncionario ";
+                        $filtroFuncionario
+                        $filtroID ";
         $resultCount = DB::select($queryCount);
         $return['contagem'] = $resultCount[0]->COUNT;
         
@@ -101,11 +108,12 @@ class ControlePontoController extends Controller
                              FROM users
                             WHERE ID = ponto_eletronico.ID_USUARIO) AS NOME_USUARIO
                      FROM ponto_eletronico
-                    WHERE 1 = 1
-                    AND ($filtroData OR DATA_SAIDA IS NULL)
+                    WHERE STATUS = 'A'
+                      AND ($filtroData OR DATA_SAIDA IS NULL)
                     $filtroBusca
                     $filtroPonto
                     $filtroFuncionario
+                    $filtroID
                     ORDER BY DATA_ENTRADA DESC
                     $filtroLimit";
         $result = DB::select($query);
@@ -156,5 +164,32 @@ class ControlePontoController extends Controller
         $retorno['PONTO_ABERTO'] = $pontoAberto;
 
         return $retorno;
+    }
+
+    public function editarPonto(Request $request){
+        $dadosRecebidos = $request->except('_token');
+        $dataInicio = $dadosRecebidos['DATA_INICIO'];
+        $dataFim = $dadosRecebidos['DATA_FIM'];
+        $idPonto = $dadosRecebidos['ID'];
+
+        $query = "UPDATE ponto_eletronico
+                     SET DATA_ENTRADA = '$dataInicio'
+                       , DATA_SAIDA = '$dataFim'
+                   WHERE ID = $idPonto";
+        DB::select($query);
+
+        return ['situacao' => 'sucesso'];
+    }
+
+    public function inativarPonto(Request $request){
+        $dadosRecebidos = $request->except('_token');
+        $idPonto = $dadosRecebidos['ID'];
+
+        $query = "UPDATE ponto_eletronico
+                     SET STATUS = 'I'
+                   WHERE ID = $idPonto";
+        DB::select($query);
+
+        return ['situacao' => 'sucesso'];
     }
 }

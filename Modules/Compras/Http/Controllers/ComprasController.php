@@ -289,21 +289,30 @@ class ComprasController extends Controller
         $result = DB::select($query);
 
         if($idSituacao == 1){
+            $queryDadosItemOrdem = "SELECT *
+                                      FROM ordem_compra_item
+                                     WHERE ID_ORDEM_COMPRA = $idCodigo";
+            $dadosItemOrdem = DB::select($queryDadosItemOrdem);
+
             $queryDadosOrdem = "SELECT *
-                                  FROM ordem_compra_item
-                                 WHERE ID_ORDEM_COMPRA = $idCodigo";
-            $dadosOrdem = DB::select($queryDadosOrdem);
+                                  FROM ordem_compra
+                                 WHERE ID = $idCodigo";
+            $dadosOrdem = DB::select($queryDadosOrdem)[0];
 
             $queryUpdateAprovacao = "UPDATE ordem_compra 
                                         SET DATA_APROVACAO = NOW()
                                           , ID_USUARIO_APROVACAO = $idUsuario
                                       WHERE ID = $idCodigo";
             $resultUpdateAprovacao = DB::select($queryUpdateAprovacao);
+
+            $queryCPG = "INSERT INTO contas_pagar (ID_USUARIO, DESCRICAO, DATA_VENCIMENTO, VALOR, SITUACAO, DATA_PAGAMENTO, OBSERVACAO, ID_ORIGEM) 
+                                    VALUES ($idUsuario, 'Ordem de Compra $idCodigo', now(), {$dadosOrdem->VALOR}, 'PENDENTE', now(), 'CPG automático referente a APROVAÇÃO da ordem de compra : {$dadosOrdem->ID}-{$dadosOrdem->OBSERVACAO}.', 7)";
+            $result = DB::select($queryCPG);
             
-            for ($i=0; $i < count($dadosOrdem); $i++) { 
-                $idOrdemCompraItem = $dadosOrdem[$i]->ID;
-                $idItem = $dadosOrdem[$i]->ID_ITEM;
-                $qtde = $dadosOrdem[$i]->QTDE;
+            for ($i=0; $i < count($dadosItemOrdem); $i++) { 
+                $idOrdemCompraItem = $dadosItemOrdem[$i]->ID;
+                $idItem = $dadosItemOrdem[$i]->ID_ITEM;
+                $qtde = $dadosItemOrdem[$i]->QTDE;
 
                 $queryDadosKardex = "INSERT INTO kardex
                                                  (

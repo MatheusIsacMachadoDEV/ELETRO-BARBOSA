@@ -29,7 +29,7 @@
             <div class="card-header">
                 <div class="row d-flex m-0 p-0">
                     <div class="col-12 col-md-8">
-                        <input type="text" class="form-control form-control-border" id="inputFiltro" placeholder="Filtro" maxlength="8" onkeyup="buscarDados()">
+                        <input type="text" class="form-control form-control-border" id="inputFiltro" placeholder="Usuário" maxlength="8" onkeyup="buscarDados()">
                     </div>
                     <div class="col-12 col-md-4 row d-flex">
                         <div class="form-group col-12 col-md-5">
@@ -105,6 +105,36 @@
             </div>
         </div>
     </div>
+
+    <div class="modal fade" id="modal-editar" style="display: none;" aria-hidden="true"> 
+        <div class="modal-dialog"> 
+            <div class="modal-content"> 
+                <div class="modal-header"> 
+                    <h4 class="modal-title">Edição de Ponto</h4> 
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"> 
+                        <span aria-hidden="true">×</span> 
+                    </button> 
+                </div> 
+                <div class="modal-body"> 
+                    <input type="hidden" id="inputIDPonto">
+
+                    <div class="form-group col-6 ">
+                        <label>Inicio</label>
+                        <input type="datetime-local" class="form-control form-control-border" id="inputInicio">
+                    </div>
+
+                    <div class="form-group col-6 ">
+                        <label>Fim</label>
+                        <input type="datetime-local" class="form-control form-control-border" id="inputFim">
+                    </div>
+                </div> 
+                <div class="modal-footer justify-content-between"> 
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Fechar</button> 
+                    <button type="button" class="btn btn-primary" id="btnSalvarPonto">Salvar</button> 
+                </div> 
+            </div> 
+        </div> 
+    </div> 
 @stop
 
 @section('footer')
@@ -183,8 +213,8 @@
                 var tempoApontamento = '-';
                 var dataSaida = '-';
 
-                btnAcoes = ` <button class="btn" onclick="exibirModalEdicao(${dados[i]['ID']})"><i class="fas fa-pen"></i></button>
-                             <button class="btn" onclick="inativar(${dados[i]['ID']})"><i class="fas fa-trash"></i></button>`;
+                btnAcoes = ` <button class="btn" onclick="alterarPonto(${dados[i]['ID']})"><i class="fas fa-pen"></i></button>
+                             <button class="btn" onclick="inativarPonto(${dados[i]['ID']})"><i class="fas fa-trash"></i></button>`;
 
                 if(dados[i]['LATITUDE_ENTRADA'] != '' && dados[i]['LONGITUDE_ENTRADA'] != '' ){
                     spanLocalizacaoEntrada = `<span style="cursor: pointer;font-weight: bold" onclick="abrirLocalizacao('${dados[i]['LATITUDE_ENTRADA']}', '${dados[i]['LONGITUDE_ENTRADA']}')">${dados[i]['LATITUDE_ENTRADA']},${dados[i]['LONGITUDE_ENTRADA']}</span>`;
@@ -229,6 +259,20 @@
                 `;
             }
 
+            // Calcula o tempo total formatado
+            let diffTotal = moment.duration(tempoApontamentoAberto, 'seconds');
+            let horasTotal = String(Math.floor(diffTotal.asHours())).padStart(2, '0');
+            let minutosTotal = String(diffTotal.minutes()).padStart(2, '0');
+            let segundosTotal = String(diffTotal.seconds()).padStart(2, '0');
+            let tempoTotalFormatado = `${horasTotal}:${minutosTotal}:${segundosTotal}`;
+
+            // Adiciona linha de total
+            htmlTabela += `
+                <tr style="background-color: #f8f9fa; font-weight: bold;">
+                    <td colspan="3" style="text-align: right;">Tempo Total:</td>
+                    <td><center>${tempoTotalFormatado}</center></td>
+                    <td colspan="3"></td>
+                </tr>`;
             
             $('#tableBodyDados').html(htmlTabela);
         }
@@ -278,6 +322,33 @@
             })
         }
 
+        function alterarPonto(idPonto){
+            $.ajax({
+                type:'post',
+                datatype:'json',
+                data:{
+                    '_token':'{{csrf_token()}}',
+                    'ID': idPonto
+                },
+                url:"{{route('controle.ponto.buscar')}}",
+                success:function(r){
+                    var dados = r.dados[0];
+                    $('#inputIDPonto').val(idPonto);
+
+                    $('#inputInicio').val(moment(dados['DATA_ENTRADA']).format('YYYY-MM-DD HH:mm'));
+
+                    if(r['DATA_SAIDA'] != null){
+                        $('#inputFim').val(moment(dados['DATA_SAIDA']).format('YYYY-MM-DD HH:mm'));
+                    } else {
+                        $('#inputFim').val(moment().format('YYYY-MM-DD HH:mm'));
+                    }
+
+                    $('#modal-editar').modal('show');
+                },
+                error:err=>{exibirErro(err)}
+            })
+        }
+
         function iniciarContagem(totalSegundos, iniciar = true) {
             if (iniciar) {
                 function formatarTempo(segundos) {
@@ -302,6 +373,58 @@
                 clearInterval(timeoutContador);
                 $('#spanContadorPonto').text('00:00:00');
             }
+        }
+
+        function inativarPonto(idPonto) {
+            Swal.fire({
+                title: 'Deseja inativar o registro de ponto ?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Sim',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        type: 'post',
+                        url: "{{route('controle.ponto.inativar')}}",
+                        data: {
+                            '_token': '{{csrf_token()}}',
+                            'ID': idPonto
+                        },
+                        success: function(r) {
+                            dispararAlerta('success', 'Ponto inativado com sucesso.');
+
+                            buscarDados();
+                        },
+                        error: err => {
+                            exibirErro(err);
+                        }
+                    });
+                }
+            });
+        }
+
+        function salvarEdicaoPonto(){
+            $.ajax({
+                type: 'post',
+                url: "{{route('controle.ponto.editar')}}",
+                data: {
+                    '_token': '{{csrf_token()}}',
+                    'ID': $('#inputIDPonto').val(),
+                    'DATA_INICIO': $('#inputInicio').val(),
+                    'DATA_FIM': $('#inputFim').val(),
+                },
+                success: function(r) {
+                    dispararAlerta('success', 'Ponto alterado com sucesso.');
+
+                    buscarDados();
+
+                    $('#modal-editar').modal('hide');
+                },
+                error: err => {
+                    console.log(err);
+                }
+            });
         }
 
         /* Matheus 18/09/2024 09:52:40 - FUNÇÕES GEOLOCALIZAÇÃO */
@@ -368,6 +491,10 @@
 
         $('#btnRegistrarPonto').on('click', () => {
             registrarPonto();
+        });
+
+        $('#btnSalvarPonto').on('click', () => {
+            salvarEdicaoPonto();
         });
 
         $('#inputFiltro').on('keyup', () => {
