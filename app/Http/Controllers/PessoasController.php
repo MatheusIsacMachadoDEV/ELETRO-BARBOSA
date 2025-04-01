@@ -133,10 +133,10 @@ class PessoasController extends Controller
         $CIDADE = (isset($dadosRecebidos['CIDADE']) ? $dadosRecebidos['CIDADE'] : '');
         $RUA = (isset($dadosRecebidos['RUA']) ? $dadosRecebidos['RUA'] : '');
         $NUMERO = (isset($dadosRecebidos['NUMERO']) ? $dadosRecebidos['NUMERO'] : '');
-        $SALARIO_BASE = (isset($dadosRecebidos['SALARIO_BASE']) ? $dadosRecebidos['SALARIO_BASE'] : '');
+        $SALARIO_BASE = (isset($dadosRecebidos['SALARIO_BASE']) ? $dadosRecebidos['SALARIO_BASE'] : '0');
         $CARGO = (isset($dadosRecebidos['CARGO']) ? $dadosRecebidos['CARGO'] : '');
-        $HORAS_MENSAIS = (isset($dadosRecebidos['HORAS_MENSAIS']) ? $dadosRecebidos['HORAS_MENSAIS'] : '');
-        $data_nascimento = (isset($dadosRecebidos['data_nascimento']) ? '2024-01-01' : $dadosRecebidos['data_nascimento']);
+        $HORAS_MENSAIS = (isset($dadosRecebidos['HORAS_MENSAIS']) ? $dadosRecebidos['HORAS_MENSAIS'] : '0');
+        $data_nascimento = (isset($dadosRecebidos['data_nascimento']) ? '2000-01-01' : $dadosRecebidos['data_nascimento']);
 
         $query = "INSERT INTO `pessoa` ( `NOME`
                                        , `DOCUMENTO`
@@ -187,6 +187,9 @@ class PessoasController extends Controller
         $CIDADE = ($dadosRecebidos['CIDADE'] == null ? '' : $dadosRecebidos['CIDADE']);
         $RUA = ($dadosRecebidos['RUA'] == null ? '' : $dadosRecebidos['RUA']);
         $NUMERO = ($dadosRecebidos['NUMERO'] == null ? '' : $dadosRecebidos['NUMERO']);
+        $SALARIO_BASE = (isset($dadosRecebidos['SALARIO_BASE']) ? $dadosRecebidos['SALARIO_BASE'] : '0');
+        $CARGO = (isset($dadosRecebidos['CARGO']) ? $dadosRecebidos['CARGO'] : '');
+        $HORAS_MENSAIS = (isset($dadosRecebidos['HORAS_MENSAIS']) ? $dadosRecebidos['HORAS_MENSAIS'] : '0');
 
         $query = "UPDATE `pessoa` 
                     SET `NOME` = '$nome'
@@ -200,6 +203,9 @@ class PessoasController extends Controller
                     , `CIDADE` = '$CIDADE'
                     , `RUA` = '$RUA'
                     , `NUMERO` = '$NUMERO'
+                    , `SALARIO_BASE` = '$SALARIO_BASE'
+                    , `CARGO` = '$CARGO'
+                    , `HORAS_MENSAIS` = '$HORAS_MENSAIS'
                 WHERE ID = $id";
         $result = DB::select($query);
 
