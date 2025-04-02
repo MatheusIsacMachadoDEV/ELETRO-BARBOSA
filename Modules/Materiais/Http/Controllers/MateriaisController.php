@@ -46,6 +46,13 @@ class MateriaisController extends Controller
 
     public function buscarMaterial(Request $request){
         $dadosRecebidos = $request->except('_token');
+        $idUsuario = auth()->user()->id;
+
+        if(Gate::allows('ADMINISTRADOR')){
+            $filtroAdministrador = "AND 1 = 1";
+        } else {
+            $filtroAdministrador = "AND ID_USUARIO = $idUsuario";
+        }
 
         if(isset($dadosRecebidos['ID'])){
             $filtroID = "AND ID = '{$dadosRecebidos['ID']}'";
@@ -84,6 +91,7 @@ class MateriaisController extends Controller
                    $filtroTipoMaterial
                    $filtroSituacao
                    $filtroID
+                   $filtroAdministrador
                    ORDER BY MATERIAL ASC";
         $result['dados'] = DB::select($query);
 

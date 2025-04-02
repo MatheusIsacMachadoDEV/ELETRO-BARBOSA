@@ -9,6 +9,7 @@ use DB;
 use DateTime;
 use GuzzleHttp\Psr7\Query;
 use PDF;
+use Illuminate\Support\Facades\Gate;
 
 class FinanceiroController extends Controller
 {
@@ -237,6 +238,13 @@ class FinanceiroController extends Controller
 
     public function buscarDiaria(Request $request){
         $dadosRecebidos = $request->except('_token');
+        $idUsuario = auth()->user()->id;
+
+        if(Gate::allows('ADMINISTRADOR')){
+            $filtroAdministrador = "AND 1 = 1";
+        } else {
+            $filtroAdministrador = "AND ID_USUARIO = $idUsuario";
+        }
 
         if (isset($dadosRecebidos['filtro']) && strlen($dadosRecebidos['filtro']) > 0) {
             $filtro = "AND (u.NOME LIKE '%{$dadosRecebidos['filtro']}%')";
@@ -251,6 +259,7 @@ class FinanceiroController extends Controller
                     FROM diaria 
                    WHERE diaria.STATUS = 'A' 
                    $filtro
+                   $filtroAdministrador
                    ORDER BY diaria.DATA_INICIO DESC";
         $result['dados'] = DB::select($query);
 

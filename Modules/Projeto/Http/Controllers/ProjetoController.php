@@ -6,6 +6,7 @@ use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use DB;
+use Illuminate\Support\Facades\Gate;
 
 class ProjetoController extends Controller
 {
@@ -21,6 +22,19 @@ class ProjetoController extends Controller
     public function buscarProjeto(Request $request)
     {
         $dadosRecebidos = $request->except('_token');
+        $idUsuario = auth()->user()->id;
+
+        if(Gate::allows('ADMINISTRADOR')){
+            $filtroAdministrador = "AND 1 = 1";
+        } else {
+            $filtroAdministrador = "AND (SELECT COUNT(*)
+                                           FROM projeto_pessoa, pessoa
+                                          WHERE pessoa.ID = projeto_pessoa.ID_PESSOA
+                                            AND projeto_pessoa.ID_PROJETO = p.ID
+                                            AND pessoa.STATUS = 'A'
+                                            AND projeto_pessoa.STATUS = 'A'
+                                            AND pessoa.ID_USUARIO = $idUsuario) > 0 ";
+        }
 
         if (isset($dadosRecebidos['ID'])) {
             $filtroID = "AND p.ID = {$dadosRecebidos['ID']}";
@@ -66,6 +80,7 @@ class ProjetoController extends Controller
                    WHERE p.STATUS = 'A' 
                    $filtro
                    $filtroID
+                   $filtroAdministrador 
                    ORDER BY p.DATA_INSERCAO DESC";
         $result['dados'] = DB::select($query);
 
