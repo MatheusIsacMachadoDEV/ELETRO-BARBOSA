@@ -601,7 +601,7 @@ class FinanceiroController extends Controller
                   WHERE STATUS = 'A'
                   AND SITUACAO = 'PAGA'
                   AND DATA_PAGAMENTO BETWEEN '$dataInicio' AND '$dataFim'
-                  GROUP BY dia
+                  GROUP BY DATA_PAGAMENTO
                   ORDER BY DATA_PAGAMENTO";
         
         $result = DB::select($query);
@@ -628,7 +628,7 @@ class FinanceiroController extends Controller
                   WHERE STATUS = 'A'
                   AND SITUACAO = 'PAGA'
                   AND DATA_PAGAMENTO BETWEEN '$dataInicio' AND '$dataFim'
-                  GROUP BY dia
+                  GROUP BY DATA_PAGAMENTO
                   ORDER BY DATA_PAGAMENTO";
         
         $result = DB::select($query);
