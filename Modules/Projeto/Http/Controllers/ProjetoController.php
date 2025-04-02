@@ -34,7 +34,7 @@ class ProjetoController extends Controller
                                             AND pessoa.STATUS = 'A'
                                             AND projeto_pessoa.STATUS = 'A'
                                             AND pessoa.ID_USUARIO = $idUsuario) > 0 
-                                        OR projeto.ID_USUARIO_INSERCAO = $idUsuario";
+                                        OR p.ID_USUARIO_INSERCAO = $idUsuario";
         }
 
         if (isset($dadosRecebidos['ID'])) {
