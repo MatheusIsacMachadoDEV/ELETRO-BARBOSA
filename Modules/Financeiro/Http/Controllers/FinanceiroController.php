@@ -255,7 +255,7 @@ class FinanceiroController extends Controller
         $query = "SELECT diaria.*
                        , (SELECT NOME
                             FROM pessoa
-                           WHERE pessoa.ID = diaria.ID_USUARIO) AS NOME_USUARIO 
+                           WHERE pessoa.ID_USUARIO = diaria.ID_USUARIO) AS NOME_USUARIO 
                     FROM diaria 
                    WHERE diaria.STATUS = 'A' 
                    $filtro
