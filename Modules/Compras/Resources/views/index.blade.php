@@ -611,7 +611,7 @@
         function inserirItemOrdem() {
             var validacao = true;
 
-            if($('#inputCadastroItem').val().trim().length == 0){
+            if($('#inputCadastroItem').val().trim().length == 0 || $('#inputCadastroItem').val() == ''){
                 Swal.fire(
                     'Atenção!',
                     'Informe ao menos um item para adicionar!',

@@ -36,10 +36,13 @@ Route::middleware(['auth'])->group(function () {
 
         // Rotas para o CRUD de Diárias
         Route::post('/diaria/buscar', 'FinanceiroController@buscarDiaria')->name('diaria.buscar');
+        Route::post('/diaria/buscar/documento', 'FinanceiroController@buscarDiariaDocumento')->name('diaria.buscar.documento');
         Route::post('/diaria/inserir', 'FinanceiroController@inserirDiaria')->name('diaria.inserir');
+        Route::post('/diaria/inserir/documento', 'FinanceiroController@inserirDiariaDocumento')->name('diaria.inserir.documento');
         Route::post('/diaria/inserir/pagamento', 'FinanceiroController@pagarDiaria')->name('diaria.pagar');
         Route::post('/diaria/alterar', 'FinanceiroController@alterarDiaria')->name('diaria.alterar');
         Route::post('/diaria/inativar', 'FinanceiroController@inativarDiaria')->name('diaria.inativar');
+        Route::post('/diaria/inativar/documento', 'FinanceiroController@inativarDiariaDocumento')->name('diaria.inativar.documento');
 
         // Rotas para o CRUD de folha de pagamento
         Route::post('/pagamento/buscar', 'FinanceiroController@buscarPagamentoPessoa')->name('pagamento.buscar');

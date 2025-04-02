@@ -57,7 +57,7 @@
         <div class="modal-dialog modal-lg">
             <div class="modal-content p-0">
                 <div class="modal-header">
-                    <h5 class="modal-title" >Documentação da dados <span id="titleDocumento"></span></h5>
+                    <h5 class="modal-title" >Documentação da diária <span id="titleDocumento"></span></h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -66,7 +66,7 @@
                     <div class="card">
                         <div class="card-header">
                             <div class="">
-                                <input type="hidden" id="inputIDdadosDocumentacao">
+                                <input type="hidden" id="inputIDDiariaDocumento">
                                 <div class="input-group">
                                     <div class="custom-file">
                                         <input type="file" class="custom-file-input" id="inputArquivoDocumentacao" onchange="validaDocumento()">
@@ -79,7 +79,7 @@
                             </div>
                         </div>
                         <div class="card-body">
-                            <table class="table table-responsive">
+                            <table class="table table-responsive-xs">
                                 <thead>
                                     <tr>
                                         <th>Documento</th>
@@ -237,7 +237,7 @@
 
                 btnInserirPagamento = `<li class="dropdown-item" onclick="pagamentoDiaria(${dados[i]['ID']})"><span class="btn"><i class="fas fa-dollar-sign"></i></span> Inserir Pagamento</li>`;
                 btnEditar = `<li class="dropdown-item" onclick="editarDiaria(${dados[i]['ID']})"><span class="btn"><i class="fas fa-pen"></i></span> Editar</li>`;
-                btnArquivos = `<li class="dropdown-item" onclick="cadastarDocumento(${dados[i]['ID']}, '${dataInicio}')"><span class="btn"><i class="fas fa-file-alt"></i></span> Arquivos</li>`;
+                btnArquivos = `<li class="dropdown-item" onclick="cadastarDocumento(${dados[i]['ID']}, '${dados[i]['NOME_USUARIO']}')"><span class="btn"><i class="fas fa-file-alt"></i></span> Arquivos</li>`;
                 btnInativar = `<li class="dropdown-item" onclick="inativarDiaria(${dados[i]['ID']})"><span class="btn"><i class="fas fa-trash"></i></span> Inativar</li>`;
 
                 if(dados[i]['PAGAMENTO_REALIZADO'] == 'S'){
@@ -444,6 +444,165 @@
 
             limparCampo('inputFuncionario', 'inputIDFuncionario', 'btnLimparFuncionario');
         }
+
+        // DOCUMENTOS
+            function buscarDocumentos(){
+                $.ajax({
+                    type:'post',
+                    datatype:'json',
+                    data:{
+                        '_token':'{{csrf_token()}}',                    
+                        'ID_DIARIA': $('#inputIDDiariaDocumento').val(),
+                    },
+                    url:"{{route('diaria.buscar.documento')}}",
+                    success:function(r){
+                        popularListaDocumentos(r);
+                    },
+                    error:err=>{exibirErro(err)}
+                })
+            }  
+
+            function cadastarDocumento(ID_DIARIA, descricaoDiaria){
+                $('#titleDocumento').text(ID_DIARIA +' - '+descricaoDiaria);
+                $('#inputIDDiariaDocumento').val(ID_DIARIA);
+
+                buscarDocumentos();
+
+                $('#modal-documentacao').modal('show');
+            }  
+
+            function inativarDocumento(idDocumento){
+                Swal.fire({
+                    title: 'Confirmação',
+                    text: 'Deseja inativar o documento?',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Sim',
+                    cancelButtonText: 'Cancelar'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $.ajax({
+                            type:'post',
+                            datatype:'json',
+                            data:{
+                                '_token':'{{csrf_token()}}',
+                                'idDocumento': idDocumento
+                            },
+                            url:"{{route('contasreceber.inativar.documento')}}",
+                            success:function(r){
+                                Swal.fire('Sucesso!'
+                                        , 'Documento inativado com sucesso.'
+                                        , 'success');
+                                buscarDocumentos();
+                            },
+                            error:err=>{exibirErro(err)}
+                        })
+                    }
+                });
+            }
+
+            function verDocumento(caminhoDocumento){
+                url = "{{env('APP_URL')}}/"+caminhoDocumento;
+
+                window.open(url, '_blank');
+            }
+
+            function popularListaDocumentos(Documento){
+                var htmlDocumento = "";
+
+                for(i=0; i< Documento.length; i++){
+                    var DocumentoKeys = Object.keys(Documento[i]);
+                    for(j=0;j<DocumentoKeys.length;j++){
+                        if(Documento[i][DocumentoKeys[j]] == null){
+                            Documento[i][DocumentoKeys[j]] = "";
+                            }
+                        }
+                    
+                    documentoCaminho = Documento[i]['CAMINHO_DOCUMENTO'];
+                    documentoCaminho = documentoCaminho.split('/')[3];
+                    
+                    htmlDocumento += `
+                        <tr id="tableRow${Documento[i]['ID']}">
+                            <td class="tdTexto"><span style="text-decoration: underline; cursor: pointer;" onclick="verDocumento('${Documento[i]['CAMINHO_DOCUMENTO']}')">${documentoCaminho}</span></td>
+                                <td>\
+                                    <center>\
+                                    <button class="btn" onclick="inativarDocumento(${Documento[i]['ID']})"><i class="fas fa-trash"></i></button>\
+                                    </center>\
+                                </td>\                      
+                            </tr>`;
+                    }
+                $('#tableBodyDocumentos').html(htmlDocumento)
+            }  
+
+            function validaDocumento(){
+                if ($("#inputArquivoDocumentacao")[0].files.length > 0) {
+                    $('#labelInputArquivoDocumentacao').html($("#inputArquivoDocumentacao")[0].files[0].name);
+                } else {
+                    $('#labelInputArquivoDocumentacao').html('Selecionar Arquivos');
+                }
+            }
+
+            function salvarDocumento(){
+                if($("#inputArquivoDocumentacao")[0].files.length > 0){
+                    uploadArquivo();
+                } else {
+                    Swal.fire('Atenção!'
+                            , 'Selecione um documento para vincular à venda.'
+                            , 'error');
+                }
+            }
+
+            function uploadArquivo(){
+                var dataAnexo = new FormData();
+                anexoCaminho = "";
+                ID_DIARIA = $('#inputIDDiariaDocumento').val();
+                dataAnexo.append('meuArquivo', document.getElementById('inputArquivoDocumentacao').files[0]);
+                dataAnexo.append('ID', ID_DIARIA);
+
+                $.ajax({
+                    processData: false,
+                    contentType: false,
+                    type : 'POST',
+                    data : dataAnexo,
+                    url : "{{env('APP_URL')}}/salvarDocumentacao.php",
+                    success : function(resultUpload) {
+                        if(resultUpload != "error"){
+                            anexoCaminho = resultUpload;
+                            $.ajax({
+                                type:'post',
+                                datatype:'json',
+                                data:{
+                                    '_token':'{{csrf_token()}}',
+                                    'caminhoArquivo': resultUpload,
+                                    'ID_DIARIA': ID_DIARIA,
+                                    'caminho': anexoCaminho
+                                },
+                                url:"{{route('diaria.inserir.documento')}}",
+                                success:function(resultInsert){
+
+                                    buscarDocumentos();                                
+                                    $("#inputArquivoDocumentacao").val('');
+                                    validaDocumento();
+
+                                    Swal.fire('Sucesso!'
+                                            , 'Documento salvo com sucesso.'
+                                            , 'success');
+                                },
+                                error:err=>{exibirErro(err)}
+                            })  
+                        }else{
+                            console.log(r)
+                            Swal.fire(
+                                'Atenção!',
+                                'Erro ao enviar Anexo.',
+                                'error'
+                            )
+                        }
+                    },
+                    error: err=>{exibirErro(err)}
+                });
+            }
+        // FIM
 
         // Limpar campo de funcionário
         $('#btnLimparFuncionario').click(function() {

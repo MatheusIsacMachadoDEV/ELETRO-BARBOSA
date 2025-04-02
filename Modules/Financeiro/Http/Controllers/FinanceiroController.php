@@ -679,4 +679,48 @@ class FinanceiroController extends Controller
         return DB::select($query);
     }
 
+    public function buscarDiariaDocumento(Request $request){
+        $dadosRecebidos = $request->except('_token');
+
+        if(isset($dadosRecebidos['ID_DIARIA'])){
+            $filtro = "AND ID_DIARIA = {$dadosRecebidos['ID_DIARIA']}";
+        } else {
+            $filtro = "AND 1 = 1";
+        }
+
+        $query = "SELECT diaria_documento.*, (SELECT DESCRICAO
+                                             FROM diaria
+                                            WHERE ID = diaria_documento.ID_DIARIA) AS DESCRICAO_DIARIA
+                    FROM diaria_documento
+                   WHERE STATUS = 'A'
+                   $filtro";
+        $result = DB::select($query);
+
+        return $result;
+    }
+
+    public function inserirDiariaDocumento(Request $request){
+        $dadosRecebidos = $request->except('_token');
+        $ID_DIARIA = $dadosRecebidos['ID_DIARIA'];
+        $caminhoArquivo = $dadosRecebidos['caminhoArquivo'];
+
+        $query = "INSERT INTO diaria_documento (ID_DIARIA, CAMINHO_DOCUMENTO) 
+                                    VALUES ($ID_DIARIA, '$caminhoArquivo')";
+        $result = DB::select($query);
+
+        return $result;
+    }
+    
+    public function inativarDiariaDocumento(Request $request){
+        $dadosRecebidos = $request->except('_token');
+        $idDocumento = $dadosRecebidos['idDocumento'];
+
+        $query = "UPDATE diaria_documento 
+                     SET STATUS = 'I'
+                    WHERE ID = $idDocumento";
+        $result = DB::select($query);
+
+        return $result;
+    }
+
 }

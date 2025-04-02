@@ -212,7 +212,7 @@
                 datatype:'json',
                 data:{
                     '_token':'{{csrf_token()}}',
-                    'TIPO': 'CONTAS_PAGAR'
+                    'TIPO': 'CONTAS_RECEBER'
                 },
                 url:"{{route('buscar.situacoes')}}",
                 success:function(r){
