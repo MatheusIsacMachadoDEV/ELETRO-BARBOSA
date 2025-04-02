@@ -62,6 +62,7 @@ class UsuariosController extends Controller
         $query = " SELECT users.ID
                         , users.NAME
                         , users.EMAIL
+                        , ADMINISTRADOR
                        FROM users
                       WHERE EMAIL <> 'adm@adm'
                         AND NAME <> 'axs'
@@ -80,6 +81,7 @@ class UsuariosController extends Controller
         $nome = $dadosRecebidos['nome'];
         $email = $dadosRecebidos['email'];
         $senha = $dadosRecebidos['senha'];
+        $ADMINISTADOR = $dadosRecebidos['ADMINISTADOR'];
 
         $senhaHash = Hash::make($senha);
 
@@ -100,12 +102,14 @@ class UsuariosController extends Controller
                             , password
                             , created_at
                             , updated_at
+                            , ADMINISTRADOR
                             ) VALUES (
                             '$nome'
                             , '$email'
                             , '$senhaHash'
                             , NOW()
                             , NOW()
+                            , $ADMINISTADOR
                             )";
         $result = DB::select($query);
 
@@ -119,6 +123,7 @@ class UsuariosController extends Controller
         $nome = $dadosRecebidos['nome'];
         $email = $dadosRecebidos['email'];
         $senha = isset($dadosRecebidos['senha']) ? $dadosRecebidos['senha'] : '';
+        $ADMINISTADOR = $dadosRecebidos['ADMINISTADOR'];
         $return = [];
 
         $queryValidacao = "SELECT COUNT(*) AS TOTAL
@@ -142,6 +147,7 @@ class UsuariosController extends Controller
                      SET name = '$nome'
                        , email = '$email'
                        , updated_at = NOW()
+                       , ADMINISTRADOR = $ADMINISTADOR
                        $camposAdicionais
                    WHERE id = $ID";
         $result = DB::select($query);

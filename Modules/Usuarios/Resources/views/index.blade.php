@@ -36,6 +36,7 @@
                         <th class="d-none d-lg-table-cell" style="padding-left: 5px!important">ID</th>
                         <th class="d-none d-lg-table-cell"><center>Nome</center></th>
                         <th class="d-none d-lg-table-cell"><center>Email</center></th>
+                        <th class="d-none d-lg-table-cell"><center>Administrador</center></th>
                         <th class="d-none d-lg-table-cell"><center>Ações</center></th>
                     </thead>
                     <tbody id="tableBodyDados">
@@ -70,7 +71,7 @@
                             <input type="password" class="form-control form-control-border" placeholder="Confirmar Senha" id="inputUsuarioSenhaConfirmacao" >
                         </div>
                         <div class="col-12">
-                            <input type="checkbox" class="form-control form-control-border" placeholder="Administrador" id="inputUsuarioAdministrador" > Adminsitrador
+                            <input type="checkbox" placeholder="Administrador" id="inputUsuarioAdministrador" > Adminsitrador
                         </div>
                     </div>
                 </div> 
@@ -248,6 +249,8 @@
                     }
                 }
 
+                var spanAdministrador = `<span class="badge ${dados[i]['ADMINISTRADOR'] == 1 ? 'bg-success' : 'bg-dark'}"> ${dados[i]['ADMINISTRADOR'] == 1 ? 'Administrador' : 'Usuário'}</span>`
+
                 btnEditar = `<li class="dropdown-item" onclick="alterarUsuario(${dados[i]['ID']})"><span class="btn"><i class="fas fa-pen"></i></span> Alterar</li>`;
                 btnMenus = `<li class="dropdown-item" onclick="abrirModalMenuUsuario(${dados[i]['ID']})"><span class="btn"><i class="fas fa-list"></i></span> Menus</li>`;
                 btnInativar = `<li class="dropdown-item" onclick="inativarUsuario(${dados[i]['ID']})"><span class="btn"><i class="fas fa-trash"></i></span> Inativar</li>`;
@@ -268,6 +271,7 @@
                         <td style="padding-left: 5px!important">${dados[i]['ID']}</td>
                         <td><center>${dados[i]['NAME']}</center></td>
                         <td><center>${dados[i]['EMAIL']}</center></td>
+                        <td><center>${spanAdministrador}</center></td>
                         <td>
                             <center>
                                 ${btnOpcoes}
@@ -279,7 +283,7 @@
                         <td>
                             <div class="col-12">
                                 <center>
-                                    <b>${dados[i]['ID']} - ${dados[i]['NAME']}</b>
+                                    <b>${dados[i]['ID']} - ${dados[i]['NAME']} (${spanAdministrador})</b>
                                 </center>
                             </div>
                             <div class="col-12" style="font-size: 4vw">
@@ -342,7 +346,8 @@
                             '_token':'{{csrf_token()}}',
                             'nome': nome,
                             'email': email,
-                            'senha': senha
+                            'senha': senha,
+                            'ADMINISTADOR': $('#inputUsuarioAdministrador').prop('checked') ? 'S' : 'N'
                         },
                         url:"{{route('usuarios.inserir')}}",
                         success:function(r){
@@ -367,7 +372,8 @@
                             'ID': $('#inputUsuarioID').val(),
                             'nome': nome,
                             'email': email,
-                            'senha': senha
+                            'senha': senha,
+                            'ADMINISTADOR': $('#inputUsuarioAdministrador').prop('checked') ? '1' : '0'
                         },
                         url:"{{route('usuarios.alterar')}}",
                         success:function(r){
@@ -406,6 +412,7 @@
                     $('#inputUsuarioEmail').val(dadosUsuario['EMAIL'])
                     $('#inputUsuarioSenha').val('');
                     $('#inputUsuarioSenhaConfirmacao').val('');
+                    $('#inputUsuarioAdministrador').prop('checked',dadosUsuario['ADMINISTRADOR'] == 1 ? true : false)
 
                     $('#modal-cadastro').modal('show');
                 },
@@ -448,6 +455,7 @@
             $('#inputUsuarioEmail').val('')
             $('#inputUsuarioSenha').val('')
             $('#inputUsuarioSenhaConfirmacao').val('')
+            $('#inputUsuarioAdministrador').prop('checked', false);
         }
 
         /* Matheus 29/03/2025 23:52:41 - MENUS */

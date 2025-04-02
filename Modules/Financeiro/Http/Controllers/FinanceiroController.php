@@ -38,6 +38,10 @@ class FinanceiroController extends Controller
         return view('financeiro::folha-pagamento');
     }
 
+    public function faturamento(){
+        return view('financeiro::faturamento');
+    }
+
     public function buscarCRB(Request $request){
         $dadosRecebidos = $request->except('_token');
 
@@ -526,6 +530,143 @@ class FinanceiroController extends Controller
         $nomeArquivo = 'Holerite_' . date('m_Y', strtotime($dadosPagamento->DATA_AGENDAMENTO)) . '.pdf';
         
         return $pdf->stream($nomeArquivo);
+    }
+
+    public function buscarDadosFaturamento(Request $request)
+    {
+        $dadosRecebidos = $request->except('_token');
+        $dataInicio = $dadosRecebidos['data_inicio'];
+        $dataFim = $dadosRecebidos['data_fim'];
+
+        // Dados totais
+        $totais = [
+            'total_a_receber' => $this->getTotalContasReceber($dataInicio, $dataFim, false),
+            'total_recebido' => $this->getTotalContasReceber($dataInicio, $dataFim, true),
+            'total_a_pagar' => $this->getTotalContasPagar($dataInicio, $dataFim, false),
+            'total_pago' => $this->getTotalContasPagar($dataInicio, $dataFim, true)
+        ];
+
+        // Dados para gráficos
+        $graficos = [
+            'receber' => $this->getDadosGraficoReceber($dataInicio, $dataFim),
+            'pagar' => $this->getDadosGraficoPagar($dataInicio, $dataFim)
+        ];
+
+        // Últimas contas
+        $ultimasContas = [
+            'receber' => $this->getUltimasContasReceber(),
+            'pagar' => $this->getUltimasContasPagar()
+        ];
+
+        return response()->json([
+            'totais' => $totais,
+            'graficos' => $graficos,
+            'ultimas_contas' => $ultimasContas
+        ]);
+    }
+
+    private function getTotalContasReceber($dataInicio, $dataFim, $pago)
+    {
+        $filtroPago = $pago ? "AND SITUACAO = 'PAGA'" : "AND SITUACAO != 'PAGA'";
+        
+        $query = "SELECT SUM(VALOR) AS total
+                    FROM contas_receber
+                   WHERE STATUS = 'A'
+                     AND DATA_VENCIMENTO BETWEEN '$dataInicio' AND '$dataFim'
+                  $filtroPago";
+        
+        $result = DB::select($query);
+        return $result[0]->total ?? 0;
+    }
+
+    private function getTotalContasPagar($dataInicio, $dataFim, $pago)
+    {
+        $filtroPago = $pago ? "AND SITUACAO = 'PAGA'" : "AND SITUACAO != 'PAGA'";
+        
+        $query = "SELECT SUM(VALOR) AS total
+                  FROM contas_pagar
+                  WHERE STATUS = 'A'
+                  AND DATA_VENCIMENTO BETWEEN '$dataInicio' AND '$dataFim'
+                  $filtroPago";
+        
+        $result = DB::select($query);
+        return $result[0]->total ?? 0;
+    }
+
+    private function getDadosGraficoReceber($dataInicio, $dataFim)
+    {
+        $query = "SELECT DATE_FORMAT(DATA_PAGAMENTO, '%d/%m') AS dia,
+                         SUM(VALOR) AS total
+                  FROM contas_receber
+                  WHERE STATUS = 'A'
+                  AND SITUACAO = 'PAGA'
+                  AND DATA_PAGAMENTO BETWEEN '$dataInicio' AND '$dataFim'
+                  GROUP BY dia
+                  ORDER BY DATA_PAGAMENTO";
+        
+        $result = DB::select($query);
+        
+        $labels = [];
+        $valores = [];
+        
+        foreach ($result as $item) {
+            $labels[] = $item->dia;
+            $valores[] = $item->total;
+        }
+        
+        return [
+            'labels' => $labels,
+            'valores' => $valores
+        ];
+    }
+
+    private function getDadosGraficoPagar($dataInicio, $dataFim)
+    {
+        $query = "SELECT DATE_FORMAT(DATA_PAGAMENTO, '%d/%m') AS dia,
+                         SUM(VALOR) AS total
+                  FROM contas_pagar
+                  WHERE STATUS = 'A'
+                  AND SITUACAO = 'PAGA'
+                  AND DATA_PAGAMENTO BETWEEN '$dataInicio' AND '$dataFim'
+                  GROUP BY dia
+                  ORDER BY DATA_PAGAMENTO";
+        
+        $result = DB::select($query);
+        
+        $labels = [];
+        $valores = [];
+        
+        foreach ($result as $item) {
+            $labels[] = $item->dia;
+            $valores[] = $item->total;
+        }
+        
+        return [
+            'labels' => $labels,
+            'valores' => $valores
+        ];
+    }
+
+    private function getUltimasContasReceber()
+    {
+        $query = "SELECT *
+                  FROM contas_receber
+                  WHERE STATUS = 'A'
+                  ORDER BY DATA_VENCIMENTO DESC
+                  LIMIT 10";
+        
+        return DB::select($query);
+    }
+
+    private function getUltimasContasPagar()
+    {
+        $query = "SELECT *
+                  FROM contas_pagar
+                  WHERE STATUS = 'A'
+                  ORDER BY DATA_VENCIMENTO DESC
+                  LIMIT 10";
+        
+        return DB::select($query);
     }
 
 }

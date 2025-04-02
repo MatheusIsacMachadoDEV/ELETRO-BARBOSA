@@ -18,6 +18,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/despesaempresa', 'FinanceiroController@despesaEmpresa');
         Route::get('/diaria', 'FinanceiroController@diaria');
         Route::get('/folha-pagamento', 'FinanceiroController@folhaPagamento');
+        Route::get('/faturamento', 'FinanceiroController@faturamento');
         Route::get('/impresso/folha-pagamento/{id}', 'FinanceiroController@imprimirFolhaPagamento');
 
         Route::post('/cadastrar', 'FinanceiroController@inserirCRB')->name('contasreceber.inserir');
@@ -46,5 +47,18 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/pagamento/alterar', 'FinanceiroController@alterarPagamentoPessoa')->name('pagamento.alterar');
         Route::post('/pagamento/inativar', 'FinanceiroController@inativarPagamentoPessoa')->name('pagamento.inativar');
         Route::post('/pagamento/confirmar', 'FinanceiroController@confirmarPagamentoPessoa')->name('pagamento.confirmar');
+
+        // Rotas para o faturamento
+        Route::post('/financeiro/dashboard/buscar-dados', 'FinanceiroController@buscarDadosFaturamento')->name('dashboard.financeiro.dados');
+
+        // Rotas para contas a receber
+        Route::post('/financeiro/receber/buscar-totais', 'FinanceiroController@getTotalContasReceber')->name('financeiro.receber.buscar-totais');
+        Route::post('/financeiro/receber/buscar-grafico', 'FinanceiroController@getDadosGraficoReceber')->name('financeiro.receber.buscar-grafico');
+        Route::post('/financeiro/receber/buscar-ultimas', 'FinanceiroController@getUltimasContasReceber')->name('financeiro.receber.buscar-ultimas');
+
+        // Rotas para contas a pagar
+        Route::post('/financeiro/pagar/buscar-totais', 'FinanceiroController@getTotalContasPagar')->name('financeiro.pagar.buscar-totais');
+        Route::post('/financeiro/pagar/buscar-grafico', 'FinanceiroController@getDadosGraficoPagar')->name('financeiro.pagar.buscar-grafico');
+        Route::post('/financeiro/pagar/buscar-ultimas', 'FinanceiroController@getUltimasContasPagar')->name('financeiro.pagar.buscar-ultimas');
     });
 });
