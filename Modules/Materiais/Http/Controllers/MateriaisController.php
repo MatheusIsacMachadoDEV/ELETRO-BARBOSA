@@ -242,6 +242,7 @@ class MateriaisController extends Controller
         $TIPO_MATERIAL = $dadosRecebidos['TIPO_MATERIAL'];
         $idFornecedor = isset($dadosRecebidos['ID_FORNECEDOR']) ? $dadosRecebidos['ID_FORNECEDOR'] : 0;
         $descricaoMarca = '';
+        $idUsuario = auth()->user()->id;
 
         if($marca > 0){
             $queryMarca = "SELECT DESCRICAO
@@ -260,6 +261,7 @@ class MateriaisController extends Controller
                             , DATA_ULTIMA_RETIRADA
                             , TIPO_MATERIAL
                             , ID_FORNECEDOR
+                            , ID_USUARIO
                             ) VALUES (
                             '$material'
                             , $valor
@@ -270,6 +272,7 @@ class MateriaisController extends Controller
                             , $ultimaRetirada
                             , $TIPO_MATERIAL
                             , $idFornecedor
+                            , $idUsuario
                             )";
         $result = DB::select($query);
 
