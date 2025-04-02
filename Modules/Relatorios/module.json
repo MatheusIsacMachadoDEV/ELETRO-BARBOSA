@@ -1,0 +1,11 @@
+{
+    "name": "Relatorios",
+    "alias": "relatorios",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\Relatorios\\Providers\\RelatoriosServiceProvider"
+    ],
+    "files": []
+}

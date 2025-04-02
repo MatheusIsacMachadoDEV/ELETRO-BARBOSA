@@ -11,5 +11,7 @@
     "Agenda": true,
     "Usuarios": true,
     "ControlePonto": true,
-    "Projeto": true
+    "Projeto": true,
+    "Relatorios": true,
+    "Dashboard": true
 }
