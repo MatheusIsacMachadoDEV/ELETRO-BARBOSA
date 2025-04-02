@@ -27,13 +27,14 @@ class ProjetoController extends Controller
         if(Gate::allows('ADMINISTRADOR')){
             $filtroAdministrador = "AND 1 = 1";
         } else {
-            $filtroAdministrador = "AND (SELECT COUNT(*)
+            $filtroAdministrador = "AND ((SELECT COUNT(*)
                                            FROM projeto_pessoa, pessoa
                                           WHERE pessoa.ID = projeto_pessoa.ID_PESSOA
                                             AND projeto_pessoa.ID_PROJETO = p.ID
                                             AND pessoa.STATUS = 'A'
                                             AND projeto_pessoa.STATUS = 'A'
-                                            AND pessoa.ID_USUARIO = $idUsuario) > 0 ";
+                                            AND pessoa.ID_USUARIO = $idUsuario) > 0 
+                                        OR projeto.ID_USUARIO_INSERCAO = $idUsuario";
         }
 
         if (isset($dadosRecebidos['ID'])) {
