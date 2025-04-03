@@ -13,4 +13,7 @@
 
 Route::prefix('dashboard')->group(function() {
     Route::get('/', 'DashboardController@index');
+
+    Route::post('/projeto/valores', 'DashboardController@buscarProjetosValores')->name('dashboard.buscar.projeto.valores');
+    Route::post('/projeto/grafico', 'DashboardController@graficoValores')->name('dashboard.buscar.grafico.valores');
 });

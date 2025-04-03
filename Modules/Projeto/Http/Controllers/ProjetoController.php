@@ -43,6 +43,18 @@ class ProjetoController extends Controller
             $filtroID = "";
         }
 
+        if (isset($dadosRecebidos['LIMIT'])) {
+            $filtroLimit = "LIMIT {$dadosRecebidos['LIMIT']}";
+        } else {
+            $filtroLimit = "";
+        }
+
+        if (isset($dadosRecebidos['FILTRO_ADICIONAL'])) {
+            $filtroAdicional = $dadosRecebidos['FILTRO_ADICIONAL'];
+        } else {
+            $filtroAdicional = "";
+        }
+
         if (isset($dadosRecebidos['filtro']) && strlen($dadosRecebidos['filtro']) > 0) {
             $filtro = "AND (TITULO LIKE '%{$dadosRecebidos['filtro']}%'
                              OR DESCRICAO LIKE '%{$dadosRecebidos['filtro']}%'
@@ -82,8 +94,11 @@ class ProjetoController extends Controller
                    $filtro
                    $filtroID
                    $filtroAdministrador 
-                   ORDER BY p.DATA_INSERCAO DESC";
+                   $filtroAdicional
+                   ORDER BY p.DATA_INSERCAO DESC
+                   $filtroLimit";
         $result['dados'] = DB::select($query);
+        $result['query'] = $query;
 
         for ($i=0; $i < count($result['dados']) ; $i++) {
             $idProjeto = $result['dados'][$i]->ID;

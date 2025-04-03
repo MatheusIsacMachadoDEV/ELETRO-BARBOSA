@@ -19,8 +19,8 @@ Route::post('/atualizar/menus', [App\Http\Controllers\PadraoController::class, '
 Route::post('/login', [App\Http\Controllers\Auth\LoginController::class, 'login']);
 
 Route::middleware(['auth'])->group(function () {
-    Route::get('/', [Modules\Projeto\Http\Controllers\ProjetoController::class, 'index'])->name('faturamento');
-    Route::get('/home', [Modules\Projeto\Http\Controllers\ProjetoController::class, 'index'])->name('home');
+    Route::get('/', [Modules\Dashboard\Http\Controllers\DashboardController::class, 'index'])->name('faturamento');
+    Route::get('/home', [Modules\Dashboard\Http\Controllers\DashboardController::class, 'index'])->name('home');
 
     Route::post('/situacao/buscar', [App\Http\Controllers\PadraoController::class, 'buscarSituacoes'])->name('buscar.situacoes');
 
