@@ -1,22 +1,12 @@
 @extends('adminlte::page')
 
-@section('title', 'GSSoftware')
+@section('title', 'Relatórios')
 
 @section('content')
     <div class="content-title">
         <div class="row d-flex">
             <div class="col-3 d-none d-md-block">
-                <h1>GSSoftware</h1>
-            </div>
-            <div class="col-12 col-md-9 d-flex justify-content-end p-2">
-                <div class="col-12 col-md-6 row d-flex d-flex justify-content-end ">
-                    <div class="col-12 col-md-6">
-                        <button class="btn btn-block btn-warning" id="btnNovo">
-                            <i class="fas fa-plug"></i>
-                            <span class="ml-1">Novo</span>
-                        </button>
-                    </div>
-                </div>
+                <h1>Relatórios</h1>
             </div>
         </div>
     </div>
@@ -25,8 +15,13 @@
         <div class="card">
             <div class="card-header">
                 <div class="row d-flex m-0 p-0">
-                    <div class="col-12 col-md-6">
-                        <input type="text" class="form-control form-control-border" id="inputFiltro" placeholder="Filtro" maxlength="8" onkeyup="buscarDados()">
+                    <div class="col-8">
+                        <select class="form-control" id="selectModeloRelatorio">
+                            <option value="0">Selecionar Relatorio</option>
+                        </select>
+                    </div>
+                    <div class="col-4">
+                        <button type="button" class="btn btn-block btn-info">Filtrar</button>
                     </div>
                 </div>
             </div>
@@ -40,52 +35,6 @@
                     <tbody id="tableBodyDadosdados">
                     </tbody>
                 </table>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal fade" id="modal-documentacao">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content p-0">
-                <div class="modal-header">
-                    <h5 class="modal-title" >Documentação da dados <span id="titleDocumento"></span></h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <div class="card">
-                        <div class="card-header">
-                            <div class="">
-                                <input type="hidden" id="inputIDdadosDocumentacao">
-                                <div class="input-group">
-                                    <div class="custom-file">
-                                        <input type="file" class="custom-file-input" id="inputArquivoDocumentacao" onchange="validaDocumento()">
-                                        <label class="custom-file-label" for="inputArquivoDocumentacao" id="labelInputArquivoDocumentacao">Selecionar Arquivos</label>
-                                    </div>
-                                    <div class="input-group-append">
-                                        <button class="input-group-text" onclick="salvarDocumento()">Enviar</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="card-body">
-                            <table class="table table-responsive">
-                                <thead>
-                                    <tr>
-                                        <th>Documento</th>
-                                        <th><center>Ações</center></th>
-                                    </tr>
-                                </thead>
-                                <tbody id="tableBodyDocumentos">
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-default" onclick="fecharCadastroDocumento()">Cancelar</button>
-                </div>
             </div>
         </div>
     </div>
@@ -129,53 +78,96 @@
     <script src="https://cdn.jsdelivr.net/npm/moment@2.29.1/moment.min.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
     <script>
-        $('#inputValor').maskMoney({ prefix: 'R$ ', allowNegative: true, thousands: '.', decimal: ',' , allowZero: true});
-        $('#inputQtde').mask('000000000');
-        function exibirModalCadastro(){
-            resetarCampos();
-            buscarMarca();
-            $('#modal-cadastro').modal('show');
-        }
-        function buscarDados(){
-            editar = false;
-            $.ajax({
-                type:'post',
-                datatype:'json',
-                data:{
-                    '_token':'{{csrf_token()}}',
-                    'filtro': $('#inputDescricaoFiltro').val()
-                },
-                url:"",
-                success:function(r){
-                    popularListaDados(r.dados);
-                },
-                error:err=>{exibirErro(err)}
+
+        function gerarRelatorioPDF(){
+            Swal.fire({
+                icon: 'warning',
+                title: 'Atenção!',
+                text: 'Selecione o relatório para impressão:',
+                showCloseButton: false,
+                showConfirmButton: true,
+                confirmButtonText:
+                    'Relatório Padrão',
+                showCancelButton: true,
+                cancelButtonText:
+                    'Customizar Relatório'
+            }).then((result) => {
+                if (result.value) {
+                    window.open("{{env('APP_URL')}}/consultas/impresso/itens", "_blank");
+                } else if (result.dismiss == 'cancel') {
+                    personalizarRelatorioPDF(dadosLista);
+                }
             })
         }
-        function popularListaDados(dados){
-            var htmlTabela = "";
-            for(i=0; i< dados.length; i++){
-                var Keys = Object.keys(dados[i]);
-                for(j=0;j<Keys.length;j++){
-                    if(dados[i][Keys[j]] == null){
-                        dados[i][Keys[j]] = "";
+
+        function personalizarRelatorioPDF(data) {
+            if(data.length > 0){
+                const columns = Object.keys(data[0]);
+    
+                let checkboxHtml = columns.map(column => {
+                    return `<label><input type="checkbox" class="column-checkbox" value="${column}" checked> ${column}</label><br>`;
+                }).join('');
+    
+                Swal.fire({
+                    title: 'Selecione as colunas que serão exibidas no relatório',
+                    html: checkboxHtml,
+                    showCancelButton: true,
+                    confirmButtonText: 'Gerar Relatório',
+                    cancelButtonText: 'Cancelar',
+                    preConfirm: () => {
+                        let selectedColumns = [];
+                        $('.column-checkbox:checked').each(function() {
+                            selectedColumns.push($(this).val());
+                        });
+                        return selectedColumns;
                     }
-                }
-                btnAcoes = ` <button class="btn" onclick="exibirModalEdicao(dados)"><i class="fas fa-pen"></i></button>
-                             <button class="btn" onclick="inativar(dados)"><i class="fas fa-trash"></i></button>`;
-                htmlTabela += `
-                    <tr id="tableRowdados" class="d-none d-lg-table-row">
-                        <td class="tdTexto" style="padding-left: 5px!important">dados</td>
-                        <td class="tdTexto">dados</td>
-                        <td>
-                            <center>
-                                btnAcoes
-                            </center>
-                        </td>
-                    </tr>
-                `;
+                }).then((result) => {
+                    if (result.value) {
+                        filtrarArray(data, result.value);
+                    }
+                });
+            } else {
+                Swal.fire(
+                    'Atenção!',
+                    'Nenhum registro disponível para geração do relatório.',
+                    'warning'
+                )
             }
-            $('#tableBodyDadosdados').html(htmlTabela);
+        }
+
+        // Função para filtrar os dados com base nas colunas selecionadas
+        function filtrarArray(data, colunasSelecionadas) {
+            let dadosFiltrados = {
+                dados: data.map(linha => {
+                    let linhaFiltrada = {};
+                    colunasSelecionadas.forEach(coluna => {
+                        linhaFiltrada[coluna] = linha[coluna];
+                    });
+                    return linhaFiltrada;
+                })
+            };
+
+            if(colunasSelecionadas.length > 0){
+                $.ajax({
+                    type:'post',
+                    datatype:'json',
+                    data:{
+                       '_token':'{{csrf_token()}}',
+                       'DADOS_CACHE': dadosFiltrados.dados
+                    },
+                    url:"",
+                    success:function(r){
+                        window.open("{{env('APP_URL')}}/consultas/impresso/customizavel/itens", "_blank");
+                    },
+                    error:err=>{exibirErroAJAX(err)}
+                });
+            } else {
+                Swal.fire(
+                    'Relatório não gerado!',
+                    'Selecione ao menos uma coluna para gerar o relatório.',
+                    'error'
+                )
+            }
         }
     </script>
 @stop

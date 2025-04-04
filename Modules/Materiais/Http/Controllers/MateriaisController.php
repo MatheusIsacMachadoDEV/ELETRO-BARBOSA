@@ -200,7 +200,7 @@ class MateriaisController extends Controller
         }
         
         $queryCount= " SELECT COUNT(*) as COUNT
-                         FROM KARDEX
+                         FROM kardex
                         WHERE STATUS = 'A'
                         $filtroMaterial
                         $filtroLimit";

@@ -13,4 +13,5 @@
 
 Route::prefix('relatorios')->group(function() {
     Route::get('/', 'RelatoriosController@index');
+    Route::get('/impresso', 'RelatoriosController@index');
 });
