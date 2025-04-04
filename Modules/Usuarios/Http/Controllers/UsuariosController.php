@@ -81,7 +81,7 @@ class UsuariosController extends Controller
         $nome = $dadosRecebidos['nome'];
         $email = $dadosRecebidos['email'];
         $senha = $dadosRecebidos['senha'];
-        $ADMINISTADOR = $dadosRecebidos['ADMINISTADOR'];
+        $ADMINISTADOR = $dadosRecebidos['ADMINISTADOR'] == 'S' ? 1 : 0;
 
         $senhaHash = Hash::make($senha);
 
@@ -123,7 +123,7 @@ class UsuariosController extends Controller
         $nome = $dadosRecebidos['nome'];
         $email = $dadosRecebidos['email'];
         $senha = isset($dadosRecebidos['senha']) ? $dadosRecebidos['senha'] : '';
-        $ADMINISTADOR = $dadosRecebidos['ADMINISTADOR'];
+        $ADMINISTADOR = $dadosRecebidos['ADMINISTADOR'] == 'S' ? 1 : 0;
         $return = [];
 
         $queryValidacao = "SELECT COUNT(*) AS TOTAL
