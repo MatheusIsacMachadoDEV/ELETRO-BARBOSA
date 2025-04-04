@@ -561,7 +561,7 @@
                     },
                     dataType: 'json',
                     success: function(r){
-                        result = $.map(r.dados, function(obj){
+                        result = $.map(r, function(obj){
                             return {
                                 label: obj.info,
                                 value: obj.NOME,
