@@ -16,6 +16,4 @@ class RelatoriosController extends Controller
     {
         return view('relatorios::index');
     }
-
-    
 }

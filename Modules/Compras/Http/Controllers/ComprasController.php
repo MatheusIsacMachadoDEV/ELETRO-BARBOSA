@@ -99,7 +99,7 @@ class ComprasController extends Controller
                                   , ID_UNICO_ITEM AS ID_UNICO
                                   , (SELECT MATERIAL
                                        FROM material
-                                      WHERE material.ID = ordem_compra_item.ID_UNICO_ITEM) AS ITEM
+                                      WHERE material.ID = ordem_compra_item.ID_ITEM) AS ITEM
                                   , OBSERVACAO
                                   , QTDE
                                   , VALOR_UNITARIO
@@ -288,11 +288,51 @@ class ComprasController extends Controller
                    WHERE ID = $idCodigo";
         $result = DB::select($query);
 
+        $queryDadosItemOrdem = "SELECT *
+                                  FROM ordem_compra_item
+                                 WHERE ID_ORDEM_COMPRA = $idCodigo";
+        $dadosItemOrdem = DB::select($queryDadosItemOrdem);
+
+        for ($i=0; $i < count($dadosItemOrdem); $i++) { 
+            $idOrdemCompraItem = $dadosItemOrdem[$i]->ID;
+            $idItem = $dadosItemOrdem[$i]->ID_ITEM;
+            $qtde = $dadosItemOrdem[$i]->QTDE;
+
+            $queryDadosKardex = "INSERT INTO kardex
+                                             (
+                                               ID_MATERIAL
+                                             , DATA_CADASTRO
+                                             , VALOR
+                                             , ID_ORIGEM
+                                             , ORIGEM
+                                             , TIPO
+                                             , ID_USUARIO
+                                             , USUARIO
+                                            ) VALUES (
+                                              $idItem
+                                             , NOW()
+                                             , $qtde
+                                             , $idOrdemCompraItem
+                                             , 'ordem_compra_item'
+                                             , $idSituacao
+                                             , $idUsuario
+                                             , '$usuario'
+                                             )";
+            $dadosKardex = DB::select($queryDadosKardex);
+
+            if($idSituacao == 1){
+                $updateEstoque = "QTDE + $qtde";
+            } else {
+                $updateEstoque = "QTDE - $qtde";
+            }
+
+            $querydadosOrdemCompraUpdate = "UPDATE material
+                                               SET QTDE = $updateEstoque
+                                             WHERE ID = $idItem";
+            $dadosOrdemCompraUpdate = DB::select($querydadosOrdemCompraUpdate);
+        }
+
         if($idSituacao == 1){
-            $queryDadosItemOrdem = "SELECT *
-                                      FROM ordem_compra_item
-                                     WHERE ID_ORDEM_COMPRA = $idCodigo";
-            $dadosItemOrdem = DB::select($queryDadosItemOrdem);
 
             $queryDadosOrdem = "SELECT *
                                   FROM ordem_compra
@@ -307,41 +347,8 @@ class ComprasController extends Controller
 
             $queryCPG = "INSERT INTO contas_pagar (ID_USUARIO, DESCRICAO, DATA_VENCIMENTO, VALOR, SITUACAO, DATA_PAGAMENTO, OBSERVACAO, ID_ORIGEM) 
                                     VALUES ($idUsuario, 'Ordem de Compra $idCodigo', now(), {$dadosOrdem->VALOR}, 'PENDENTE', now(), 'CPG automático referente a APROVAÇÃO da ordem de compra : {$dadosOrdem->ID}-{$dadosOrdem->OBSERVACAO}.', 7)";
-            $result = DB::select($queryCPG);
+            $result = DB::select($queryCPG);            
             
-            for ($i=0; $i < count($dadosItemOrdem); $i++) { 
-                $idOrdemCompraItem = $dadosItemOrdem[$i]->ID;
-                $idItem = $dadosItemOrdem[$i]->ID_ITEM;
-                $qtde = $dadosItemOrdem[$i]->QTDE;
-
-                $queryDadosKardex = "INSERT INTO kardex
-                                                 (
-                                                   ID_MATERIAL
-                                                 , DATA_CADASTRO
-                                                 , VALOR
-                                                 , ID_ORIGEM
-                                                 , ORIGEM
-                                                 , TIPO
-                                                 , ID_USUARIO
-                                                 , USUARIO
-                                                ) VALUES (
-                                                  $idItem
-                                                 , NOW()
-                                                 , $qtde
-                                                 , $idOrdemCompraItem
-                                                 , 'ordem_compra_item'
-                                                 , $idSituacao
-                                                 , $idUsuario
-                                                 , '$usuario'
-                                                 )";
-                $dadosKardex = DB::select($queryDadosKardex);
-
-                $querydadosOrdemCompraUpdate = "UPDATE material
-                                                   SET QTDE = QTDE + $qtde
-                                                 WHERE ID = $idItem";
-                $dadosOrdemCompraUpdate = DB::select($querydadosOrdemCompraUpdate);
-                
-            }
         }
 
         $return['SITUACAO'] = 'SUCESSO';

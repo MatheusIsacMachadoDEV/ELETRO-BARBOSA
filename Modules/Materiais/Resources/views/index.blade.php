@@ -271,6 +271,7 @@
                                 <th><center>Data Movimentação</center></th>
                                 <th><center>Usuário</center></th>
                                 <th><center>Tipo</center></th>
+                                <th><center>Valor</center></th>
                                 <th><center>Origem</center></th>
                             </thead>
                             <tbody id="tableBodyKardex">
@@ -592,6 +593,7 @@
                         <td class="tdTexto"><center>${dataMovimentacao}</center></td>
                         <td class="tdTexto"><center>${dados[i]['USUARIO']}</center></td>
                         <td class="tdTexto"><center>${dados[i]['TIPO_MOVIMENTACAO']}</center></td>
+                        <td class="tdTexto"><center>${dados[i]['VALOR']}</center></td>
                         <td class="tdTexto"><center>${dados[i]['ORIGEM']}</center></td>
                     </tr>
                     
@@ -603,11 +605,14 @@
                                 </center>
                             </div>
                             <div class="col-12 row d-flex justify-content-between">
-                                <div class="col-6">
+                                <div class="col-4">
                                     <b>Origem: </b>${dados[i]['ORIGEM']}
                                 </div>
-                                <div class="col-6">
+                                <div class="col-4">
                                     <b>Tipo: </b>${dados[i]['TIPO_MOVIMENTACAO']}
+                                </div>
+                                <div class="col-4">
+                                    <b>Valor: </b>${dados[i]['VALOR']}
                                 </div>
                             </div>
                             <div class="col-12 row d-flex justify-content-between">

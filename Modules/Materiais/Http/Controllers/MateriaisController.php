@@ -367,6 +367,8 @@ class MateriaisController extends Controller
                    WHERE ID = $idMaterial";
         $result = DB::select($query);
 
+        
+
         return $result;
     }
 
