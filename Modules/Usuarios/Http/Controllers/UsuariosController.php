@@ -109,7 +109,7 @@ class UsuariosController extends Controller
                             , '$senhaHash'
                             , NOW()
                             , NOW()
-                            , $ADMINISTADOR
+                            , '$ADMINISTADOR'
                             )";
         $result = DB::select($query);
 
@@ -147,7 +147,7 @@ class UsuariosController extends Controller
                      SET name = '$nome'
                        , email = '$email'
                        , updated_at = NOW()
-                       , ADMINISTRADOR = $ADMINISTADOR
+                       , ADMINISTRADOR = '$ADMINISTADOR'
                        $camposAdicionais
                    WHERE id = $ID";
         $result = DB::select($query);
