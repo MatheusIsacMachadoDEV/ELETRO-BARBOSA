@@ -361,7 +361,7 @@ class FinanceiroController extends Controller
         $valorDiaria = $dadosDiaria->VALOR_TOTAL;
 
         $queryCPG = "INSERT INTO contas_pagar (ID_USUARIO, DESCRICAO, DATA_VENCIMENTO, VALOR, SITUACAO, DATA_PAGAMENTO, OBSERVACAO, ID_ORIGEM) 
-                                    VALUES ($idUsuario, '$descricaoDiaria', now(), $valorDiaria, 'PAGA', now(), 'CPG referente à diária: $idDiaria - $descricaoDiaria', 6)";
+                                       VALUES ($idUsuario, '$descricaoDiaria', now(), $valorDiaria, 'PAGA', now(), 'CPG referente à diária: $idDiaria - $descricaoDiaria', 6)";
         $result = DB::select($queryCPG);
 
         return response()->json(['success' => 'Diária paga com sucesso!']);
@@ -500,7 +500,7 @@ class FinanceiroController extends Controller
         $descricaoPagamento = "Pagamento para {$dadosPessoa->NOME}";
 
         $queryCPG = "INSERT INTO contas_pagar (ID_USUARIO, DESCRICAO, DATA_VENCIMENTO, VALOR, SITUACAO, DATA_PAGAMENTO, OBSERVACAO, ID_ORIGEM) 
-                                       VALUES ($idUsuario, '$descricaoPagamento', now(), {$dadosPessoa->VALOR}, 'PAGA', now(), 'CPG automático referente ao pagamento para a pessoa: {$dadosPessoa->NOME}. ID Pagamento $idPagamento.', 7)";
+                                       VALUES ($idUsuario, '$descricaoPagamento', now(), {$dadosPessoa->VALOR}, 'PAGA', now(), 'CPG automático referente ao pagamento para a pessoa: {$dadosPessoa->NOME}. ID Pagamento $idPagamento.', 5)";
         $result = DB::select($queryCPG);
 
         return response()->json(['success' => 'Pagamento confirmado com sucesso!']);

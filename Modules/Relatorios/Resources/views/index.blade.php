@@ -5,8 +5,11 @@
 @section('content')
     <div class="content-title">
         <div class="row d-flex">
-            <div class="col-3 d-none d-md-block">
+            <div class="col-4 d-none d-md-block">
                 <h1>Relatórios</h1>
+            </div>
+            <div class="col-12 col-md-8 d-flex justify-content-end">
+                <button class="btn  btn-dark" id="btnImprimirRelatorio"><i class="far fa-file-pdf"></i> Gerar PDF</button>
             </div>
         </div>
     </div>
@@ -21,18 +24,15 @@
                         </select>
                     </div>
                     <div class="col-4">
-                        <button type="button" class="btn btn-block btn-info">Filtrar</button>
+                        <button type="button" class="btn btn-block btn-info" id="btnGerarRelatorio"><i class="fa fa-print"></i> Gerar Relatorio</button>
                     </div>
                 </div>
             </div>
             <div class="card-body">
                 <table class="table table-responsive-xs">
-                    <thead>
-                        <th class="d-none d-lg-table-cell" style="padding-left: 5px!important">Coluna</th>
-                        <th class="d-none d-lg-table-cell"><center>Coluna 2</center></th>
-                        <th class="d-none d-lg-table-cell"><center>Ações</center></th>
+                    <thead id="tableHeadRelatorio">
                     </thead>
-                    <tbody id="tableBodyDadosdados">
+                    <tbody id="tableBodyRelatorio">
                     </tbody>
                 </table>
             </div>
@@ -78,26 +78,126 @@
     <script src="https://cdn.jsdelivr.net/npm/moment@2.29.1/moment.min.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
     <script>
+        var dadosRelatorio = null;
+        var codigoRelatorio = '{{$codigo}}'
 
-        function gerarRelatorioPDF(){
-            Swal.fire({
-                icon: 'warning',
-                title: 'Atenção!',
-                text: 'Selecione o relatório para impressão:',
-                showCloseButton: false,
-                showConfirmButton: true,
-                confirmButtonText:
-                    'Relatório Padrão',
-                showCancelButton: true,
-                cancelButtonText:
-                    'Customizar Relatório'
-            }).then((result) => {
-                if (result.value) {
-                    window.open("{{env('APP_URL')}}/consultas/impresso/itens", "_blank");
-                } else if (result.dismiss == 'cancel') {
-                    personalizarRelatorioPDF(dadosLista);
+        function buscarSelectRelatorio() {
+        
+            $.ajax({
+                type: 'post',
+                datatype: 'json',
+                data: {
+                    '_token': '{{csrf_token()}}',
+                    'TIPO': codigoRelatorio
+                },
+                url: "{{route('relatorio.buscar.modelo')}}",
+                success: function (r) {
+                    var dadosModeloRelatorio = r.dados;
+
+                    popularSelectRelatorio(dadosModeloRelatorio);
+                },
+                error: function (e) {
+                    console.log(e)
+                    informarErro('Não foi possivel obter dados, favor entrar em contato com o suporte.')
                 }
             })
+        }
+
+        function popularSelectRelatorio(dados){
+            var htmlTabela = `<option value="0">Selecionar Relatorio</option>`;
+
+            for(i=0; i< dados.length; i++){
+                var materialKeys = Object.keys(dados[i]);
+                for(j=0;j<materialKeys.length;j++){
+                    if(dados[i][materialKeys[j]] == null){
+                        dados[i][materialKeys[j]] = "";
+                    }
+                }
+
+                htmlTabela += `
+                    <option value="${dados[i]['CODIGO']}">${dados[i]['NOME']}</option>`;
+            }
+            $('#selectModeloRelatorio').html(htmlTabela)
+        }
+
+        function buscarDados() {
+            if($('#selectModeloRelatorio').val() == '0'){
+                dispararAlerta('warning', 'Selecione um relatório para poder gerar.')
+            } else {
+        
+                $.ajax({
+                    type: 'post',
+                    datatype: 'json',
+                    data: {
+                        '_token': '{{csrf_token()}}',
+                        'CODIGO': $('#selectModeloRelatorio').val()
+                    },
+                    url: "{{route('relatorio.buscar.dados')}}",
+                    success: function (r) {
+                        dadosRelatorio = r.dados;
+        
+                        popularTabelaDados(dadosRelatorio);
+                    },
+                    error: function (e) {
+                        console.log(e)
+                        informarErro('Não foi possivel obter dados, favor entrar em contato com o suporte.')
+                    }
+                })
+            }
+        }
+        
+        function popularTabelaDados(Dados) {
+            // Verifica se há dados
+            if (Dados.length === 0) return;
+            
+            // Pega as chaves do primeiro objeto para criar o cabeçalho
+            var DadosKeys = Object.keys(Dados[0]);
+            var htmlHead = '<tr>';
+            var htmlDados = '';
+            
+            // Cria o cabeçalho da tabela
+            for (j = 0; j < DadosKeys.length; j++) {
+                htmlHead += `<th><center>${DadosKeys[j]}</center></th>`;
+            }
+            htmlHead += '</tr>';
+            $('#tableHeadRelatorio').html(htmlHead);
+            
+            // Preenche as linhas da tabela
+            for (i = 0; i < Dados.length; i++) {
+                htmlDados += '<tr>';
+                for (j = 0; j < DadosKeys.length; j++) {
+                    var valor = Dados[i][DadosKeys[j]] === null ? '' : Dados[i][DadosKeys[j]];
+                    htmlDados += `<td><center>${valor}</center></td>`;
+                }
+                htmlDados += '</tr>';
+            }
+            
+            $('#tableBodyRelatorio').html(htmlDados);
+        }
+
+        function gerarRelatorioPDF(){
+            if(dadosRelatorio == null){
+                dispararAlerta('warning', 'Gere um relatório para poder imprimir')
+            } else {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Atenção!',
+                    text: 'Selecione o relatório para impressão:',
+                    showCloseButton: false,
+                    showConfirmButton: true,
+                    confirmButtonText:
+                        'Relatório Padrão',
+                    showCancelButton: true,
+                    cancelButtonText:
+                        'Customizar Relatório'
+                }).then((result) => {
+                    if (result.value) {
+                        window.open("{{env('APP_URL')}}/relatorios/impresso", "_blank");
+                    } else if (result.dismiss == 'cancel') {
+                        personalizarRelatorioPDF(dadosRelatorio);
+                    }
+                })
+            }
         }
 
         function personalizarRelatorioPDF(data) {
@@ -155,9 +255,9 @@
                        '_token':'{{csrf_token()}}',
                        'DADOS_CACHE': dadosFiltrados.dados
                     },
-                    url:"",
+                    url:"{{route('relatorio.cache')}}",
                     success:function(r){
-                        window.open("{{env('APP_URL')}}/consultas/impresso/customizavel/itens", "_blank");
+                        window.open("{{env('APP_URL')}}/relatorios/impresso", "_blank");
                     },
                     error:err=>{exibirErroAJAX(err)}
                 });
@@ -169,5 +269,17 @@
                 )
             }
         }
+
+        $('#btnGerarRelatorio').on('click', () => {
+            buscarDados();
+        })
+
+        $('#btnImprimirRelatorio').on('click', () => {
+            gerarRelatorioPDF();
+        })
+
+        $(document).ready(function() {
+            buscarSelectRelatorio();
+        })
     </script>
 @stop

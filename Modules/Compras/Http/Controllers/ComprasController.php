@@ -346,7 +346,7 @@ class ComprasController extends Controller
             $resultUpdateAprovacao = DB::select($queryUpdateAprovacao);
 
             $queryCPG = "INSERT INTO contas_pagar (ID_USUARIO, DESCRICAO, DATA_VENCIMENTO, VALOR, SITUACAO, DATA_PAGAMENTO, OBSERVACAO, ID_ORIGEM) 
-                                    VALUES ($idUsuario, 'Ordem de Compra $idCodigo', now(), {$dadosOrdem->VALOR}, 'PENDENTE', now(), 'CPG automático referente a APROVAÇÃO da ordem de compra : {$dadosOrdem->ID}-{$dadosOrdem->OBSERVACAO}.', 7)";
+                                    VALUES ($idUsuario, 'Ordem de Compra $idCodigo', now(), {$dadosOrdem->VALOR}, 'PENDENTE', now(), 'CPG automático referente a APROVAÇÃO da ordem de compra : {$dadosOrdem->ID}-{$dadosOrdem->OBSERVACAO}.', 5)";
             $result = DB::select($queryCPG);            
             
         }

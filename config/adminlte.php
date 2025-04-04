@@ -333,7 +333,7 @@ return [
                 ],
                 [
                     'text' => 'Relatórios de Estoque',
-                    'url'  => 'materiais/relatorios',
+                    'url'  => 'relatorios/material',
                     'icon' => 'fas fa-print',
                     'can'  => 'ESTOQUE_RELATORIO'
                 ], 
@@ -351,7 +351,7 @@ return [
                 ], 
                 [
                     'text' => 'Relatórios de Compras',
-                    'url'  => 'compras/relatorios',
+                    'url'  => 'relatorios/compras',
                     'icon' => 'fas fa-print',
                     'can'  => 'COMPRAS_RELATORIO'
                 ], 
@@ -412,7 +412,7 @@ return [
                     'text' => 'Relatórios Financeiros',
                     'url'  => 'financeiro/relatorios',
                     'icon' => 'fas fa-print',
-                    'can'  => 'FINANCEIRO_RELATORIOS'
+                    'can'  => 'INATIVO'
                 ], 
             ]
         ], 

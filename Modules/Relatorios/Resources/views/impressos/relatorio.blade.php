@@ -41,26 +41,32 @@
         </div>
     </div>
 
-    <div class="certificado-container">
-        <div class="certificado">
-            <h1 id="titulo">{{$tituloRelatorio}}</h1>
-        </div>
+    <hr>
+    
+    <div style="font-size: 15px">
+        <center>
+            <b>{{$tituloRelatorio}}</b>
+        </center>
+    </div>
+    <hr>
 
-        <table>
+    <div>
+
+        <table style="width: 100%">
             <thead>
                 <tr>
-                    @if (count($dadosListaItens) > 0)
-                        @foreach(array_keys(get_object_vars($dadosListaItens[0])) as $column)
+                    @if (count($dadosRelatorioGSS) > 0)
+                        @foreach(array_keys(get_object_vars($dadosRelatorioGSS[0])) as $column)
                             <th>{{ $column }}</th>
                         @endforeach
                     @endif
                 </tr>
             </thead>
             <tbody>
-                @foreach($dadosListaItens as $dadoLista)
+                @foreach($dadosRelatorioGSS as $dadoLista)
                     <tr>
                         @foreach(array_keys(get_object_vars($dadoLista)) as $column)
-                            <td>{{ $dadoLista->$column }}</td>
+                            <td style="border: 1px solid black;font-size: 13px">{{ $dadoLista->$column }}</td>
                         @endforeach
                     </tr>
                 @endforeach
