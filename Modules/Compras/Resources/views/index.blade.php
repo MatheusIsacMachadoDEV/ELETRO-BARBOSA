@@ -434,19 +434,37 @@
                                         </div>
                                     `;
 
-                
+                var badgeSituacao = `<span class="right badge ${classeBadgeSituacao}">${dados[i]['SITUACAO']}</span>`;
+
                 htmlTabela += `
                     <tr id="tableRow${dados[i]['ID']}" class="d-none d-lg-table-row">
                         <td class="tdTexto" style="padding-left: 5px!important">${dados[i]['ID']} - ${dados[i]['USUARIO']}</td>
                         <td class="tdTexto"><center>${dataFormatada}</center></td>
                         <td class="tdTexto"><center>${mascaraFinanceira(dados[i]['VALOR'])}</center></td>
-                        <td class="tdTexto"><center><span class="right badge ${classeBadgeSituacao}">${dados[i]['SITUACAO']}</span></center></td>
+                        <td class="tdTexto"><center>${badgeSituacao}</center></td>
                         <td class="tdTexto"><center>${situacaoAprovacao}</center></td>
                         <td class="tdTexto"><center>${dados[i]['OBSERVACAO'].substr(0, 20)}</center></td>
                         <td>
                             <center>
                             ${btnOpcoes}
                             </center>
+                        </td>
+                    </tr>                   
+                    <tr></tr>
+                    <tr class="d-lg-none">
+                        <td class="row d-flex ">
+                            <div class="col-12 d-flex justify-content-center">
+                                <span><b>${dados[i]['ID']} - ${dados[i]['USUARIO']}</b></span>
+                                <span><b>${badgeSituacao}</b></span>
+                            </div>
+                            <div class="col-12 d-flex justify-content-between">
+                                <span><b>${dataFormatada}</b></span>
+                                <span><b>${mascaraFinanceira(dados[i]['VALOR'])}</b></span>
+                                <span><b>${situacaoAprovacao}</b></span>
+                            </div>
+                            <div class="col-12 d-flex justify-content-center">
+                                <span><b>${dados[i]['OBSERVACAO'].substr(0, 20)}</b></span>
+                            </div>
                         </td>
                     </tr>
                 `;

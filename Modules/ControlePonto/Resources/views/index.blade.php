@@ -256,6 +256,28 @@
                             </center>
                         </td>
                     </tr>
+
+                    <tr></tr>
+
+                    <tr class="d-lg-none">
+                        <td class="row d-flex ">
+                            <div class="col-12 d-flex justify-content-center">
+                                <span><b>${dados[i]['NOME_USUARIO']}</b></span>
+                            </div>
+                            <div class="col-12 d-flex justify-content-center">
+                                Entrada: <b>${moment(dados[i]['DATA_ENTRADA']).format('DD/MM/YYYY HH:mm:ss')}</b>
+                            </div>
+                            <div class="col-12 d-flex justify-content-center">
+                                Saída: <b>${dataSaida}</b>
+                            </div>
+                            <div class="col-12 d-flex justify-content-center">
+                                Tempo: <b>${tempoApontamento}</b>
+                            </div>
+                            <div class="col-12 d-flex justify-content-center">
+                                ${btnAcoes}
+                            </div>
+                        </td>
+                    </tr>
                 `;
             }
 
@@ -268,7 +290,7 @@
 
             // Adiciona linha de total
             htmlTabela += `
-                <tr style="background-color: #f8f9fa; font-weight: bold;">
+                <tr style="background-color: #f8f9fa; font-weight: bold;" class="d-none d-lg-table-row">
                     <td colspan="3" style="text-align: right;">Tempo Total:</td>
                     <td><center>${tempoTotalFormatado}</center></td>
                     <td colspan="3"></td>

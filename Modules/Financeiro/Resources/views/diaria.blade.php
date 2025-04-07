@@ -35,14 +35,14 @@
                 <table class="table">
                     <thead>
                         <tr>
-                            <th>Funcionário</th>
-                            <th><center>Data Início</center></th>
-                            <th><center>Data Fim</center></th>
-                            <th><center>Tempo (Dias)</center></th>
-                            <th><center>Valor por Dia</center></th>
-                            <th><center>Valor Total</center></th>
-                            <th><center>Paga</center></th>
-                            <th><center>Ações</center></th>
+                            <th class="d-none d-lg-table-cell">Funcionário</th>
+                            <th class="d-none d-lg-table-cell"><center>Data Início</center></th>
+                            <th class="d-none d-lg-table-cell"><center>Data Fim</center></th>
+                            <th class="d-none d-lg-table-cell"><center>Tempo (Dias)</center></th>
+                            <th class="d-none d-lg-table-cell"><center>Valor por Dia</center></th>
+                            <th class="d-none d-lg-table-cell"><center>Valor Total</center></th>
+                            <th class="d-none d-lg-table-cell"><center>Paga</center></th>
+                            <th class="d-none d-lg-table-cell"><center>Ações</center></th>
                         </tr>
                     </thead>
                     <tbody id="tableBodyDiarias">
@@ -255,20 +255,41 @@
                                                 ${btnArquivos}                                          
                                             </ul>
                                         </div>`;
+                
+                var spanDiariaPaga = `<span class="badge ${classeDiariaPaga}">${diariaPaga}</span>`;
 
                 htmlTabela += `
-                    <tr>
+                    <tr class="d-none d-lg-table-row">
                         <td>${dados[i]['NOME_USUARIO']}</td>
                         <td><center>${dataInicio}</center></td>
                         <td><center>${dataFim}</center></td>
                         <td><center>${dados[i]['TEMPO_DIAS']} dias</center></td>
                         <td><center>${mascaraFinanceira(dados[i]['VALOR_DIA'])}</center></td>
                         <td><center>${mascaraFinanceira(dados[i]['VALOR_TOTAL'])}</center></td>
-                        <td><center><span class="badge ${classeDiariaPaga}">${diariaPaga}</span></center></td>
+                        <td><center>${spanDiariaPaga}</center></td>
                         <td>
                             <center>
                                 ${btnOpcoes}
                             </center>
+                        </td>
+                    </tr>
+
+                    <tr></tr>
+
+                    <tr class="d-lg-none">
+                        <td class="row d-flex ">
+                            <div class="col-12 d-flex justify-content-center">
+                                <span><b>${dados[i]['NOME_USUARIO']}</b> ${spanDiariaPaga}</span>
+                            </div>
+                            <div class="col-12 d-flex justify-content-center">
+                                ${dataInicio} - ${dataFim} (${dados[i]['TEMPO_DIAS']} DIAS)
+                            </div>
+                            <div class="col-12 d-flex justify-content-center">
+                                ${mascaraFinanceira(dados[i]['VALOR_TOTAL'])} (${mascaraFinanceira(dados[i]['VALOR_DIA'])} / DIA)
+                            </div>
+                            <div class="col-12 d-flex justify-content-center">
+                                ${btnOpcoes}
+                            </div>
                         </td>
                     </tr>
                 `;

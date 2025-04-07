@@ -14,10 +14,10 @@
                         <table class="table table-bordered">
                             <thead>
                                 <tr>
-                                    <th>ID</th>
-                                    <th>Projeto</th>
-                                    <th>Progresso</th>
-                                    <th>%</th>
+                                    <th class="d-none d-lg-table-cell">ID</th>
+                                    <th class="d-none d-lg-table-cell">Projeto</th>
+                                    <th class="d-none d-lg-table-cell">Progresso</th>
+                                    <th class="d-none d-lg-table-cell">%</th>
                                 </tr>
                             </thead>
                             <tbody id="tabelaObrasAndamento">
@@ -36,10 +36,10 @@
                         <table class="table table-bordered">
                             <thead>
                                 <tr>
-                                    <th>Projeto</th>
-                                    <th>Valor</th>
-                                    <th>Gastos</th>
-                                    <th>Lucro</th>
+                                    <th class="d-none d-lg-table-cell">Projeto</th>
+                                    <th class="d-none d-lg-table-cell">Valor</th>
+                                    <th class="d-none d-lg-table-cell">Gastos</th>
+                                    <th class="d-none d-lg-table-cell">Lucro</th>
                                 </tr>
                             </thead>
                             <tbody id="tabelaGastos">
@@ -217,6 +217,18 @@
                         <td class="tdTexto"><span class="badge bg-info">${mascaraFinanceira(dados[i]['VALOR'])}</span></td>
                         <td class="tdTexto"><span class="badge bg-warning">${mascaraFinanceira(dados[i]['VALOR_GASTO'])}</span></td>
                         <td class="tdTexto"><span class="badge bg-success">${mascaraFinanceira(dados[i]['VALOR'] - dados[i]['VALOR_GASTO'])}</span></td>
+                    </tr>                    
+
+                    <tr class="d-lg-none">
+                        <td class="row d-flex ">
+                            <div class="col-12 d-flex justify-content-center">
+                                <span><b>${dados[i]['TITULO']}</b> - ${mascaraFinanceira(dados[i]['VALOR'])}</span>
+                            </div>
+                            <div class="col-12 d-flex justify-content-between">
+                                <span>Gasto : <b>${mascaraFinanceira(dados[i]['VALOR_GASTO'])}</b></span>
+                                <span>Lucro : <b>${mascaraFinanceira(dados[i]['VALOR'] - dados[i]['VALOR_GASTO'])}</b></span>
+                            </div>
+                        </td>
                     </tr>
                 `;
             }
@@ -242,15 +254,31 @@
                 } else if(porcentagemConcluido > 70){
                     corPorcentagem = 'bg-success';
                 }
+
+                var spanPorcentagemBarra = `<span class="progress-bar ${corPorcentagem}" style="width: ${porcentagemConcluido}%"></span>`
+                var spanPorcentagem = `<span class="badge ${corPorcentagem}">${porcentagemConcluido} %</span>`
                 
                 htmlTabela += `
                     <tr id="tableRowdados" class="d-none d-lg-table-row">
                         <td class="tdTexto" style="padding-left: 5px!important">${dados[i]['ID']}</td>
                         <td class="tdTexto">${dados[i]['TITULO']}</td>
                         <td class="progress progress-sm mt-2">
-                            <span class="progress-bar ${corPorcentagem}" style="width: ${porcentagemConcluido}%"></span>
+                            ${spanPorcentagemBarra}
                         </td>
-                        <td class="tdTexto"><span class="badge ${corPorcentagem}">${porcentagemConcluido} %</span></td>
+                        <td class="tdTexto">
+                            ${spanPorcentagem}                            
+                        </td>
+                    </tr>
+
+                    <tr class="d-lg-none">
+                        <td class="row d-flex ">
+                            <div class="col-12 d-flex justify-content-center">
+                                <span> ${dados[i]['ID']} - <b>${dados[i]['TITULO']}</b></span>
+                            </div>
+                            <div class="col-12 d-flex justify-content-center">
+                                ${spanPorcentagem}
+                            </div>
+                        </td>
                     </tr>
                 `;
             }
