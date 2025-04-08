@@ -109,4 +109,25 @@ class DashboardController extends Controller
             ]
         ]);
     }
+
+    public function buscarCards(Request $request){
+        $dadosRecebidos = $request->except("_token");
+        $return = [];
+
+        $query = "SELECT (SELECT COUNT(*)
+                            FROM users
+                           WHERE 1 = 1) AS TOTAL_USUARIOS
+                        , (SELECT COUNT(*)
+                             FROM projeto
+                            WHERE STATUS = 'A'
+                              AND PAGAMENTO_REALIZADO = 'N') AS TOTAL_PROJETOS
+                        , (SELECT COUNT(*)
+                             FROM pessoa
+                            WHERE STATUS = 'A'
+                              AND ID_TIPO = 2) AS TOTAL_CLIENTES
+                    FROM dual";
+        $return['dados'] = DB::select($query);
+
+        return $return;
+    }
 }

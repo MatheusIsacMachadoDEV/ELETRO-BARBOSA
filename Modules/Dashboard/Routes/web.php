@@ -16,6 +16,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/', 'DashboardController@index');
 
         Route::post('/projeto/valores', 'DashboardController@buscarProjetosValores')->name('dashboard.buscar.projeto.valores');
+        Route::post('/buscar/cards', 'DashboardController@buscarCards')->name('dashboard.buscar.cards');
         Route::post('/projeto/grafico', 'DashboardController@graficoValores')->name('dashboard.buscar.grafico.valores');
     });
 });

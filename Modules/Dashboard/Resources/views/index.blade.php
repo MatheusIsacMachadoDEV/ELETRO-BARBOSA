@@ -4,6 +4,44 @@
 
 @section('content')
     <div class="container">
+
+        <div class="row">
+            <div class="col-md-4">
+                <div class="small-box bg-info">
+                    <div class="inner">
+                        <h3 id="totalUsuarios">0</h3>
+                        <p>Total de Usuários</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="small-box bg-success">
+                    <div class="inner">
+                        <h3 id="totalClientes">0</h3>
+                        <p>Total de Clientes</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-building"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="small-box bg-warning">
+                    <div class="inner">
+                        <h3 id="totalProjetos">0</h3>
+                        <p>Projetos em Execução</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fas fa-file-powerpoint"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @CAN('ADMINISTRADOR')
         <div class="row pt-1">
             <div class="col-md-6">
                 <div class="card">
@@ -103,6 +141,7 @@
                 </div>
             </div>
         </div>
+        @ENDCAN
     </div>
 @stop
 
@@ -196,6 +235,26 @@
                 success:function(r){
                     popularListaDadosProjetosAndamento(r.dados);
                     popularListaDadosGastosLucro(r.dados);
+                },
+                error:err=>{exibirErro(err)}
+            })
+        }
+
+        function buscarCards(){
+            editar = false;
+            $.ajax({
+                type:'post',
+                datatype:'json',
+                data:{
+                    '_token':'{{csrf_token()}}'
+                },
+                url:"{{route('dashboard.buscar.cards')}}",
+                success:function(r){
+                    var dados = r.dados[0];
+
+                    $('#totalUsuarios').text(dados['TOTAL_USUARIOS']);
+                    $('#totalProjetos').text(dados['TOTAL_PROJETOS']);
+                    $('#totalClientes').text(dados['TOTAL_CLIENTES']);
                 },
                 error:err=>{exibirErro(err)}
             })
@@ -361,6 +420,7 @@
 
             buscarDadosProjetosValores();
             buscarDadosProjetos();
+            buscarCards();
         })
     </script>
 @stop
