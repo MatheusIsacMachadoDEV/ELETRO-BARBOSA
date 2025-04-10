@@ -67,6 +67,10 @@ class ProjetoController extends Controller
             $filtro = "";
         }
 
+        if(isset($dadosRecebidos['BUSCAR_TODOS']) && $dadosRecebidos['BUSCAR_TODOS'] == 'S'){
+            $filtroAdministrador = "AND 1 = 1";
+        }
+
         $query = "SELECT p.*
                        , (SELECT name
                             FROM users

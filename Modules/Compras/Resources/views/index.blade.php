@@ -1053,7 +1053,8 @@
                     method: 'post',
                     data: {
                         '_token': '{{csrf_token()}}',
-                        'filtro': param
+                        'filtro': param,
+                        'BUSCAR_TODOS': 'S'
                     },
                     dataType: 'json',
                     success: function(r) {
