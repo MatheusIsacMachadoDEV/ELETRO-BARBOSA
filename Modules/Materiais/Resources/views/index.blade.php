@@ -37,10 +37,8 @@
                         <input type="text" class="form-control form-control-border" id="inputMaterialDescricaoFiltro" placeholder="Material/Marca" onkeyup="buscarMaterial()">
                     </div>
                     <div class="col-12 col-md-3">
-                        <select id="selectFiltroTipo" class="form-control form-control-border">
-                            <option value="0">Todos os Tipos</option>
-                            <option value="1">Estoque</option>
-                            <option value="2">Obra</option>
+                        <select id="selectFiltroTipo" class="selectTipoMaterial form-control form-control-border">
+                            <option value="0">Tipo de Material</option>
                         </select>
                     </div>
                     <div class="col-12 col-md-3">
@@ -115,10 +113,8 @@
                             <input type="text" class="form-control form-control-border  col-12" id="inputMaterialQtde" placeholder="Quantidade">
                         </div>
                         <div class="form-group col-4 col-md-2">
-                            <label>Tipo do Material</label>
-                            <select id="selectMaterialTipo" class="form-control  form-control-border">
-                                <option value="1">Estoque</option>
-                                <option value="2">Obra</option>
+                            <label>Tipo de Material</label>
+                            <select id="selectMaterialTipo" class="selectTipoMaterial form-control  form-control-border">
                             </select>
                         </div>
                         <div class="form-group col-4 col-md-3">
@@ -446,6 +442,40 @@
             })
         }  
 
+        function buscarTipoMaterial(){
+            editarMaterial = false;
+            $.ajax({
+                type:'post',
+                datatype:'json',
+                data:{
+                    '_token':'{{csrf_token()}}',
+                    'TIPO': 'MATERIAL'
+                },
+                url:"{{route('buscar.situacoes')}}",
+                success:function(r){
+                    popularTipoMaterial(r.dados);
+                },
+                error:err=>{exibirErro(err)}
+            })
+        }
+
+        function popularTipoMaterial(dados){
+            var htmlTabela = `<option value="0">Tipo de Material</option>`;
+
+            for(i=0; i< dados.length; i++){
+                var materialKeys = Object.keys(dados[i]);
+                for(j=0;j<materialKeys.length;j++){
+                    if(dados[i][materialKeys[j]] == null){
+                        dados[i][materialKeys[j]] = "";
+                    }
+                }
+
+                htmlTabela += `
+                    <option value="${dados[i]['ID_ITEM']}">${dados[i]['VALOR']}</option>`;
+            }
+            $('.selectTipoMaterial').html(htmlTabela)
+        }
+
         function popularListaMaterial(produto){
             var htmlTabela = "";
 
@@ -457,7 +487,7 @@
                     }
                 }
 
-                var tipoMaterial = 'Estoque';
+                var tipoMaterial = produto[i]['NOME_TIPO_MATERIAL'];
                 var situacaoMaterial = 'Disponível';
                 var classeSituacao = 'bg-success';
                 var dataUltimaRetirada = produto[i]['DATA_ULTIMA_RETIRADA'].length > 0 ? moment(produto[i]['DATA_ULTIMA_RETIRADA']).format('DD/MM/YYYYY') : '-';
@@ -465,10 +495,6 @@
                 if(produto[i]['SITUACAO'] == 2){
                     situacaoMaterial = 'Retirado';
                     classeSituacao = 'bg-warning';
-                }
-
-                if(produto[i]['TIPO_MATERIAL'] == 2){
-                    tipoMaterial = 'Obra';
                 }
 
                 btnEtiqueta = `<li class="dropdown-item" onclick="gerarEtiqueta(${produto[i]['ID']})"><span class="btn"><i class="fas fa-tag"></i> Gerar Etiqueta</span></li>`;
@@ -933,6 +959,7 @@
         });
         
         $(document).ready(() => {
+            buscarTipoMaterial();
             buscarMaterial();
             buscarMarca();
         })

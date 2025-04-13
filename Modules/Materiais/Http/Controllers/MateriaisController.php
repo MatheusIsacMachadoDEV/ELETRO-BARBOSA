@@ -85,6 +85,10 @@ class MateriaisController extends Controller
                             FROM pessoa
                            WHERE ID = material.ID_FORNECEDOR
                              AND STATUS = 'A') AS FORNECEDOR
+                       , (SELECT VALOR
+                            FROM situacoes
+                           WHERE TIPO = 'MATERIAL'
+                             AND ID_ITEM = material.TIPO_MATERIAL) as NOME_TIPO_MATERIAL
                     FROM material
                    WHERE STATUS = 'A'
                    $filtro
