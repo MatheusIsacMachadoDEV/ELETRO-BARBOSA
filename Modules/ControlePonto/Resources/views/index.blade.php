@@ -4,7 +4,7 @@
 
 @extends('adminlte::page')
 
-@section('title', 'GSSoftware')
+@section('title', 'Ponto Eletrônico')
 
 @section('content')
     <div class="content-title">

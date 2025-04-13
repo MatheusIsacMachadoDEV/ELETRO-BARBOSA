@@ -194,6 +194,8 @@
 
     <script>
 
+        var timeoutCalculo = 0;
+
         function exibirModalCadastro(){
             resetarCamposCadastro();
 
@@ -466,6 +468,28 @@
             limparCampo('inputFuncionario', 'inputIDFuncionario', 'btnLimparFuncionario');
         }
 
+        function calcularValorTotal(){
+            const dataInicio = new Date($('#inputDataInicio').val());
+            const dataFim = new Date($('#inputDataFim').val());
+            const valorDia = parseFloat($('#inputValorDia').val());
+
+            if(moment(dataInicio).isAfter(moment(dataFim))){
+                $('#inputDataInicio').val('');
+                $('#inputDataFim').val('');
+
+                $('#inputValorDia').val('0');
+                $('#inputValorTotal').val('0');
+
+                dispararAlerta('warning', 'A data de inicio não pode ser maior que a data final.');
+            } else {
+                if (dataInicio && dataFim && valorDia) {
+                    const tempoDias = ((dataFim - dataInicio) / (1000 * 60 * 60 * 24)) + 1;
+                    const valorTotal = tempoDias * valorDia;
+                    $('#inputValorTotal').val(valorTotal.toFixed(2));
+                }
+            }
+        }
+
         // DOCUMENTOS
             function buscarDocumentos(){
                 $.ajax({
@@ -632,15 +656,11 @@
     
         // Calcular valor total
         $('#inputDataFim, #inputValorDia').on('change', function() {
-            const dataInicio = new Date($('#inputDataInicio').val());
-            const dataFim = new Date($('#inputDataFim').val());
-            const valorDia = parseFloat($('#inputValorDia').val());
+            clearTimeout(timeoutCalculo);
 
-            if (dataInicio && dataFim && valorDia) {
-                const tempoDias = (dataFim - dataInicio) / (1000 * 60 * 60 * 24);
-                const valorTotal = tempoDias * valorDia;
-                $('#inputValorTotal').val(valorTotal.toFixed(2));
-            }
+            timeoutCalculo = setTimeout(() => {
+                calcularValorTotal();
+            }, 1000);
         });
 
         // Inserir/Editar Diária
