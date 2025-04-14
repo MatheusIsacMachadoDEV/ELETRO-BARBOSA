@@ -88,6 +88,16 @@
 
                         <div class="col-12 row d-flex p-0 m-0">
                             <div class="col">
+                                <input type="text" class="form-control form-control-border col-12" placeholder="Cliente" id="inputCadastroCliente">
+                                <input type="hidden" id="inputCadastroIDCliente">
+                            </div>
+                            <div class="col btnLimparCadastroCliente d-none">
+                                <button id="btnLimparCadastroCliente" class="btnLimparCadastroCliente btn btn-sm btn-danger d-none col-12"><i class="fas fa-eraser"></i>LIMPAR</button>
+                            </div>
+                        </div>
+
+                        <div class="col-12 row d-flex p-0 m-0">
+                            <div class="col">
                                 <input type="text" class="form-control form-control-border col-12" placeholder="Projeto" id="inputCadastroProjeto">
                                 <input type="hidden" id="inputCadastroIDProjeto">
                             </div>
@@ -285,6 +295,14 @@
                     if(dados['ID_PROJETO'] > 0){                        
                         $('#inputCadastroProjeto').attr('disabled', true);
                         $('.btnLimparProjeto').removeClass('d-none');
+                    }
+
+                    $('#inputCadastroCliente').val(dados['NOME_CLIENTE']);
+                    $('#inputCadastroIDCliente').val(dados['ID_PESSOA']);
+
+                    if(dados['ID_PESSOA'] > 0){                        
+                        $('#inputCadastroCliente').attr('disabled', true);
+                        $('.btnLimparCadastroCliente').removeClass('d-none');
                     }
                     
                     dadosItens = dados['ITENS'];
@@ -567,6 +585,8 @@
                 var projeto = $('#inputCadastroProjeto').val();
                 var idProjeto = $('#inputCadastroIDProjeto').val();
                 var observacao = $('#inputCadastroObservacao').val();
+                var cliente = $('#inputCadastroCliente').val();
+                var idCliente = $('#inputCadastroIDCliente').val();
             
                 if(cadastroID == 0){
                     $.ajax({
@@ -579,6 +599,8 @@
                             'idProjeto': idProjeto,
                             'observacao': observacao,
                             'dadosItens': dadosItens,
+                            'cliente': cliente,
+                            'idCliente': idCliente,
                         },
                         url:"{{route('compras.inserir.ordem')}}",
                         success:function(r){
@@ -606,6 +628,8 @@
                             'observacao': observacao,
                             'dadosItens': dadosItens,
                             'ID': cadastroID,
+                            'cliente': cliente,
+                            'idCliente': idCliente,
                         },
                         url:"{{route('compras.alterar.ordem')}}",
                         success:function(r){
@@ -788,6 +812,7 @@
             $('#inputCadastroProjeto').prop('disabled', false)
 
             limparCampo('inputCadastroProjeto', 'inputCadastroIDProjeto', 'btnLimparProjeto');
+            limparCampo('inputCadastroCliente', 'inputCadastroIDCliente', 'btnLimparCadastroCliente');
 
             dadosItens = [];
             valorTotalOrdem = 0;
@@ -1001,6 +1026,45 @@
             }
         });
 
+        $("#inputCadastroCliente").autocomplete({
+            source: function(request, cb) {
+                param = request.term;
+                $.ajax({
+                    url: "{{route('pessoa.buscar')}}",
+                    method: 'post',
+                    data: {
+                        '_token': '{{csrf_token()}}',
+                        'FILTRO_BUSCA': param,
+                        'ID_TIPO': 1
+                    },
+                    dataType: 'json',
+                    success: function(r) {
+                        result = $.map(r, function(obj) {
+                            return {
+                                label: obj.info,
+                                value: obj.NOME,
+                                data: obj
+                            };
+                        });
+                        cb(result);
+                    },
+                    error: err => {
+                        console.log(err);
+                    }
+                });
+            },
+            select: function(e, selectedData) {
+                if (selectedData.item.label != 'Nenhum Funcionário Encontrado.') {
+                    $('#inputCadastroCliente').val(selectedData.item.data.NOME);
+                    $('#inputCadastroIDCliente').val(selectedData.item.data.ID);
+                    $('#inputCadastroCliente').attr('disabled', true);
+                    $('.btnLimparCadastroCliente').removeClass('d-none');
+                } else {
+                    limparCampo('inputCadastroCliente', 'inputCadastroIDCliente', 'btnLimparCadastroCliente');
+                }
+            }
+        });
+
         $('#btnCadastroSalvar').on('click', () => {
             inserirOrdemServico();
         });
@@ -1086,6 +1150,10 @@
 
         $('#btnLimparProjeto').click(function() {
             limparCampo('inputCadastroProjeto', 'inputCadastroIDProjeto', 'btnLimparProjeto');
+        });
+
+        $('#btnLimparCadastroCliente').click(function() {
+            limparCampo('inputCadastroCliente', 'inputCadastroIDCliente', 'btnLimparCadastroCliente');
         });
 
         $(document).ready(function() {

@@ -95,16 +95,22 @@
                         <div class="form-group col-12 col-md-4">
                             <input type="date"  class="form-control form-control-border" id="inputDataNascimento" placeholder="Data de Nascimento">
                         </div>
+                        <div class="form-group col-12 col-md-2">
+                            <input type="text"  class="form-control form-control-border" id="inputCEP" placeholder="CEP">
+                        </div>
                         <div class="form-group col-12 col-md-8">
                             <input type="text"  class="form-control form-control-border" id="inputRua" placeholder="Rua">
                         </div>
-                        <div class="form-group col-12 col-md-4">
+                        <div class="form-group col-12 col-md-2">
                             <input type="text"  class="form-control form-control-border" id="inputNumero" placeholder="Nº">
                         </div>
                         <div class="form-group col-12 col-md-6">
                             <input type="text"  class="form-control form-control-border" id="inputCidade" placeholder="Cidade">
                         </div>
-                        <div class="form-group col-12 col-md-6">
+                        <div class="form-group col-12 col-md-3">
+                            <input type="text"  class="form-control form-control-border" id="inputBairro" placeholder="Bairro">
+                        </div>
+                        <div class="form-group col-12 col-md-3">
                             <input type="text"  class="form-control form-control-border" id="inputEstado" placeholder="Estado">
                         </div>
                     </div>
@@ -346,6 +352,7 @@
         inserindoPessoa = false;
         idUsuarioPagamentoFiado = 0;
 
+        $('#inputCEP').mask('00000-000');
         $('#inputContaBancariaNumero').mask('0000000000');
         $('#inputContaBancariaAgencia').mask('0000');
         
@@ -411,6 +418,8 @@
                         'CIDADE': $('#inputCidade').val(),
                         'NUMERO': $('#inputNumero').val(),
                         'RUA': $('#inputRua').val(),
+                        'BAIRRO': $('#inputBairro').val(),
+                        'CEP': $('#inputCEP').val(),
                         },
                         url:"{{route('pessoa.inserir')}}",
                         success:function(r){
@@ -444,6 +453,8 @@
                         'CIDADE': $('#inputCidade').val(),
                         'NUMERO': $('#inputNumero').val(),
                         'RUA': $('#inputRua').val(),
+                        'BAIRRO': $('#inputBairro').val(),
+                        'CEP': $('#inputCEP').val(),
                         },
                         url:"{{route('pessoa.alterar')}}",
                         success:function(r){
@@ -548,6 +559,8 @@
                     $('#inputCidade').val(r[0]['CIDADE']);
                     $('#inputNumero').val(r[0]['NUMERO']);
                     $('#inputRua').val(r[0]['RUA']);
+                    $('#inputCEP').val(r[0]['BAIRRO']);
+                    $('#inputBairro').val(r[0]['CEP']);
 
                     if($('#selectTipoPessoa').val() == 2){
                         $('#divUsuario').removeClass('d-none');
@@ -1081,6 +1094,8 @@
             $('#inputDocumento').val('');
             $('#inputTelefone').val('');
             $('#inputDataNascimento').val('');
+            $('#inputCEP').val('');
+            $('#inputBairro').val('');
             $('#inputEmail').val('');
             $('#selectTipoPessoa').val('0');
 

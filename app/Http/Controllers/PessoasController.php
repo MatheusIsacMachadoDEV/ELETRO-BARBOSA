@@ -131,6 +131,8 @@ class PessoasController extends Controller
         $email = (isset($dadosRecebidos['email']) ? $dadosRecebidos['email'] : '');
         $ESTADO = (isset($dadosRecebidos['ESTADO']) ? $dadosRecebidos['ESTADO'] : '');
         $CIDADE = (isset($dadosRecebidos['CIDADE']) ? $dadosRecebidos['CIDADE'] : '');
+        $BAIRRO = (isset($dadosRecebidos['BAIRRO']) ? $dadosRecebidos['BAIRRO'] : '');
+        $CEP = (isset($dadosRecebidos['CEP']) ? $dadosRecebidos['CEP'] : '');
         $RUA = (isset($dadosRecebidos['RUA']) ? $dadosRecebidos['RUA'] : '');
         $NUMERO = (isset($dadosRecebidos['NUMERO']) ? $dadosRecebidos['NUMERO'] : '');
         $SALARIO_BASE = (isset($dadosRecebidos['SALARIO_BASE']) ? $dadosRecebidos['SALARIO_BASE'] : '0');
@@ -152,6 +154,8 @@ class PessoasController extends Controller
                                        , `HORAS_MENSAIS`
                                        , `CARGO`
                                        , `SALARIO_BASE`
+                                       , `BAIRRO`
+                                       , `CEP`
                                        ) VALUES (
                                        '$nome'
                                       , $documento
@@ -167,6 +171,8 @@ class PessoasController extends Controller
                                       , $HORAS_MENSAIS
                                       , '$CARGO'
                                       , $SALARIO_BASE
+                                       , $BAIRRO
+                                       , $CEP
                                       )";
         $result = DB::select($query);
 
@@ -185,6 +191,8 @@ class PessoasController extends Controller
         $ID_USUARIO = $dadosRecebidos['ID_USUARIO'];
         $ESTADO = ($dadosRecebidos['ESTADO'] == null ? '' : $dadosRecebidos['ESTADO']);
         $CIDADE = ($dadosRecebidos['CIDADE'] == null ? '' : $dadosRecebidos['CIDADE']);
+        $CEP = (isset($dadosRecebidos['CEP']) ? $dadosRecebidos['CEP'] : '');
+        $BAIRRO = (isset($dadosRecebidos['BAIRRO']) ? $dadosRecebidos['BAIRRO'] : '');
         $RUA = ($dadosRecebidos['RUA'] == null ? '' : $dadosRecebidos['RUA']);
         $NUMERO = ($dadosRecebidos['NUMERO'] == null ? '' : $dadosRecebidos['NUMERO']);
         $SALARIO_BASE = (isset($dadosRecebidos['SALARIO_BASE']) ? $dadosRecebidos['SALARIO_BASE'] : '0');
@@ -206,6 +214,8 @@ class PessoasController extends Controller
                     , `SALARIO_BASE` = '$SALARIO_BASE'
                     , `CARGO` = '$CARGO'
                     , `HORAS_MENSAIS` = '$HORAS_MENSAIS'
+                    , `BAIRRO` = '$BAIRRO'
+                    , `CEP` = '$CEP'
                 WHERE ID = $id";
         $result = DB::select($query);
 

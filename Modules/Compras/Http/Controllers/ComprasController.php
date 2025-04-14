@@ -81,6 +81,9 @@ class ComprasController extends Controller
                        , (SELECT TITULO
                             FROM projeto
                            WHERE projeto.ID = ordem_compra.ID_PROJETO) AS PROJETO
+                       , (SELECT NOME
+                            FROM pessoa
+                           WHERE pessoa.ID = ordem_compra.ID_PESSOA) AS NOME_CLIENTE
                     FROM ordem_compra
                    WHERE STATUS = 'A'
                    $filtro
@@ -134,6 +137,7 @@ class ComprasController extends Controller
         $data = $dadosRecebidos['data'];
         $valor = isset($dadosRecebidos['valorTotal']) ? $dadosRecebidos['valorTotal'] : 0;
         $idProjeto = isset($dadosRecebidos['idProjeto']) ? $dadosRecebidos['idProjeto'] : 0;
+        $idCliente = isset($dadosRecebidos['idCliente']) ? $dadosRecebidos['idCliente'] : 0;
         $observacao = $dadosRecebidos['observacao'];
         $usuario = auth()->user()->name;
         $idUsuario = auth()->user()->id;
@@ -154,6 +158,7 @@ class ComprasController extends Controller
                                             , OBSERVACAO
                                             , USUARIO
                                             , ID_USUARIO
+                                            , ID_PESSOA
                                            ) VALUES (
                                             $idCodigo
                                            , $valor
@@ -163,6 +168,7 @@ class ComprasController extends Controller
                                            , '$observacao'
                                            , '$usuario'
                                            , $idUsuario
+                                           , $idCliente
                                            )";
         $result = DB::select($query);
 
@@ -221,6 +227,7 @@ class ComprasController extends Controller
         $data = $dadosRecebidos['data'];
         $valor = isset($dadosRecebidos['valorTotal']) ? $dadosRecebidos['valorTotal'] : 0;
         $idProjeto = isset($dadosRecebidos['idProjeto']) ? $dadosRecebidos['idProjeto'] : 0;
+        $idCliente = isset($dadosRecebidos['idCliente']) ? $dadosRecebidos['idCliente'] : 0;
         $observacao = $dadosRecebidos['observacao'];
         $usuario = auth()->user()->name;
         $idUsuario = auth()->user()->id;
@@ -231,6 +238,7 @@ class ComprasController extends Controller
                        , OBSERVACAO = '$observacao'
                        , DATA_CADASTRO = '$data'
                        , ID_PROJETO = $idProjeto
+                       , ID_PESSOA = $idCliente
                    WHERE ID = $idCodigo";
         $result = DB::select($query);
 
@@ -390,6 +398,9 @@ class ComprasController extends Controller
                                         FROM situacoes
                                        WHERE situacoes.ID_ITEM = ordem_compra.ID_SITUACAO
                                          AND TIPO = 'ORDEM_COMPRA') AS SITUACAO
+                                   , (SELECT TITULO
+                                        FROM projeto
+                                       WHERE projeto.ID = ordem_compra.ID_PROJETO) AS PROJETO
                                 FROM ordem_compra
                                WHERE STATUS = 'A'
                                  AND ID = $id";
@@ -404,13 +415,19 @@ class ComprasController extends Controller
                                  AND ID_ORDEM_COMPRA = $id";
         $dadosItemOrdemCompra = DB::select($queryItemOrdemCompra);
 
+        $idPessoa = $dadosOrdemCompra->ID_PESSOA != null ? $dadosOrdemCompra->ID_PESSOA : 0;
+        $queryCliente = "SELECT pessoa.*
+                           FROM pessoa
+                          WHERE ID = '$idPessoa'";
+        $dadosCliente = count(DB::select($queryCliente)) > 0 ? DB::select($queryCliente)[0] : [];
+
         $queryEmpresa = "SELECT empresa_cliente.*
                            FROM empresa_cliente
                           WHERE ID = 1";
         $dadosEmpresa = DB::select($queryEmpresa)[0];
 
         // Carregar a view 'ORDEM-COMPRA' passando a variável $data
-        $pdf = PDF::loadView('compras::impressos.ordem-compra', compact('data', 'dadosOrdemCompra', 'dadosItemOrdemCompra', 'dadosEmpresa'));
+        $pdf = PDF::loadView('compras::impressos.ordem-compra', compact('data', 'dadosOrdemCompra', 'dadosItemOrdemCompra', 'dadosEmpresa', 'dadosCliente'));
         
         // Exibir o PDF inline no navegador
         return $pdf->stream("ORDEM-COMPRA-$id.pdf");
