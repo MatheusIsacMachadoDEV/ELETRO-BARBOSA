@@ -170,9 +170,9 @@ class PessoasController extends Controller
                                       , $ID_USUARIO
                                       , $HORAS_MENSAIS
                                       , '$CARGO'
-                                      , $SALARIO_BASE
-                                       , $BAIRRO
-                                       , $CEP
+                                      , '$SALARIO_BASE'
+                                       , '$BAIRRO'
+                                       , '$CEP'
                                       )";
         $result = DB::select($query);
 
