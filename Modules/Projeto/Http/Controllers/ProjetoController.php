@@ -271,7 +271,7 @@ class ProjetoController extends Controller
     public function inativarProjeto(Request $request)
     {
         $dadosRecebidos = $request->except('_token');
-        $idProjeto = $dadosRecebidos['ID_PROJETO'];
+        $idProjeto = $dadosRecebidos['ID'];
 
         $query = "UPDATE projeto SET STATUS = 'I' WHERE ID = $idProjeto";
         DB::update($query);
