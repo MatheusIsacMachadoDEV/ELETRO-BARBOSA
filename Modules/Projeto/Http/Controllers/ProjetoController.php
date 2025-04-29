@@ -6,6 +6,7 @@ use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use DB;
+use GuzzleHttp\Psr7\Query;
 use Illuminate\Support\Facades\Gate;
 
 class ProjetoController extends Controller
@@ -133,7 +134,12 @@ class ProjetoController extends Controller
     public function buscarDocumento(Request $request)
     {
         $dadosRecebidos = $request->except('_token');
+        $filtroTipo = "";
         $idProjeto = $dadosRecebidos['ID_PROJETO'];
+        
+        if(isset($dadosRecebidos['ID_TIPO']) && $dadosRecebidos['ID_TIPO'] > 0){
+            $filtroTipo = "AND ID_TIPO = '{$dadosRecebidos['ID_TIPO']}'";
+        }
 
         $query = "SELECT p.*
                        , (SELECT TITULO
@@ -141,7 +147,8 @@ class ProjetoController extends Controller
                            WHERE ID = p.ID_PROJETO) AS PROJETO
                     FROM projeto_documento p
                    WHERE p.STATUS = 'A' 
-                     AND ID_PROJETO = $idProjeto";
+                     AND ID_PROJETO = $idProjeto
+                     $filtroTipo";
         $result['dados'] = DB::select($query);
 
         return response()->json($result);
@@ -204,9 +211,27 @@ class ProjetoController extends Controller
         $dadosRecebidos = $request->except('_token');
         $idProjeto = $dadosRecebidos['ID_PROJETO'];
         $caminhoArquivo = $dadosRecebidos['caminhoArquivo'];
+        $ID_TIPO = $dadosRecebidos['ID_TIPO'];
 
-        $query = "INSERT INTO projeto_documento (ID_PROJETO, CAMINHO_DOCUMENTO) 
-                                    VALUES ($idProjeto, '$caminhoArquivo')";
+        $query = "INSERT INTO projeto_documento (ID_PROJETO, CAMINHO_DOCUMENTO, ID_TIPO) 
+                                    VALUES ($idProjeto, '$caminhoArquivo', $ID_TIPO)";
+        $result = DB::select($query);
+
+        return $result;
+    }
+
+    public function inserirPasta(Request $request){
+        $dadosRecebidos = $request->except('_token');
+        $NOME = $dadosRecebidos['NOME'];
+        $idUsuario = auth()->user()->id;
+
+        $queryProximoID = "SELECT COALESCE(MAX(ID_ITEM), 0) + 1 as ID_PASTA
+                             FROM situacoes
+                            WHERE TIPO = 'DOCUMENTO_PROJETO'";
+        $idPasta = DB::select($queryProximoID)[0]->ID_PASTA;                  
+
+        $query = "INSERT INTO situacoes (TIPO, VALOR, ID_ITEM, ID_USUARIO) 
+                                    VALUES ('DOCUMENTO_PROJETO', '$NOME', $idPasta, $idUsuario)";
         $result = DB::select($query);
 
         return $result;

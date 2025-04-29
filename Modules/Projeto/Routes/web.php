@@ -22,6 +22,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/inserir', 'ProjetoController@inserirProjeto')->name('projeto.inserir');
         Route::post('/inserir/documento', 'ProjetoController@inserirDocumento')->name('projeto.inserir.documento');
         Route::post('/inserir/pessoa', 'ProjetoController@inserirPessoa')->name('projeto.inserir.pessoa');
+        Route::post('/inserir/pasta', 'ProjetoController@inserirPasta')->name('projeto.inserir.pasta');
         Route::post('/alterar', 'ProjetoController@alterarProjeto')->name('projeto.alterar');
         Route::post('/inativar', 'ProjetoController@inativarProjeto')->name('projeto.inativar');
         Route::post('/inativar/documento', 'ProjetoController@inativarDocumento')->name('projeto.inativar.documento');

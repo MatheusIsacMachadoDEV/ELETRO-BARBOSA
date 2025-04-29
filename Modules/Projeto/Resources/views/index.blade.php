@@ -232,7 +232,7 @@
     </div> 
 
     <div class="modal fade" id="modal-documentacao">
-        <div class="modal-dialog modal-lg">
+        <div class="modal-dialog modal-xl">
             <div class="modal-content p-0">
                 <div class="modal-header">
                     <h5 class="modal-title" >Documentos do Projeto <span id="titleDocumento"></span></h5>
@@ -240,11 +240,21 @@
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-                <div class="modal-body">
-                    <div class="card">
+                <div class="modal-body m-0 p-0">
+                    <div class="card m-0 p-0">
                         <div class="card-header">
-                            <div class="">
-                                <div class="">
+                            <div class="row d-flex">
+                                <div class="col-12 d-flex justify-content-end">
+                                    <button class="btn btn-primary col-3" id="btnAdicionarPasta">
+                                        <i class="fas fa-plus"></i> Pasta
+                                    </button>
+                                </div>
+                                <div class="col-12">
+                                    <select id="selectTipoArquivoProjeto" class="form-control form-control-border">
+                                        <option value="0">Selecionar</option>   
+                                    </select>
+                                </div>
+                                <div class="col-12">
                                     <input type="hidden" id="inputIDProjeto">
                                     <div class="input-group">
                                         <div class="custom-file">
@@ -258,18 +268,24 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="card-body">
-                            <table class="table table-responsive-xs">
-                                <thead>
-                                    <tr>
-                                        <th>Projeto</th>
-                                        <th>Documento</th>
-                                        <th><center>Ações</center></th>
-                                    </tr>
-                                </thead>
-                                <tbody id="tableBodyDocumentos">
-                                </tbody>
-                            </table>
+                        <div class="card-body m-0 p-0">
+                            <div class="col-12">
+                                <ul class="nav nav-pills" id="ulTipoArquivo">
+                                </ul>
+                            </div>
+                            <div class="col-12">
+                                <table class="table table-responsive-xs">
+                                    <thead>
+                                        <tr>
+                                            <th>Projeto</th>
+                                            <th>Documento</th>
+                                            <th><center>Ações</center></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tableBodyDocumentos">
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -363,6 +379,29 @@
             </div>
         </div>
     </div>
+
+       <div class="modal fade" id="modal-pasta" style="display: none;" aria-hidden="true"> 
+           <div class="modal-dialog"> 
+               <div class="modal-content"> 
+                   <div class="modal-header"> 
+                       <h4 class="modal-title">Adicionar Pasta</h4> 
+                       <button type="button" class="close" data-dismiss="modal" aria-label="Close"> 
+                           <span aria-hidden="true">×</span> 
+                       </button> 
+                   </div> 
+                   <div class="modal-body"> 
+                        <div class="form-group col-12">
+                            <label>Nome da Pasta</label>
+                            <input type="text" id="inputNomePasta" class="form-control col-12" placeholder="Nome da Pasta">
+                        </div> 
+                   </div> 
+                   <div class="modal-footer justify-content-between"> 
+                       <button type="button" class="btn btn-default" data-dismiss="modal">Fechar</button> 
+                       <button type="button" class="btn btn-primary" id="btnSalvarPasta">Salvar</button> 
+                   </div> 
+               </div> 
+           </div> 
+       </div> 
 @stop
 
 @section('footer')
@@ -418,6 +457,7 @@
         let idProjetoSelecionado = 0;
         var buscarDetalhesProjetoSelecionado = false;
         var timeoutFiltro = 0;
+        var tipoArquivoBusca = 0;
 
         // Buscar Projetos
         function buscarDados() {
@@ -478,6 +518,28 @@
             });
         }
 
+        function buscarTipoArquivo(){
+            editar = false;
+            $.ajax({
+                type:'post',
+                datatype:'json',
+                data:{
+                    '_token':'{{csrf_token()}}',
+                    'TIPO': 'DOCUMENTO_PROJETO'
+                },
+                url:"{{route('buscar.situacoes')}}",
+                success:function(r){
+                    popularSelectTipoArquivo(r.dados);
+                },
+                error:err=>{exibirErro(err)}
+            })
+        }
+
+        function buscarArquivoTipo(tipoArquivo){
+            tipoArquivoBusca = tipoArquivo;
+            buscarDocumentos();
+        }
+
         // Popular lista de projetos
         function popularSelectPessoaDisponivelProjeto(dados) {
             let htmlTabela = '<option value="0">Selecionar Participante </option>';
@@ -490,6 +552,29 @@
                 `;
             });
             $('#selectPessoa').html(htmlTabela);
+        }
+
+        function popularSelectTipoArquivo(dados){
+            var htmlTabela = ``;
+            var ulTipoArquivo = ``;
+
+            for(i=0; i< dados.length; i++){
+                var materialKeys = Object.keys(dados[i]);
+                for(j=0;j<materialKeys.length;j++){
+                    if(dados[i][materialKeys[j]] == null){
+                        dados[i][materialKeys[j]] = "";
+                    }
+                }
+
+                ulTipoArquivo += `<li class="nav-item" style="cursor: pointer"><a data-toggle="tab"onclick="buscarArquivoTipo(${dados[i]['ID_ITEM']})" class="nav-link ${i > 0 ? '' : 'active'}">${dados[i]['VALOR']}</a></li>`;
+
+                htmlTabela += `
+                    <option value="${dados[i]['ID_ITEM']}">${dados[i]['VALOR']}</option>`;
+            }
+
+            $('#ulTipoArquivo').html(ulTipoArquivo);
+            
+            $('#selectTipoArquivoProjeto').html(htmlTabela);
         }
 
         function popularTabelaPessoaProjeto(dados) {
@@ -747,7 +832,39 @@
     
                         buscarPessoaProjeto(idProjeto);
                     },
-                    error:err=>{exibirErroAJAX(err)}
+                    error:err=>{exibirErro(err)}
+                })
+            }
+        }
+
+        function salvarPasta(){
+            var validacao = true;
+            var nomePasta = $('#inputNomePasta').val();
+
+            if(nomePasta.length == 0){
+                dispararAlerta('warning', 'Informe um nome para a pasta!');
+                validacao = false;
+            }
+
+            if(validacao){
+                $.ajax({
+                    type:'post',
+                    datatype:'json',
+                    data:{
+                       '_token':'{{csrf_token()}}',
+                       'NOME': nomePasta
+                    },
+                    url:"{{route('projeto.inserir.pasta')}}",
+                    success:function(r){
+                        buscarTipoArquivo();
+
+                        dispararAlerta('success', 'Pasta salva com sucesso!');
+
+                        $('#modal-pasta').modal('hide');
+
+                        buscarDocumentos();
+                    },
+                    error:err=>{exibirErro(err)}
                 })
             }
         }
@@ -986,6 +1103,14 @@
             limparCampo('inputCliente', 'inputIDCliente', 'btnLimparCliente');
         }
 
+        function adicionarPasta(){
+            $('#modal-documentacao').modal('hide');
+
+            $('#inputNomePasta').val('');
+
+            $('#modal-pasta').modal('show');
+        }
+
         // MODAL ETAPAS
             function abrirModalEtapas(idProjeto) {
                 $('#inputIDProjeto').val(idProjeto);
@@ -1085,6 +1210,7 @@
                     data:{
                         '_token':'{{csrf_token()}}',                    
                         'ID_PROJETO': $('#inputIDProjeto').val(),
+                        'ID_TIPO': tipoArquivoBusca
                     },
                     url:"{{route('projeto.buscar.documento')}}",
                     success:function(r){
@@ -1097,12 +1223,15 @@
             function cadastarDocumento(idProjeto, descricaoProjeto, buscar = false){
                 buscarDetalhesProjetoSelecionado = buscar;
 
+                buscarTipoArquivo();
+
                 $('#titleDocumento').text(idProjeto);
                 $('#inputIDProjeto').val(idProjeto);
 
                 buscarDocumentos();
 
                 $('#modal-documentacao').modal('show');
+                
             }  
 
             function inativarDocumento(idDocumento){
@@ -1210,7 +1339,8 @@
                                     '_token':'{{csrf_token()}}',
                                     'caminhoArquivo': resultUpload,
                                     'ID_PROJETO': idProjeto,
-                                    'caminho': anexoCaminho
+                                    'caminho': anexoCaminho,
+                                    'ID_TIPO': $('#selectTipoArquivoProjeto').val()
                                 },
                                 url:"{{route('projeto.inserir.documento')}}",
                                 success:function(resultInsert){
@@ -1328,6 +1458,14 @@
             concluirProjeto();
         });
 
+        $('#btnAdicionarPasta').on('click', () => {
+            adicionarPasta();
+        });
+
+        $('#btnSalvarPasta').on('click', () => {
+            salvarPasta();
+        });
+
         $('#modalEtapasProjeto').on('hidden.bs.modal', function () {
             buscarDados();
         }); 
@@ -1336,6 +1474,10 @@
             if(buscarDetalhesProjetoSelecionado){
                 detalhesProjeto(idProjetoSelecionado);
             }
+        }); 
+
+        $('#modal-pasta').on('hidden.bs.modal', function () {
+            $('#modal-documentacao').modal('show');
         }); 
 
         $(document).ready(function() {
