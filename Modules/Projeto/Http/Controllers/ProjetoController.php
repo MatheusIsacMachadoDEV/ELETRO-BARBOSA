@@ -133,6 +133,13 @@ class ProjetoController extends Controller
         $dadosRecebidos = $request->except('_token');
         $idProjeto = $dadosRecebidos['ID_PROJETO'];
         $ID_PASTA_ATUAL = $dadosRecebidos['ID_PASTA_ATUAL'];
+        $idUsuario = auth()->user()->id;              
+
+        if(Gate::allows('ADMINISTRADOR')){
+            $filtroAdministrador = "AND 1 = 1";
+        } else {
+            $filtroAdministrador = "AND ID_USUARIO = $idUsuario";
+        }
 
         $query = "  SELECT pastas.ID
                          , pastas.ID_DADO_REFERIDO AS ID_PROJETO
@@ -145,6 +152,7 @@ class ProjetoController extends Controller
                      WHERE STATUS = 'A'
                        AND ID_DADO_REFERIDO = $idProjeto
                        AND ID_PASTA_PAI = $ID_PASTA_ATUAL
+                       $filtroAdministrador
         
                     UNION ALL
 
