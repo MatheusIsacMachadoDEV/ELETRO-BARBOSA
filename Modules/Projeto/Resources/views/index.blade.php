@@ -442,6 +442,7 @@
         $('#inpuGastoValor').maskMoney({ prefix: 'R$ ', allowNegative: true, thousands: '.', decimal: ',' });
 
         let idProjetoSelecionado = 0;
+        let tituloProjetoSelecionado = '';
         var buscarDetalhesProjetoSelecionado = false;
         var timeoutFiltro = 0;
         var tipoArquivoBusca = 0;
@@ -963,6 +964,7 @@
                     var situacaoProjeto = 'EM ANDAMENTO';
 
                     idProjetoSelecionado = idProjeto;
+                    tituloProjetoSelecionado = dadosProjeto['TITULO'];
 
                     if(dadosProjeto.PAGAMENTO_REALIZADO == 'S'){
                         $('#divBotoesProjeto').addClass('d-none');
@@ -1496,7 +1498,7 @@
         });
 
         $('#btnAdicionarArquivos').on('click', () => {
-            cadastarDocumento(idProjetoSelecionado, idProjetoSelecionado, true);
+            cadastarDocumento(idProjetoSelecionado, tituloProjetoSelecionado, true);
         })
 
         $('#btnFecharModalDetalhes').on('click', () => {
