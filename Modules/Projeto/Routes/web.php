@@ -19,6 +19,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/buscar', 'ProjetoController@buscarProjeto')->name('projeto.buscar');
         Route::post('/buscar/documento', 'ProjetoController@buscarDocumento')->name('projeto.buscar.documento');
         Route::post('/buscar/pessoa', 'ProjetoController@buscarPessoa')->name('projeto.buscar.pessoa');
+        Route::post('/buscar/caminho', 'ProjetoController@buscarCaminho')->name('projeto.buscar.caminho');
         Route::post('/inserir', 'ProjetoController@inserirProjeto')->name('projeto.inserir');
         Route::post('/inserir/documento', 'ProjetoController@inserirDocumento')->name('projeto.inserir.documento');
         Route::post('/inserir/pessoa', 'ProjetoController@inserirPessoa')->name('projeto.inserir.pessoa');
@@ -26,6 +27,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/alterar', 'ProjetoController@alterarProjeto')->name('projeto.alterar');
         Route::post('/inativar', 'ProjetoController@inativarProjeto')->name('projeto.inativar');
         Route::post('/inativar/documento', 'ProjetoController@inativarDocumento')->name('projeto.inativar.documento');
+        Route::post('/inativar/pasta', 'ProjetoController@inativarPasta')->name('projeto.inativar.pasta');
         Route::post('/inativar/pessoa', 'ProjetoController@inativarPessoa')->name('projeto.inativar.pessoa');
         Route::post('/inativar/etapa', 'ProjetoController@inativarEtapa')->name('projeto.inativar.etapa');
         Route::post('/concluir', 'ProjetoController@concluirProjeto')->name('projeto.concluir');

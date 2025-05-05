@@ -15,13 +15,11 @@ class ProjetoController extends Controller
      * Display a listing of the resource.
      * @return Renderable
      */
-    public function index()
-    {
+    public function index(){
         return view('projeto::index');
     }
 
-    public function buscarProjeto(Request $request)
-    {
+    public function buscarProjeto(Request $request){
         $dadosRecebidos = $request->except('_token');
         $idUsuario = auth()->user()->id;
 
@@ -131,31 +129,42 @@ class ProjetoController extends Controller
         return response()->json($result);
     }
 
-    public function buscarDocumento(Request $request)
-    {
+    public function buscarDocumento(Request $request){
         $dadosRecebidos = $request->except('_token');
-        $filtroTipo = "";
         $idProjeto = $dadosRecebidos['ID_PROJETO'];
-        
-        if(isset($dadosRecebidos['ID_TIPO']) && $dadosRecebidos['ID_TIPO'] > 0){
-            $filtroTipo = "AND ID_TIPO = '{$dadosRecebidos['ID_TIPO']}'";
-        }
+        $ID_PASTA_ATUAL = $dadosRecebidos['ID_PASTA_ATUAL'];
 
-        $query = "SELECT p.*
-                       , (SELECT TITULO
-                            FROM projeto
-                           WHERE ID = p.ID_PROJETO) AS PROJETO
-                    FROM projeto_documento p
-                   WHERE p.STATUS = 'A' 
-                     AND ID_PROJETO = $idProjeto
-                     $filtroTipo";
+        $query = "  SELECT pastas.ID
+                         , pastas.ID_DADO_REFERIDO AS ID_PROJETO
+                         , (SELECT TITULO
+                              FROM projeto
+                             WHERE ID = pastas.ID_DADO_REFERIDO) AS PROJETO
+                         , NOME AS CAMINHO_DOCUMENTO
+                         , 1 AS TIPO
+                      FROM pastas
+                     WHERE STATUS = 'A'
+                       AND ID_DADO_REFERIDO = $idProjeto
+                       AND ID_PASTA_PAI = $ID_PASTA_ATUAL
+        
+                    UNION ALL
+
+                    SELECT p.ID
+                         , p.ID_PROJETO
+                         , (SELECT TITULO
+                              FROM projeto
+                             WHERE ID = p.ID_PROJETO) AS PROJETO
+                         , CAMINHO_DOCUMENTO
+                         , 2 AS TIPO
+                      FROM projeto_documento p
+                     WHERE p.STATUS = 'A' 
+                       AND ID_PROJETO = $idProjeto
+                       AND ID_TIPO = $ID_PASTA_ATUAL";
         $result['dados'] = DB::select($query);
 
         return response()->json($result);
     }
 
-    public function buscarPessoa(Request $request)
-    {
+    public function buscarPessoa(Request $request){
         $dadosRecebidos = $request->except('_token');
         $idProjeto = $dadosRecebidos['ID_PROJETO'];
 
@@ -171,8 +180,7 @@ class ProjetoController extends Controller
         return response()->json($result);
     }
 
-    public function buscarEtapa(Request $request)
-    {
+    public function buscarEtapa(Request $request){
         $idProjeto = $request->input('ID_PROJETO');
         
         $etapas = DB::select("
@@ -185,9 +193,52 @@ class ProjetoController extends Controller
         return response()->json(['dados' => $etapas]);
     }
 
+    public function buscarCaminho(Request $request){
+        $dadosRecebidos = $request->except('_token');-
+        $idProjeto = $dadosRecebidos['ID_PROJETO'];
+        $idPastaAtual = $dadosRecebidos['ID_PASTA_ATUAL'];
+
+        if($idPastaAtual == 0){
+            $etapas = [['NOME' => 'Geral']];
+        } else {
+
+            $query = "WITH RECURSIVE caminho_ancestral AS (
+                        -- Começa pela pasta específica
+                        SELECT 
+                            p.ID,
+                            p.NOME,
+                            p.ID_PASTA_PAI,
+                            1 AS nivel
+                        FROM pastas p
+                        WHERE p.ID = $idPastaAtual  -- ID da pasta que você quer encontrar os ancestrais
+                        AND p.ID_DADO_REFERIDO = $idProjeto  -- ID_DADO_REFERIDO (ID_PROJETO)
+                        
+                        UNION ALL
+                        
+                        -- Adiciona os pais recursivamente
+                        SELECT 
+                            p.ID,
+                            p.NOME,
+                            p.ID_PASTA_PAI,
+                            ca.nivel + 1
+                        FROM pastas p
+                        JOIN caminho_ancestral ca ON p.ID = ca.ID_PASTA_PAI
+                        WHERE p.ID_DADO_REFERIDO = $idProjeto  -- Filtra pelo mesmo ID_DADO_REFERIDO
+                    )
+
+                    -- Seleciona os ancestrais em ordem do mais próximo ao mais distante
+                    SELECT NOME
+                         , ID
+                      FROM caminho_ancestral
+                    ORDER BY nivel DESC;";
+            $etapas = DB::select($query);
+        }
+
+        return response()->json(['dados' => $etapas]);
+    }
+
     // Inserir projeto
-    public function inserirProjeto(Request $request)
-    {
+    public function inserirProjeto(Request $request){
         $dadosRecebidos = $request->except('_token');
 
         $titulo = $dadosRecebidos['TITULO'];
@@ -223,15 +274,12 @@ class ProjetoController extends Controller
     public function inserirPasta(Request $request){
         $dadosRecebidos = $request->except('_token');
         $NOME = $dadosRecebidos['NOME'];
-        $idUsuario = auth()->user()->id;
+        $ID_PROJETO = $dadosRecebidos['ID_PROJETO'];
+        $ID_PASTA_PAI = $dadosRecebidos['ID_PASTA_PAI'];
+        $idUsuario = auth()->user()->id;              
 
-        $queryProximoID = "SELECT COALESCE(MAX(ID_ITEM), 0) + 1 as ID_PASTA
-                             FROM situacoes
-                            WHERE TIPO = 'DOCUMENTO_PROJETO'";
-        $idPasta = DB::select($queryProximoID)[0]->ID_PASTA;                  
-
-        $query = "INSERT INTO situacoes (TIPO, VALOR, ID_ITEM, ID_USUARIO) 
-                                    VALUES ('DOCUMENTO_PROJETO', '$NOME', $idPasta, $idUsuario)";
+        $query = "INSERT INTO pastas (NOME, ID_DADO_REFERIDO, ID_PASTA_PAI, ID_USUARIO) 
+                                    VALUES ('$NOME', $ID_PROJETO, $ID_PASTA_PAI, $idUsuario)";
         $result = DB::select($query);
 
         return $result;
@@ -249,8 +297,7 @@ class ProjetoController extends Controller
         return $result;
     }
 
-    public function inserirEtapa(Request $request)
-    {
+    public function inserirEtapa(Request $request){
         $dados = $request->validate([
             'ID_PROJETO' => 'required|integer',
             'DESCRICAO' => 'required|string|max:200'
@@ -265,8 +312,7 @@ class ProjetoController extends Controller
     }
 
     // Alterar projeto
-    public function alterarProjeto(Request $request)
-    {
+    public function alterarProjeto(Request $request){
         $dadosRecebidos = $request->except('_token');
 
         $idProjeto = $dadosRecebidos['ID'];
@@ -293,8 +339,7 @@ class ProjetoController extends Controller
     }
 
     // Inativar projeto
-    public function inativarProjeto(Request $request)
-    {
+    public function inativarProjeto(Request $request){
         $dadosRecebidos = $request->except('_token');
         $idProjeto = $dadosRecebidos['ID'];
 
@@ -304,8 +349,7 @@ class ProjetoController extends Controller
         return response()->json(['success' => 'Projeto inativado com sucesso!']);
     }
 
-    public function inativarEtapa(Request $request)
-    {
+    public function inativarEtapa(Request $request){
         $dadosRecebidos = $request->except('_token');
         $idEtapa = $dadosRecebidos['ID_ETAPA'];
 
@@ -315,8 +359,7 @@ class ProjetoController extends Controller
         return response()->json(['success' => 'Projeto inativado com sucesso!']);
     }
 
-    public function inativarDocumento(Request $request)
-    {
+    public function inativarDocumento(Request $request){
         $dadosRecebidos = $request->except('_token');
         $idDocumento = $dadosRecebidos['idDocumento'];
 
@@ -326,8 +369,22 @@ class ProjetoController extends Controller
         return response()->json(['success' => 'Documento inativado com sucesso!']);
     }
 
-    public function concluirProjeto(Request $request)
-    {
+    public function inativarPasta(Request $request){
+        $dadosRecebidos = $request->except('_token');
+        $idPasta = $dadosRecebidos['idPasta'];
+        $idUsuario = auth()->user()->id;
+
+        $query = "UPDATE pastas 
+                     SET STATUS = 'I'
+                       , DATA_INATIVACAO = NOW()
+                       , ID_USUARIO_INATIVACAO = $idUsuario
+                   WHERE ID = $idPasta";
+        DB::update($query);
+
+        return response()->json(['success' => 'Documento inativado com sucesso!']);
+    }
+
+    public function concluirProjeto(Request $request){
         $dadosRecebidos = $request->except('_token');
         $ID_PROJETO = $dadosRecebidos['ID_PROJETO'];
         $idUsuario = auth()->user()->id;
@@ -351,8 +408,7 @@ class ProjetoController extends Controller
         return response()->json(['success' => 'Documento inativado com sucesso!']);
     }
 
-    public function concluirEtapa(Request $request)
-    {
+    public function concluirEtapa(Request $request){
         $idEtapa = $request->input('ID');
         
         DB::update("
@@ -365,8 +421,7 @@ class ProjetoController extends Controller
         return response()->json(['success' => 'Etapa concluída com sucesso!']);
     }
 
-    public function inativarPessoa(Request $request)
-    {
+    public function inativarPessoa(Request $request){
         $dadosRecebidos = $request->except('_token');
         $ID = $dadosRecebidos['ID'];
 

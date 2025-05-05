@@ -125,13 +125,6 @@
                     </p>
                 </div>
 
-                <h5 class="mt-5 text-muted">Arquivos do Projeto</h5>
-                <ul class="list-unstyled" id="ulArquivosProjeto">
-                    <li>
-                        <a class="btn-link text-secondary"><i class="far fa-fw fa-file-word"></i> Functional-requirements.docx</a>
-                    </li>
-                </ul>
-
                 <div class="text-center mt-5 mb-3" id="divBotoesProjeto">
                     <button class="btn btn-sm btn-danger" id="btnAdicionarGastos">Adicionar Gastos</button>
                     <button class="btn btn-sm btn-dark" id="btnAdicionarArquivos">Adicionar Arquivos</button>
@@ -245,24 +238,23 @@
                         <div class="card-header">
                             <div class="row d-flex">
                                 <div class="col-12 d-flex justify-content-end">
+                                    <button class="btn btn-info col-3" id="btnAdicionarArquivoProjeto">
+                                        <i class="fas fa-plus"></i> Arquivo
+                                    </button>
                                     <button class="btn btn-primary col-3" id="btnAdicionarPasta">
                                         <i class="fas fa-plus"></i> Pasta
                                     </button>
                                 </div>
-                                <div class="col-12">
-                                    <select id="selectTipoArquivoProjeto" class="form-control form-control-border">
-                                        <option value="0">Selecionar</option>   
-                                    </select>
-                                </div>
-                                <div class="col-12">
+
+                                {{-- Matheus 04/05/2025 20:08:06 - CAMINHO DA DOCUMENTACAO --}}
+                                <ol class="breadcrumb float-sm-right" id="olTipoArquivo">                                    
+                                </ol>
+                                <div class="col-12 d-none">
                                     <input type="hidden" id="inputIDProjeto">
                                     <div class="input-group">
                                         <div class="custom-file">
                                             <input type="file" class="custom-file-input" id="inputArquivoDocumentacao" onchange="validaDocumento()">
                                             <label class="custom-file-label" for="inputArquivoDocumentacao" id="labelInputArquivoDocumentacao">Selecionar Arquivos</label>
-                                        </div>
-                                        <div class="input-group-append">
-                                            <button class="input-group-text" onclick="salvarDocumento()">Enviar</span>
                                         </div>
                                     </div>
                                 </div>
@@ -270,18 +262,7 @@
                         </div>
                         <div class="card-body m-0 p-0">
                             <div class="col-12">
-                                <ul class="nav nav-pills" id="ulTipoArquivo">
-                                </ul>
-                            </div>
-                            <div class="col-12">
                                 <table class="table table-responsive-xs">
-                                    <thead>
-                                        <tr>
-                                            <th>Projeto</th>
-                                            <th>Documento</th>
-                                            <th><center>Ações</center></th>
-                                        </tr>
-                                    </thead>
                                     <tbody id="tableBodyDocumentos">
                                     </tbody>
                                 </table>
@@ -440,6 +421,12 @@
             font-weight: bold;
             transition: width 0.6s ease;
         }
+
+        .modal-xl{
+            max-width: 100%!important;
+            padding: 0px!important;
+            margin: 0px!important;
+        }
     </style>
 @stop
 
@@ -458,6 +445,7 @@
         var buscarDetalhesProjetoSelecionado = false;
         var timeoutFiltro = 0;
         var tipoArquivoBusca = 0;
+        var idPastaAtual = 0;
 
         // Buscar Projetos
         function buscarDados() {
@@ -518,23 +506,6 @@
             });
         }
 
-        function buscarTipoArquivo(){
-            editar = false;
-            $.ajax({
-                type:'post',
-                datatype:'json',
-                data:{
-                    '_token':'{{csrf_token()}}',
-                    'TIPO': 'DOCUMENTO_PROJETO'
-                },
-                url:"{{route('buscar.situacoes')}}",
-                success:function(r){
-                    popularSelectTipoArquivo(r.dados);
-                },
-                error:err=>{exibirErro(err)}
-            })
-        }
-
         function buscarArquivoTipo(tipoArquivo){
             tipoArquivoBusca = tipoArquivo;
             buscarDocumentos();
@@ -552,29 +523,6 @@
                 `;
             });
             $('#selectPessoa').html(htmlTabela);
-        }
-
-        function popularSelectTipoArquivo(dados){
-            var htmlTabela = ``;
-            var ulTipoArquivo = ``;
-
-            for(i=0; i< dados.length; i++){
-                var materialKeys = Object.keys(dados[i]);
-                for(j=0;j<materialKeys.length;j++){
-                    if(dados[i][materialKeys[j]] == null){
-                        dados[i][materialKeys[j]] = "";
-                    }
-                }
-
-                ulTipoArquivo += `<li class="nav-item" style="cursor: pointer"><a data-toggle="tab"onclick="buscarArquivoTipo(${dados[i]['ID_ITEM']})" class="nav-link ${i > 0 ? '' : 'active'}">${dados[i]['VALOR']}</a></li>`;
-
-                htmlTabela += `
-                    <option value="${dados[i]['ID_ITEM']}">${dados[i]['VALOR']}</option>`;
-            }
-
-            $('#ulTipoArquivo').html(ulTipoArquivo);
-            
-            $('#selectTipoArquivoProjeto').html(htmlTabela);
         }
 
         function popularTabelaPessoaProjeto(dados) {
@@ -852,11 +800,13 @@
                     datatype:'json',
                     data:{
                        '_token':'{{csrf_token()}}',
-                       'NOME': nomePasta
+                       'NOME': nomePasta,
+                       'ID_PASTA_PAI': idPastaAtual,
+                       'ID_PROJETO': $('#inputIDProjeto').val(),
                     },
                     url:"{{route('projeto.inserir.pasta')}}",
                     success:function(r){
-                        buscarTipoArquivo();
+                        buscarCaminhoAtual();
 
                         dispararAlerta('success', 'Pasta salva com sucesso!');
 
@@ -1030,15 +980,7 @@
                     $('#spanDescricaoProjeto').html(dadosProjeto['DESCRICAO']);
                     $('#spanClienteProjeto').html(dadosProjeto['CLIENTE']);
                     $('#spanUsuarioProjeto').html(dadosProjeto['NOME_USUARIO']);
-                    $('#spanGastosProjeto').html(mascaraFinanceira(dadosProjeto['VALOR_GASTO']));                    
-
-                    dadosProjeto.DOCUMENTO.forEach(projeto => {
-                        documentoCaminho = projeto['CAMINHO_DOCUMENTO'].split('/')[3];
-                        htmlDocumento += `
-                            <li>
-                                <a class="btn-link text-secondary" onclick="verDocumento('${projeto['CAMINHO_DOCUMENTO']}')"><i class="far fa-fw fa-file-word"></i> ${documentoCaminho}</a>
-                            </li>`;
-                    });
+                    $('#spanGastosProjeto').html(mascaraFinanceira(dadosProjeto['VALOR_GASTO']));
 
                     dadosProjeto.GASTOS_PROJETO.forEach(projeto => {
                         htmlGastos += `
@@ -1062,7 +1004,6 @@
 
                     });
 
-                    $('#ulArquivosProjeto').html(htmlDocumento);
                     $('#divGastosRecente').html(htmlGastos);
 
                     $('#divLista').slideUp();
@@ -1101,14 +1042,6 @@
             $('#inputValor').removeClass('is-invalid');
 
             limparCampo('inputCliente', 'inputIDCliente', 'btnLimparCliente');
-        }
-
-        function adicionarPasta(){
-            $('#modal-documentacao').modal('hide');
-
-            $('#inputNomePasta').val('');
-
-            $('#modal-pasta').modal('show');
         }
 
         // MODAL ETAPAS
@@ -1203,6 +1136,24 @@
         // FIM
 
         // DOCUMENTOS
+            function buscarCaminhoAtual(){
+                editar = false;
+                $.ajax({
+                    type:'post',
+                    datatype:'json',
+                    data:{
+                        '_token':'{{csrf_token()}}',
+                        'ID_PASTA_ATUAL': idPastaAtual,
+                        'ID_PROJETO': $('#inputIDProjeto').val(),
+                    },
+                    url:"{{route('projeto.buscar.caminho')}}",
+                    success:function(r){
+                        popularCaminhoAtual(r.dados);
+                    },
+                    error:err=>{exibirErro(err)}
+                })
+            }
+
             function buscarDocumentos(){
                 $.ajax({
                     type:'post',
@@ -1210,7 +1161,8 @@
                     data:{
                         '_token':'{{csrf_token()}}',                    
                         'ID_PROJETO': $('#inputIDProjeto').val(),
-                        'ID_TIPO': tipoArquivoBusca
+                        'ID_TIPO': tipoArquivoBusca,
+                        'ID_PASTA_ATUAL': idPastaAtual
                     },
                     url:"{{route('projeto.buscar.documento')}}",
                     success:function(r){
@@ -1220,54 +1172,38 @@
                 })
             }  
 
-            function cadastarDocumento(idProjeto, descricaoProjeto, buscar = false){
-                buscarDetalhesProjetoSelecionado = buscar;
+            function popularCaminhoAtual(dados){
+                var htmlTabela = ``;
+                var olTipoArquivo = ``;
 
-                buscarTipoArquivo();
+                if(idPastaAtual > 0){
+                    olTipoArquivo = `<li class="breadcrumb-item">
+                                        <span style="cursor: pointer; text-decoration: underline" onclick="acessarPasta(0)">Geral</span>
+                                    </li>`;
+                }
 
-                $('#titleDocumento').text(idProjeto);
-                $('#inputIDProjeto').val(idProjeto);
-
-                buscarDocumentos();
-
-                $('#modal-documentacao').modal('show');
-                
-            }  
-
-            function inativarDocumento(idDocumento){
-                Swal.fire({
-                    title: 'Confirmação',
-                    text: 'Deseja inativar o documento?',
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonText: 'Sim',
-                    cancelButtonText: 'Cancelar'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        $.ajax({
-                            type:'post',
-                            datatype:'json',
-                            data:{
-                                '_token':'{{csrf_token()}}',
-                                'idDocumento': idDocumento
-                            },
-                            url:"{{route('projeto.inativar.documento')}}",
-                            success:function(r){
-                                Swal.fire('Sucesso!'
-                                        , 'Documento inativado com sucesso.'
-                                        , 'success');
-                                buscarDocumentos();
-                            },
-                            error:err=>{exibirErro(err)}
-                        })
+                for(i=0; i< dados.length; i++){
+                    var materialKeys = Object.keys(dados[i]);
+                    for(j=0;j<materialKeys.length;j++){
+                        if(dados[i][materialKeys[j]] == null){
+                            dados[i][materialKeys[j]] = "";
+                        }
                     }
-                });
-            }
+                    var styleMenu = 'cursor: pointer; text-decoration: underline';
+                    var funcaoMenu = `acessarPasta(${dados[i]['ID']})`;
 
-            function verDocumento(caminhoDocumento){
-                url = "{{env('APP_URL')}}/"+caminhoDocumento;
+                    if((i+1) == dados.length ){
+                        styleMenu = '';
+                        funcaoMenu = '';
+                    }
 
-                window.open(url, '_blank');
+                    olTipoArquivo += ` <li class="breadcrumb-item">
+                                            <span style="${styleMenu}" onclick="${funcaoMenu}">${dados[i]['NOME']}</span>
+                                        </li>`;
+
+                }
+
+                $('#olTipoArquivo').html(olTipoArquivo);
             }
 
             function popularListaDocumentos(Documento){
@@ -1278,33 +1214,54 @@
                     for(j=0;j<DocumentoKeys.length;j++){
                         if(Documento[i][DocumentoKeys[j]] == null){
                             Documento[i][DocumentoKeys[j]] = "";
-                            }
                         }
+                    }
                     
-                    documentoCaminho = Documento[i]['CAMINHO_DOCUMENTO'];
-                    documentoCaminho = documentoCaminho.split('/')[3];
-                    
+                    var icone = 'fas fa-file';
+                    var documentoCaminho = Documento[i]['CAMINHO_DOCUMENTO'].split('/')[3];
+                    var funcao = `verDocumento('${Documento[i]['CAMINHO_DOCUMENTO']}')`;
+                    var funcaoInativar = `inativarDocumento(${Documento[i]['ID']})`;
+                    var classes = `text-decoration: underline;`;
+                    var classeIcone = '';
+
+                    if(Documento[i]['TIPO'] == 1){
+                        icone = 'fas fa-folder-open';
+                        documentoCaminho = Documento[i]['CAMINHO_DOCUMENTO'];
+                        funcao = `acessarPasta(${Documento[i]['ID']})`;
+                        funcaoInativar = `inativarPasta(${Documento[i]['ID']})`;
+                        classes = '';
+                        classeIcone = 'color: #f3c625;';
+                    }
+
                     htmlDocumento += `
                         <tr id="tableRow${Documento[i]['ID']}">
-                            <td class="tdTexto">${Documento[i]['PROJETO']}</td>
-                            <td class="tdTexto"><span style="text-decoration: underline; cursor: pointer;" onclick="verDocumento('${Documento[i]['CAMINHO_DOCUMENTO']}')">${documentoCaminho}</span></td>
-                                <td>\
-                                    <center>\
-                                    <button class="btn" onclick="inativarDocumento(${Documento[i]['ID']})"><i class="fas fa-trash"></i></button>\
-                                    </center>\
-                                </td>\                      
-                            </tr>`;
+                            <td class="tdTexto"><i onclick="${funcao}" style="${classeIcone}" class="${icone}"></i></td>
+                            <td class="tdTexto">
+                                <span style="${classes} cursor: pointer;" onclick="${funcao}">${documentoCaminho}</span>
+                            </td>
+                            <td>\
+                                <center>\
+                                    <button class="btn" onclick="${funcaoInativar}"><i class="fas fa-trash"></i></button>\
+                                </center>\
+                            </td>\                      
+                        </tr>`;
                     }
                 $('#tableBodyDocumentos').html(htmlDocumento)
-            }  
-
-            function validaDocumento(){
-                if ($("#inputArquivoDocumentacao")[0].files.length > 0) {
-                    $('#labelInputArquivoDocumentacao').html($("#inputArquivoDocumentacao")[0].files[0].name);
-                } else {
-                    $('#labelInputArquivoDocumentacao').html('Selecionar Arquivos');
-                }
             }
+
+            function cadastarDocumento(idProjeto, descricaoProjeto, buscar = false){
+                idPastaAtual = 0;
+                buscarDetalhesProjetoSelecionado = buscar;
+
+                $('#titleDocumento').text(idProjeto);
+                $('#inputIDProjeto').val(idProjeto);
+
+                buscarCaminhoAtual();
+                buscarDocumentos();
+
+                $('#modal-documentacao').modal('show');
+                
+            }  
 
             function salvarDocumento(){
                 if($("#inputArquivoDocumentacao")[0].files.length > 0){
@@ -1340,7 +1297,7 @@
                                     'caminhoArquivo': resultUpload,
                                     'ID_PROJETO': idProjeto,
                                     'caminho': anexoCaminho,
-                                    'ID_TIPO': $('#selectTipoArquivoProjeto').val()
+                                    'ID_TIPO': idPastaAtual
                                 },
                                 url:"{{route('projeto.inserir.documento')}}",
                                 success:function(resultInsert){
@@ -1367,6 +1324,104 @@
                     error: err=>{exibirErro(err)}
                 });
             }
+
+            function verDocumento(caminhoDocumento){
+                url = "{{env('APP_URL')}}/"+caminhoDocumento;
+
+                window.open(url, '_blank');
+            }
+
+            function validaDocumento(){
+                if ($("#inputArquivoDocumentacao")[0].files.length > 0) {
+                    $('#labelInputArquivoDocumentacao').html($("#inputArquivoDocumentacao")[0].files[0].name);
+                } else {
+                    $('#labelInputArquivoDocumentacao').html('Selecionar Arquivos');
+                }
+            }
+
+            function inativarDocumento(idDocumento){
+                Swal.fire({
+                    title: 'Confirmação',
+                    text: 'Deseja inativar o documento?',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Sim',
+                    cancelButtonText: 'Cancelar'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $.ajax({
+                            type:'post',
+                            datatype:'json',
+                            data:{
+                                '_token':'{{csrf_token()}}',
+                                'idDocumento': idDocumento
+                            },
+                            url:"{{route('projeto.inativar.documento')}}",
+                            success:function(r){
+                                Swal.fire('Sucesso!'
+                                        , 'Documento inativado com sucesso.'
+                                        , 'success');
+                                buscarDocumentos();
+                            },
+                            error:err=>{exibirErro(err)}
+                        })
+                    }
+                });
+            }  
+
+            function inativarPasta(idPasta){
+                Swal.fire({
+                    title: 'Deseja realmente inativar a pasta?',
+                    text: 'TODOS os arquivos e pasta dentro dela serão inativados também.',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Sim',
+                    cancelButtonText: 'Cancelar'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $.ajax({
+                            type:'post',
+                            datatype:'json',
+                            data:{
+                                '_token':'{{csrf_token()}}',
+                                'idPasta': idPasta
+                            },
+                            url:"{{route('projeto.inativar.pasta')}}",
+                            success:function(r){
+                                dispararAlerta('success', 'Pasta inativada com sucesso!');
+                                buscarDocumentos();
+                            },
+                            error:err=>{exibirErro(err)}
+                        })
+                    }
+                });
+            }  
+
+            function adicionarPasta(){
+                $('#modal-documentacao').modal('hide');
+
+                $('#inputNomePasta').val('');
+
+                $('#modal-pasta').modal('show');
+            }
+
+            function acessarPasta(idPasta){
+                idPastaAtual = idPasta;
+                buscarDocumentos();
+                buscarCaminhoAtual();
+            }
+
+            $('#btnAdicionarArquivoProjeto').on('click', () => {
+                $('#inputArquivoDocumentacao').click();
+            });
+
+            $('#inputArquivoDocumentacao').on('change', () => {
+                uploadArquivo();
+            })
+
+            $('#modal-pasta').on('hidden.bs.modal', function () {
+                $('#modal-documentacao').modal('show');
+            }); 
         // FIM
 
         // Abrir modal de cadastro
@@ -1474,10 +1529,6 @@
             if(buscarDetalhesProjetoSelecionado){
                 detalhesProjeto(idProjetoSelecionado);
             }
-        }); 
-
-        $('#modal-pasta').on('hidden.bs.modal', function () {
-            $('#modal-documentacao').modal('show');
         }); 
 
         $(document).ready(function() {
