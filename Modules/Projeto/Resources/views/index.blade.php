@@ -228,7 +228,7 @@
         <div class="modal-dialog modal-xl">
             <div class="modal-content p-0">
                 <div class="modal-header">
-                    <h5 class="modal-title" >Documentos do Projeto <span id="titleDocumento"></span></h5>
+                    <h5 class="modal-title" >Documentos: <span id="titleDocumento"></span></h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -1253,7 +1253,7 @@
                 idPastaAtual = 0;
                 buscarDetalhesProjetoSelecionado = buscar;
 
-                $('#titleDocumento').text(idProjeto);
+                $('#titleDocumento').text(descricaoProjeto);
                 $('#inputIDProjeto').val(idProjeto);
 
                 buscarCaminhoAtual();
