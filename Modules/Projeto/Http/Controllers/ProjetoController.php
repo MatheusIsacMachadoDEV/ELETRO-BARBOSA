@@ -193,47 +193,33 @@ class ProjetoController extends Controller
         return response()->json(['dados' => $etapas]);
     }
 
-    public function buscarCaminho(Request $request){
-        $dadosRecebidos = $request->except('_token');-
+    public function buscarCaminho(Request $request) {
+        $dadosRecebidos = $request->except('_token');
         $idProjeto = $dadosRecebidos['ID_PROJETO'];
         $idPastaAtual = $dadosRecebidos['ID_PASTA_ATUAL'];
-
-        if($idPastaAtual == 0){
+    
+        if ($idPastaAtual == 0) {
             $etapas = [['NOME' => 'Geral']];
         } else {
-
-            $query = "WITH RECURSIVE caminho_ancestral AS (
-                        -- Começa pela pasta específica
-                        SELECT 
-                            p.ID,
-                            p.NOME,
-                            p.ID_PASTA_PAI,
-                            1 AS nivel
-                        FROM pastas p
-                        WHERE p.ID = $idPastaAtual  -- ID da pasta que você quer encontrar os ancestrais
-                        AND p.ID_DADO_REFERIDO = $idProjeto  -- ID_DADO_REFERIDO (ID_PROJETO)
-                        
-                        UNION ALL
-                        
-                        -- Adiciona os pais recursivamente
-                        SELECT 
-                            p.ID,
-                            p.NOME,
-                            p.ID_PASTA_PAI,
-                            ca.nivel + 1
-                        FROM pastas p
-                        JOIN caminho_ancestral ca ON p.ID = ca.ID_PASTA_PAI
-                        WHERE p.ID_DADO_REFERIDO = $idProjeto  -- Filtra pelo mesmo ID_DADO_REFERIDO
-                    )
-
-                    -- Seleciona os ancestrais em ordem do mais próximo ao mais distante
-                    SELECT NOME
-                         , ID
-                      FROM caminho_ancestral
-                    ORDER BY nivel DESC;";
-            $etapas = DB::select($query);
+            // Solução para MySQL 5.7/7.4 que não tem WITH RECURSIVE
+            $etapas = [];
+            $currentId = $idPastaAtual;
+            
+            while ($currentId != null) {
+                $pasta = DB::table('pastas')
+                    ->select('ID', 'NOME', 'ID_PASTA_PAI', 'ID_DADO_REFERIDO')
+                    ->where('ID', $currentId)
+                    ->where('ID_DADO_REFERIDO', $idProjeto)
+                    ->whereRaw('ID_DADO_REFERIDO > 0')
+                    ->first();
+                
+                if (!$pasta) break;
+                
+                array_unshift($etapas, ['NOME' => $pasta->NOME, 'ID' => $pasta->ID]);
+                $currentId = $pasta->ID_PASTA_PAI;
+            }
         }
-
+    
         return response()->json(['dados' => $etapas]);
     }
 
