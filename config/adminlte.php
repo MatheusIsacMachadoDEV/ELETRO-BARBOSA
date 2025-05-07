@@ -332,6 +332,12 @@ return [
                     'can'  => 'ESTOQUE_RETIRADA'
                 ],
                 [
+                    'text' => 'Lista de Materiais',
+                    'url'  => 'materiais/lista',
+                    'icon' => 'fas fa-list',
+                    'can'  => 'LISTA_MATERIAIS'
+                ], 
+                [
                     'text' => 'Relatórios de Estoque',
                     'url'  => 'relatorios/material',
                     'icon' => 'fas fa-print',

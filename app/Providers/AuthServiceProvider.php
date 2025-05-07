@@ -50,6 +50,24 @@ class AuthServiceProvider extends ServiceProvider
             }
         });
 
+        Gate::define('LISTA_MATERIAIS', function () {
+            $idUsuario = auth()->user()->id;
+
+            $query = "SELECT COUNT(*) AS TOTAL
+                        FROM menus_usuario, menus
+                       WHERE menus_usuario.ID_MENU = menus.ID
+                         AND ID_USUARIO = $idUsuario
+                         AND STATUS = 'A'
+                         AND NOME = 'Lista de Materiais'";
+            $validacao = DB::select($query)[0]->TOTAL;
+
+            if((auth()->user()->email == 'adm@adm.com' || auth()->user()->ADMINISTRADOR == 1) || $validacao > 0){
+                return true;
+            } else {
+                return false;
+            }
+        });
+
         Gate::define('ESTOQUE_RETIRADA', function () {
             $idUsuario = auth()->user()->id;
 

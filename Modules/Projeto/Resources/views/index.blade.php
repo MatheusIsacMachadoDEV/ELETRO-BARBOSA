@@ -40,7 +40,9 @@
                                 <th><center>Cliente</center></th>
                                 <th><center>Início</center></th>
                                 <th><center>Fim</center></th>
+                                @can('ADMINISTRADOR')
                                 <th><center>Valor</center></th>
+                                @endcan
                                 <th><center>Pagamento</center></th>
                                 <th><center>Conclusão</center></th>
                                 <th><center>Ações</center></th>
@@ -69,45 +71,49 @@
             <div class="row p-2">
             <div class="col-12 col-md-12 col-lg-8 order-2 order-md-1">
                 <div class="row">
-                <div class="col-12 col-sm-3">
-                    <div class="info-box bg-light">
-                        <div class="info-box-content" id="divSpanValorProjeto">
-                            <span class="info-box-text text-center text-muted">Valor Projeto</span>
-                            <span class="info-box-number text-center text-muted mb-0 bg-info" id="spanValorProjeto">R$ 10.000,00</span>
+                    @can('ADMINISTRADOR')
+                    <div class="col-12 col-sm-3">
+                        <div class="info-box bg-light">
+                            <div class="info-box-content" id="divSpanValorProjeto">
+                                <span class="info-box-text text-center text-muted">Valor Projeto</span>
+                                <span class="info-box-number text-center text-muted mb-0 bg-info" id="spanValorProjeto">R$ 10.000,00</span>
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div class="col-12 col-sm-3">
-                    <div class="info-box bg-light">
-                        <div class="info-box-content" id="divSpanGastosProjeto">
-                            <span class="info-box-text text-center text-muted">Gastos do Projeto</span>
-                            <span class="info-box-number text-center text-muted mb-0 bg-danger" id="spanGastosProjeto">R$ 5.000,00</span>
+                    <div class="col-12 col-sm-3">
+                        <div class="info-box bg-light">
+                            <div class="info-box-content" id="divSpanGastosProjeto">
+                                <span class="info-box-text text-center text-muted">Gastos do Projeto</span>
+                                <span class="info-box-number text-center text-muted mb-0 bg-danger" id="spanGastosProjeto">R$ 5.000,00</span>
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div class="col-12 col-sm-3">
-                    <div class="info-box bg-light">
-                    <div class="info-box-content" id="divSpanLucroProjeto">
-                        <span class="info-box-text text-center text-muted">Lucro do Projeto</span>
-                        <span class="info-box-number text-center text-muted mb-0 bg-success" id="spanLucroProjeto">R$ 5.000,00</span>
+                    <div class="col-12 col-sm-3">
+                        <div class="info-box bg-light">
+                        <div class="info-box-content" id="divSpanLucroProjeto">
+                            <span class="info-box-text text-center text-muted">Lucro do Projeto</span>
+                            <span class="info-box-number text-center text-muted mb-0 bg-success" id="spanLucroProjeto">R$ 5.000,00</span>
+                        </div>
+                        </div>
                     </div>
+                    @endcan
+                    <div class="col-12 col-sm-3">
+                        <div class="info-box bg-light">
+                            <div class="info-box-content" id="divSpanDataEntregaProjeto">
+                                <span class="info-box-text text-center text-muted">Data de Entrega</span>
+                                <span class="info-box-number text-center text-muted mb-0" id="spanDataEntregaProjeto">20/05/2025</span>
+                            </div>
+                        </div>
                     </div>
-                </div>
-                <div class="col-12 col-sm-3">
-                    <div class="info-box bg-light">
-                    <div class="info-box-content" id="divSpanDataEntregaProjeto">
-                        <span class="info-box-text text-center text-muted">Data de Entrega</span>
-                        <span class="info-box-number text-center text-muted mb-0" id="spanDataEntregaProjeto">20/05/2025</span>
-                    </div>
-                    </div>
-                </div>
                 </div>
                 <div class="row">
                     <div class="col-12 m-2">
+                        @can('ADMINISTRADOR')
                         <h4>Gastos Recentes</h4>
                         <div id="divGastosRecente">
                             
                         </div>
+                        @endcan
                     </div>
                 </div>
             </div>
@@ -534,7 +540,7 @@
                         <td>${projeto.PESSOA}</td>
                         <td>
                             <center>
-                               <button class="btn" onclick="inativarPessoaProjeto(${projeto.ID})"><i class="fas fa-trash"></i></button>
+                               <button class="btn" onclick="inativarPessoa(${projeto.ID})"><i class="fas fa-trash"></i></button>
                             </center>
                         </td>
                     </tr>
@@ -591,8 +597,14 @@
                         <td>${projeto.TITULO}</td>
                         <td><center>${projeto.CLIENTE}</center></td>
                         <td><center>${dataInicio}</center></td>
-                        <td><center>${dataFim}</center></td>
-                        <td><center>${mascaraFinanceira(projeto.VALOR)}</center></td>
+                        <td><center>${dataFim}</center></td>`;
+
+                        @can('ADMINISTRADOR')
+                        htmlTabela += `
+                        <td><center>${mascaraFinanceira(projeto.VALOR)}</center></td>`;
+                        @endcan
+
+                        htmlTabela += `
                         <td><center>${pagamento}</center></td>
                         <td><center>${progressoHTML}</center></td>
                         <td>

@@ -419,7 +419,7 @@ class ProjetoController extends Controller
         $dadosRecebidos = $request->except('_token');
         $ID = $dadosRecebidos['ID'];
 
-        $query = "UPDATE projeto_pessoa SET STATUS = 'I' WHERE ID = $idDocumento";
+        $query = "UPDATE projeto_pessoa SET STATUS = 'I' WHERE ID = $ID";
         DB::update($query);
 
         return response()->json(['success' => 'Pessoa inativado com sucesso!']);

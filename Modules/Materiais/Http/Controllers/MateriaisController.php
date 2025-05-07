@@ -13,6 +13,7 @@ use Endroid\QrCode\Writer\PngWriter;
 use GuzzleHttp\Psr7\Query;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
+use Config;
 
 class MateriaisController extends Controller
 {
@@ -23,6 +24,11 @@ class MateriaisController extends Controller
     public function index()
     {
         return view('materiais::index');
+    }
+
+    public function listaMateriais()
+    {
+        return view('materiais::lista-material');
     }
 
     public function retiradaDevolucao()
@@ -234,6 +240,82 @@ class MateriaisController extends Controller
         
         return $return;
     }
+    
+    public function buscarMaterialLista(Request $request) {
+        $dadosRecebidos = $request->except('_token');
+        $idUsuario = auth()->user()->id;
+    
+        if(isset($dadosRecebidos['DATA_INICIO']) && isset($dadosRecebidos['DATA_FIM'])) {
+            $filtroData = "AND material_lista.DATA_INSERCAO BETWEEN '{$dadosRecebidos['DATA_INICIO']} 00:00:00'
+                            AND '{$dadosRecebidos['DATA_FIM']} 23:59:59'";
+        } else if(isset($dadosRecebidos['DATA_FIM']) && !isset($dadosRecebidos['DATA_INICIO'])) {
+            $filtroData = "AND material_lista.DATA_INSERCAO <= '{$dadosRecebidos['DATA_FIM']} 23:59:59'";
+        } else if(isset($dadosRecebidos['DATA_INICIO']) && !isset($dadosRecebidos['DATA_FIM'])) {
+            $filtroData = "AND material_lista.DATA_INSERCAO >= '{$dadosRecebidos['DATA_INICIO']} 00:00:00'";
+        } else {
+            $filtroData = "AND 1 = 1";
+        }
+    
+        if(isset($dadosRecebidos['ID'])) {
+            $filtroID = "AND ID = '{$dadosRecebidos['ID']}'";
+        } else {
+            $filtroID = 'AND 1 = 1';
+        }
+    
+        if(isset($dadosRecebidos['filtro']) && strlen($dadosRecebidos['filtro']) > 0) {
+            $filtro = "AND ((SELECT COUNT(*)
+                             FROM users
+                             WHERE users.ID = material_lista.ID_USUARIO
+                             AND users.name LIKE '%{$dadosRecebidos['filtro']}%') > 0
+                          OR (SELECT COUNT(*)
+                              FROM material_lista_item
+                              WHERE material_lista_item.ID_MATERIAL_LISTA = material_lista.ID
+                              AND material_lista_item.NOME_FORNECEDOR LIKE '%{$dadosRecebidos['filtro']}%') > 0)";
+        } else {
+            $filtro = 'AND 1 = 1';
+        }
+    
+        if(Gate::allows('ADMINISTRADOR')) {
+            $filtroUsuario = "AND 1 = 1";
+        } else {
+            $filtroUsuario = "AND ID_USUARIO = $idUsuario";
+        }
+    
+        $query = "SELECT material_lista.*,
+                         (SELECT name
+                          FROM users
+                          WHERE users.ID = material_lista.ID_USUARIO) as USUARIO_CADASTRO,
+                         (SELECT name
+                          FROM users
+                          WHERE users.ID = material_lista.ID_USUARIO_INATIVACAO) as USUARIO_INATIVACAO
+                  FROM material_lista
+                  WHERE STATUS = 'A'
+                  $filtro
+                  $filtroID
+                  $filtroData
+                  $filtroUsuario
+                  ORDER BY material_lista.DATA_INSERCAO DESC";
+        $result['dados'] = DB::select($query);
+    
+        for ($i=0; $i < count($result['dados']); $i++) {
+            $idLista = $result['dados'][$i]->ID;
+            $queryListaItem = "SELECT ID,
+                                       ID_MATERIAL_LISTA,
+                                       VALOR_ITEM,
+                                       QTDE,
+                                       NOME_FORNECEDOR,
+                                       ID_FORNECEDOR,
+                                       (SELECT name
+                                        FROM users
+                                        WHERE users.ID = material_lista_item.ID_USUARIO) as USUARIO_CADASTRO
+                                FROM material_lista_item
+                                WHERE STATUS = 'A'
+                                AND ID_MATERIAL_LISTA = $idLista";
+            $result['dados'][$i]->ITENS = DB::select($queryListaItem);
+        }
+    
+        return $result;
+    }
 
     public function inserirMaterial(Request $request){
         $dadosRecebidos = $request->except('_token');
@@ -338,6 +420,72 @@ class MateriaisController extends Controller
         return $result;
     }
 
+    public function inserirMaterialLista(Request $request) {
+        $dadosRecebidos = $request->except('_token');
+        $valorTotal = isset($dadosRecebidos['valorTotal']) ? $dadosRecebidos['valorTotal'] : 0;
+        $usuario = auth()->user()->name;
+        $idUsuario = auth()->user()->id;
+        $return = [];
+    
+        $bancoDados = Config::get('database.connections.mysql.database');
+        $queryNumDoc = "SELECT AUTO_INCREMENT
+                        FROM information_schema.TABLES
+                        WHERE TABLE_SCHEMA = '$bancoDados'
+                        AND TABLE_NAME = 'material_lista'";
+        $idCodigo = DB::select($queryNumDoc)[0]->AUTO_INCREMENT;
+    
+        $query = "INSERT INTO material_lista (
+                    ID,
+                    VALOR_TOTAL,
+                    ID_USUARIO,
+                    DATA_INSERCAO,
+                    STATUS
+                  ) VALUES (
+                    $idCodigo,
+                    $valorTotal,
+                    $idUsuario,
+                    NOW(),
+                    'A'
+                  )";
+        $result = DB::select($query);
+    
+        for ($i=0; $i < count($dadosRecebidos['dadosItens']); $i++) { 
+            $valorItem = $dadosRecebidos['dadosItens'][$i]['VALOR_ITEM'];
+            $qtde = $dadosRecebidos['dadosItens'][$i]['QTDE'];
+            $nomeFornecedor = $dadosRecebidos['dadosItens'][$i]['NOME_FORNECEDOR'];
+            $idFornecedor = $dadosRecebidos['dadosItens'][$i]['ID_FORNECEDOR'];
+            $idMaterial = $dadosRecebidos['dadosItens'][$i]['ID_ITEM'];
+            
+            $queryItem = "INSERT INTO material_lista_item (
+                            ID_MATERIAL_LISTA,
+                            VALOR_ITEM,
+                            QTDE,
+                            NOME_FORNECEDOR,
+                            ID_FORNECEDOR,
+                            ID_USUARIO,
+                            DATA_INSERCAO,
+                            ID_MATERIAL,
+                            STATUS
+                          ) VALUES (
+                            $idCodigo,
+                            $valorItem,
+                            $qtde,
+                            '$nomeFornecedor',
+                            $idFornecedor,
+                            $idUsuario,
+                            NOW(),
+                            $idMaterial,
+                            'A'
+                          )";
+            $resultItem = DB::select($queryItem);
+        }
+    
+        $return['situacao'] = 'SUCESSO';
+        $return['ID'] = $idCodigo;
+    
+        return $return;
+    }
+
     public function alterarMaterial(Request $request){
         $dadosRecebidos = $request->except('_token');
         $idMaterial = $dadosRecebidos['ID'];
@@ -374,6 +522,75 @@ class MateriaisController extends Controller
         
 
         return $result;
+    }
+    
+    public function alterarMaterialLista(Request $request) {
+        $dadosRecebidos = $request->except('_token');
+        $idCodigo = $dadosRecebidos['ID'];
+        $valorTotal = isset($dadosRecebidos['valorTotal']) ? $dadosRecebidos['valorTotal'] : 0;
+        $usuario = auth()->user()->name;
+        $idUsuario = auth()->user()->id;
+        $return = [];
+    
+        $query = "UPDATE material_lista
+                  SET VALOR_TOTAL = $valorTotal
+                  WHERE ID = $idCodigo";
+        $result = DB::select($query);
+    
+        $queryDelete = "DELETE FROM material_lista_item
+                        WHERE ID_MATERIAL_LISTA = $idCodigo";
+        $resultDelete = DB::select($queryDelete);
+    
+        for ($i=0; $i < count($dadosRecebidos['dadosItens']); $i++) { 
+            $valorItem = $dadosRecebidos['dadosItens'][$i]['VALOR_ITEM'];
+            $qtde = $dadosRecebidos['dadosItens'][$i]['QTDE'];
+            $nomeFornecedor = $dadosRecebidos['dadosItens'][$i]['NOME_FORNECEDOR'];
+            $idFornecedor = $dadosRecebidos['dadosItens'][$i]['ID_FORNECEDOR'];
+            $idMaterial = $dadosRecebidos['dadosItens'][$i]['ID_ITEM'];
+            
+            $queryItem = "INSERT INTO material_lista_item (
+                            ID_MATERIAL_LISTA,
+                            VALOR_ITEM,
+                            QTDE,
+                            NOME_FORNECEDOR,
+                            ID_FORNECEDOR,
+                            ID_USUARIO,
+                            DATA_INSERCAO,
+                            ID_MATERIAL,
+                            STATUS
+                          ) VALUES (
+                            $idCodigo,
+                            $valorItem,
+                            $qtde,
+                            '$nomeFornecedor',
+                            $idFornecedor,
+                            $idUsuario,
+                            NOW(),
+                            $idMaterial,
+                            'A'
+                          )";
+            $resultItem = DB::select($queryItem);
+        }
+    
+        $return['situacao'] = 'SUCESSO';
+    
+        return $return;
+    }
+
+    public function alterarSituacaoLista(Request $request) {
+        $dadosRecebidos = $request->except('_token');
+        $idCodigo = $dadosRecebidos['ID'];
+        $situacao = $dadosRecebidos['SITUACAO'];
+        $return = [];
+    
+        $query = "UPDATE material_lista
+                     SET SITUACAO = '$situacao'
+                   WHERE ID = $idCodigo";
+        $result = DB::select($query);
+
+        $return['situacao'] = 'SUCESSO';
+    
+        return $return;
     }
 
     public function inativarMaterial(Request $request){
@@ -429,6 +646,21 @@ class MateriaisController extends Controller
 
         return $result;
     }
+    
+    public function inativarMaterialLista(Request $request) {
+        $dadosRecebidos = $request->except('_token');
+        $idCodigo = $dadosRecebidos['ID'];
+        $idUsuario = auth()->user()->id;
+    
+        $query = "UPDATE material_lista 
+                  SET STATUS = 'I',
+                      ID_USUARIO_INATIVACAO = $idUsuario,
+                      DATA_INATIVACAO = NOW()
+                  WHERE ID = $idCodigo";
+        $result = DB::select($query);
+    
+        return $result;
+    }
 
     public function gerarEtiqueta($idMaterial){
         $codigoEtiqueta = "EB$idMaterial";
@@ -453,4 +685,36 @@ class MateriaisController extends Controller
         return $pdf->stream("etiqueta-$idMaterial.pdf");
     }
 
+    public function imprimirLista($id){
+        $data = (new DateTime())->format('d/m/Y H:i');
+
+        $queryOrdemCompra = "SELECT material_lista.*
+                                   , (SELECT name
+                                        FROM users
+                                       WHERE users.ID = material_lista.ID_USUARIO) as USUARIO
+                                FROM material_lista
+                               WHERE STATUS = 'A'
+                                 AND ID = $id";
+        $dadosOrdemCompra = DB::select($queryOrdemCompra)[0];
+
+        $queryItemOrdemCompra = "SELECT material_lista_item.*
+                                   , (SELECT MATERIAL
+                                        FROM material
+                                       WHERE material.ID = material_lista_item.ID_MATERIAL) as MATERIAL
+                                FROM material_lista_item
+                               WHERE STATUS = 'A'
+                                 AND ID_MATERIAL_LISTA = $id";
+        $dadosItemOrdemCompra = DB::select($queryItemOrdemCompra);
+
+        $queryEmpresa = "SELECT empresa_cliente.*
+                           FROM empresa_cliente
+                          WHERE ID = 1";
+        $dadosEmpresa = DB::select($queryEmpresa)[0];
+
+        // Carregar a view 'ORDEM-COMPRA' passando a variável $data
+        $pdf = PDF::loadView('materiais::impressos.lista-material', compact('data', 'dadosOrdemCompra', 'dadosItemOrdemCompra', 'dadosEmpresa'));
+        
+        // Exibir o PDF inline no navegador
+        return $pdf->stream("ORDEM-COMPRA-$id.pdf");
+    }
 }
