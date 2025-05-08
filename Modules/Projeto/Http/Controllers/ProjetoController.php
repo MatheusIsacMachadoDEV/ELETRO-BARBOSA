@@ -135,11 +135,11 @@ class ProjetoController extends Controller
         $ID_PASTA_ATUAL = $dadosRecebidos['ID_PASTA_ATUAL'];
         $idUsuario = auth()->user()->id;              
 
-        if(Gate::allows('ADMINISTRADOR')){
+        // if(Gate::allows('ADMINISTRADOR')){
             $filtroAdministrador = "AND 1 = 1";
-        } else {
-            $filtroAdministrador = "AND ID_USUARIO = $idUsuario";
-        }
+        // } else {
+        //     $filtroAdministrador = "AND ID_USUARIO = $idUsuario";
+        // }
 
         $query = "  SELECT pastas.ID
                          , pastas.ID_DADO_REFERIDO AS ID_PROJETO
