@@ -671,7 +671,7 @@
                     data: {
                         '_token': '{{csrf_token()}}',
                         'FILTRO_BUSCA': request.term,
-                        'ID_TIPO': 2 // Fornecedores
+                        'ID_TIPO': 4 // Fornecedores
                     },
                     dataType: 'json',
                     success: function(r) {
