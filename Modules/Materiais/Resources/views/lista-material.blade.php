@@ -635,7 +635,8 @@
                     method: 'post',
                     data: {
                         '_token': '{{csrf_token()}}',
-                        'filtro': request.term
+                        'filtro': request.term,
+                        'tipo_material': 4
                     },
                     dataType: 'json',
                     success: function(r) {
@@ -671,7 +672,7 @@
                     data: {
                         '_token': '{{csrf_token()}}',
                         'FILTRO_BUSCA': request.term,
-                        'ID_TIPO': 4 // Fornecedores
+                        'ID_TIPO': 2 // Fornecedores
                     },
                     dataType: 'json',
                     success: function(r) {
