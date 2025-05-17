@@ -367,28 +367,28 @@
         </div>
     </div>
 
-       <div class="modal fade" id="modal-pasta" style="display: none;" aria-hidden="true"> 
-           <div class="modal-dialog"> 
-               <div class="modal-content"> 
-                   <div class="modal-header"> 
-                       <h4 class="modal-title">Adicionar Pasta</h4> 
-                       <button type="button" class="close" data-dismiss="modal" aria-label="Close"> 
-                           <span aria-hidden="true">×</span> 
-                       </button> 
-                   </div> 
-                   <div class="modal-body"> 
-                        <div class="form-group col-12">
-                            <label>Nome da Pasta</label>
-                            <input type="text" id="inputNomePasta" class="form-control col-12" placeholder="Nome da Pasta">
-                        </div> 
-                   </div> 
-                   <div class="modal-footer justify-content-between"> 
-                       <button type="button" class="btn btn-default" data-dismiss="modal">Fechar</button> 
-                       <button type="button" class="btn btn-primary" id="btnSalvarPasta">Salvar</button> 
-                   </div> 
-               </div> 
-           </div> 
-       </div> 
+    <div class="modal fade" id="modal-pasta" style="display: none;" aria-hidden="true"> 
+        <div class="modal-dialog"> 
+            <div class="modal-content"> 
+                <div class="modal-header"> 
+                    <h4 class="modal-title">Adicionar Pasta</h4> 
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"> 
+                        <span aria-hidden="true">×</span> 
+                    </button> 
+                </div> 
+                <div class="modal-body"> 
+                    <div class="form-group col-12">
+                        <label>Nome da Pasta</label>
+                        <input type="text" id="inputNomePasta" class="form-control col-12" placeholder="Nome da Pasta">
+                    </div> 
+                </div> 
+                <div class="modal-footer justify-content-between"> 
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Fechar</button> 
+                    <button type="button" class="btn btn-primary" id="btnSalvarPasta">Salvar</button> 
+                </div> 
+            </div> 
+        </div> 
+    </div> 
 @stop
 
 @section('footer')
@@ -1436,6 +1436,14 @@
             $('#modal-pasta').on('hidden.bs.modal', function () {
                 $('#modal-documentacao').modal('show');
             }); 
+
+            $('#btnAdicionarPasta').on('click', () => {
+                adicionarPasta();
+            });
+
+            $('#btnSalvarPasta').on('click', () => {
+                salvarPasta();
+            });
         // FIM
 
         // Abrir modal de cadastro
@@ -1525,14 +1533,6 @@
 
         $('#concluirProjeto').on('click', () => {
             concluirProjeto();
-        });
-
-        $('#btnAdicionarPasta').on('click', () => {
-            adicionarPasta();
-        });
-
-        $('#btnSalvarPasta').on('click', () => {
-            salvarPasta();
         });
 
         $('#modalEtapasProjeto').on('hidden.bs.modal', function () {

@@ -336,6 +336,16 @@ return [
                     'url'  => 'materiais/lista',
                     'icon' => 'fas fa-list',
                     'can'  => 'LISTA_MATERIAIS'
+                ],   
+                [
+                    'text' => 'Produtos/Serviços',
+                    'url'  => 'produto',
+                    'icon' => 'fas fa-tags',
+                ], 
+                [
+                    'text' => 'Cardápio',
+                    'url'  => 'cardapio',
+                    'icon' => 'fas fa-hamburger',
                 ], 
                 [
                     'text' => 'Relatórios de Estoque',
@@ -354,6 +364,12 @@ return [
                     'url'  => 'compras',
                     'icon' => 'fas fa-shopping-basket',
                     'can'  => 'COMPRAS_PEDIDO'
+                ], 
+                [
+                    'text' => 'PDV',
+                    'url'  => 'pdv',
+                    'icon' => 'fas fa-shopping-cart',
+                    'can'  => 'PDV'
                 ], 
                 [
                     'text' => 'Relatórios de Compras',
@@ -451,6 +467,12 @@ return [
                     'can'  => 'DEPARTAMENTO_PESSOAL_FUNCIONARIO'
                 ],   
                 [
+                    'text' => 'Documentos',
+                    'url'  => 'gestaoempresa/documento',
+                    'icon' => 'fas fa-file-alt',
+                    'can'  => 'DEPARTAMENTO_PESSOAL_DOCUMENTO'
+                ],    
+                [
                     'text' => 'Controle de Ponto',
                     'url'  => 'controleponto',
                     'icon' => 'fas fa-clock',
@@ -461,7 +483,13 @@ return [
                     'url'  => 'gestaoempresa/uniformes',
                     'icon' => 'fas fa-tshirt',
                     'can'  => 'DEPARTAMENTO_PESSOAL_UNIFORMES'
-                ],   
+                ], 
+                [
+                    'text' => 'Ordem Serviço',
+                    'url'  => 'ordemServico',
+                    'icon' => 'fas fa-file-contract',
+                    'can' => 'ORDEM_SERVICO'
+                ],     
                 [
                     'text' => 'Usuários',
                     'url'  => 'usuarios',

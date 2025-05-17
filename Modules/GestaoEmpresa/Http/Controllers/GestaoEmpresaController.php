@@ -26,6 +26,10 @@ class GestaoEmpresaController extends Controller
         return view('gestaoempresa::uniformes');
     }
 
+    public function documento(){
+        return view('gestaoempresa::documento');
+    }
+
     public function buscarUniforme(Request $request){
         $dadosRecebidos = $request->except('_token');
         
@@ -69,6 +73,81 @@ class GestaoEmpresaController extends Controller
         $return['dados'] = DB::select($query);
 
         return $return;
+    }
+
+    public function buscarCaminho(Request $request) {
+        $dadosRecebidos = $request->except('_token');
+        $idPastaAtual = $dadosRecebidos['ID_PASTA_ATUAL'];
+    
+        if ($idPastaAtual == 0) {
+            $etapas = [['NOME' => 'Geral']];
+        } else {
+            // Solução para MySQL 5.7/7.4 que não tem WITH RECURSIVE
+            $etapas = [];
+            $currentId = $idPastaAtual;
+            
+            while ($currentId != null) {
+                $pasta = DB::table('pastas')
+                    ->select('ID', 'NOME', 'ID_PASTA_PAI', 'ID_DADO_REFERIDO')
+                    ->where('ID', $currentId)
+                    ->where('ID_DADO_REFERIDO', '1')
+                    ->where('TIPO', 'ADMINISTRATIVO')
+                    ->whereRaw('ID_DADO_REFERIDO > 0')
+                    ->first();
+                
+                if (!$pasta) break;
+                
+                array_unshift($etapas, ['NOME' => $pasta->NOME, 'ID' => $pasta->ID]);
+                $currentId = $pasta->ID_PASTA_PAI;
+            }
+        }
+    
+        return response()->json(['dados' => $etapas]);
+    }
+
+    public function buscarDocumento(Request $request){
+        $dadosRecebidos = $request->except('_token');
+        $ID_PASTA_ATUAL = $dadosRecebidos['ID_PASTA_ATUAL'];
+        $idUsuario = auth()->user()->id;              
+
+        // if(Gate::allows('ADMINISTRADOR')){
+            $filtroAdministrador = "AND 1 = 1";
+        // } else {
+        //     $filtroAdministrador = "AND ID_USUARIO = $idUsuario";
+        // }
+
+        $query = "  SELECT pastas.ID
+                         , NOME AS CAMINHO_DOCUMENTO
+                         , 1 AS TIPO
+                      FROM pastas
+                     WHERE STATUS = 'A'
+                       AND ID_PASTA_PAI = $ID_PASTA_ATUAL
+                       AND TIPO = 'ADMINISTRATIVO'
+                       $filtroAdministrador
+        
+                    UNION ALL
+
+                    SELECT p.ID
+                         , CAMINHO_DOCUMENTO
+                         , 2 AS TIPO
+                      FROM documento_administrativo p
+                     WHERE p.STATUS = 'A' 
+                       AND ID_TIPO = $ID_PASTA_ATUAL";
+        $result['dados'] = DB::select($query);
+
+        return response()->json($result);
+    }
+
+    public function inserirDocumento(Request $request){
+        $dadosRecebidos = $request->except('_token');
+        $caminhoArquivo = $dadosRecebidos['caminhoArquivo'];
+        $ID_TIPO = $dadosRecebidos['ID_TIPO'];
+
+        $query = "INSERT INTO documento_administrativo (CAMINHO_DOCUMENTO, ID_TIPO) 
+                                    VALUES ('$caminhoArquivo', $ID_TIPO)";
+        $result = DB::select($query);
+
+        return $result;
     }
 
     public function inserirUniforme(Request $request){
@@ -120,6 +199,20 @@ class GestaoEmpresaController extends Controller
 
         return $return;
     }
+
+    public function inserirPasta(Request $request){
+        $dadosRecebidos = $request->except('_token');
+        $NOME = $dadosRecebidos['NOME'];
+        $ID_DOCUMENTO = $dadosRecebidos['ID_DOCUMENTO'] ?? 1;
+        $ID_PASTA_PAI = $dadosRecebidos['ID_PASTA_PAI'];
+        $idUsuario = auth()->user()->id;              
+
+        $query = "INSERT INTO pastas (NOME, ID_DADO_REFERIDO, ID_PASTA_PAI, ID_USUARIO, TIPO) 
+                                    VALUES ('$NOME', $ID_DOCUMENTO, $ID_PASTA_PAI, $idUsuario, 'ADMINISTRATIVO')";
+        $result = DB::select($query);
+
+        return $result;
+    }
     
     public function alterarUniforme(Request $request){
         $dadosRecebidos = $request->except('_token');
@@ -170,5 +263,30 @@ class GestaoEmpresaController extends Controller
         DB::select($queryUpdateUniforme);
 
         return response()->json(['success' => 'Uniforme devolvido com sucesso!']);
+    }
+
+    public function inativarDocumento(Request $request){
+        $dadosRecebidos = $request->except('_token');
+        $idDocumento = $dadosRecebidos['idDocumento'];
+
+        $query = "UPDATE documento_administrativo SET STATUS = 'I' WHERE ID = $idDocumento";
+        DB::update($query);
+
+        return response()->json(['success' => 'Documento inativado com sucesso!']);
+    }
+
+    public function inativarPasta(Request $request){
+        $dadosRecebidos = $request->except('_token');
+        $idPasta = $dadosRecebidos['idPasta'];
+        $idUsuario = auth()->user()->id;
+
+        $query = "UPDATE pastas 
+                     SET STATUS = 'I'
+                       , DATA_INATIVACAO = NOW()
+                       , ID_USUARIO_INATIVACAO = $idUsuario
+                   WHERE ID = $idPasta";
+        DB::update($query);
+
+        return response()->json(['success' => 'Documento inativado com sucesso!']);
     }
 }

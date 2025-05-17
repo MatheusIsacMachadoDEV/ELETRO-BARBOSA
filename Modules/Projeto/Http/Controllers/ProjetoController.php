@@ -218,6 +218,7 @@ class ProjetoController extends Controller
                     ->select('ID', 'NOME', 'ID_PASTA_PAI', 'ID_DADO_REFERIDO')
                     ->where('ID', $currentId)
                     ->where('ID_DADO_REFERIDO', $idProjeto)
+                    ->where('TIPO', 'PROJETO')
                     ->whereRaw('ID_DADO_REFERIDO > 0')
                     ->first();
                 
@@ -272,8 +273,8 @@ class ProjetoController extends Controller
         $ID_PASTA_PAI = $dadosRecebidos['ID_PASTA_PAI'];
         $idUsuario = auth()->user()->id;              
 
-        $query = "INSERT INTO pastas (NOME, ID_DADO_REFERIDO, ID_PASTA_PAI, ID_USUARIO) 
-                                    VALUES ('$NOME', $ID_PROJETO, $ID_PASTA_PAI, $idUsuario)";
+        $query = "INSERT INTO pastas (NOME, ID_DADO_REFERIDO, ID_PASTA_PAI, ID_USUARIO, TIPO) 
+                                    VALUES ('$NOME', $ID_PROJETO, $ID_PASTA_PAI, $idUsuario, 'PROJETO')";
         $result = DB::select($query);
 
         return $result;
