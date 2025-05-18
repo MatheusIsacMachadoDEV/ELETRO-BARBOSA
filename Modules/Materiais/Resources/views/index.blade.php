@@ -261,7 +261,7 @@
                 </div> 
                 <div class="modal-body"> 
                     <div class="col-12">
-                        <table class="table table-responsive-xs">
+                        <table class="table table-responsive-sm">
                             <thead>
                                 <th style="padding-left: 5px!important">Material</th>
                                 <th><center>Data Movimentação</center></th>
@@ -271,6 +271,36 @@
                                 <th><center>Origem</center></th>
                             </thead>
                             <tbody id="tableBodyKardex">
+                            </tbody>
+                        </table>
+                    </div>
+                </div> 
+                <div class="modal-footer justify-content-between"> 
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Fechar</button>
+                </div> 
+            </div> 
+        </div> 
+    </div> 
+
+    <div class="modal fade" id="modal-historico" style="display: none;" aria-hidden="true"> 
+        <div class="modal-dialog modal-xl"> 
+            <div class="modal-content"> 
+                <div class="modal-header"> 
+                    <h4 class="modal-title">Histórico</h4> 
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"> 
+                        <span aria-hidden="true">×</span> 
+                    </button> 
+                </div> 
+                <div class="modal-body"> 
+                    <div class="col-12">
+                        <table class="table table-responsive-sm">
+                            <thead>
+                                <th class="d-none d-lg-table-cell" style="padding-left: 5px!important">Material</th>
+                                <th class="d-none d-lg-table-cell"><center>Data</center></th>
+                                <th class="d-none d-lg-table-cell"><center>Valor</center></th>
+                                <th class="d-none d-lg-table-cell"><center>Fornecedor</center></th>
+                            </thead>
+                            <tbody id="tableBodyHistorico">
                             </tbody>
                         </table>
                     </div>
@@ -403,6 +433,26 @@
             })
         }
 
+        function exibirHistorico(idMaterial){
+            $.ajax({
+                type:'post',
+                datatype:'json',
+                data:{
+                   '_token':'{{csrf_token()}}',
+                   'ID_MATERIAL': idMaterial
+                },
+                url:"{{route('material.buscar.historico')}}",
+                success:function(r){
+                    var dadosHistorico = r.dados;
+
+                    popularTabelaHistorico(dadosHistorico);
+
+                    $('#modal-historico').modal('show');
+                },
+                error:err=>{exibirErroAJAX(err)}
+            })
+        }
+
         function buscarMaterial(){
             editarMaterial = false;
             $.ajax({
@@ -500,6 +550,7 @@
                 btnEtiqueta = `<li class="dropdown-item" onclick="gerarEtiqueta(${produto[i]['ID']})"><span class="btn"><i class="fas fa-tag"></i> Gerar Etiqueta</span></li>`;
                 btnEditar = `<li class="dropdown-item" onclick="exibirModalEdicaoMaterial(${produto[i]['ID']})"><span class="btn"><i class="fas fa-pen"></i> Editar</span></li>`;
                 btnKardex = `<li class="dropdown-item" onclick="exibirKardex(${produto[i]['ID']})"><span class="btn"><i class="fas fa-clipboard-list"></i> Relatório KARDEX</span></li>`;
+                btnHistorico = `<li class="dropdown-item" onclick="exibirHistorico(${produto[i]['ID']})"><span class="btn"><i class="fas fa-history"></i> Histórico</span></li>`;
                 btnGerarInativar = `<li class="dropdown-item" onclick="inativarMaterial(${produto[i]['ID']})"><span class="btn"><i class="fas fa-trash"></i> Inativar</span></li>`;
 
                 btnAcoes = `<div class="input-group-prepend show justify-content-center" style="text-align: center">
@@ -510,6 +561,7 @@
                                     ${btnEtiqueta}
                                     ${btnEditar}
                                     ${btnKardex}
+                                    ${btnHistorico}
                                     ${btnGerarInativar}
                                 </ul>
                             </div>`;
@@ -653,6 +705,54 @@
                     </tr>`;
             }
             $('#tableBodyKardex').html(htmlTabela)
+        }
+
+        function popularTabelaHistorico(dados){
+            var htmlTabela = "";
+
+            for(i=0; i< dados.length; i++){
+                var materialKeys = Object.keys(dados[i]);
+                for(j=0;j<materialKeys.length;j++){
+                    if(dados[i][materialKeys[j]] == null){
+                        dados[i][materialKeys[j]] = "";
+                    }
+                }
+
+                var dataInsercao = moment(dados[i]['DATA_INSERCAO']).format('DD/MM/YYYY HH:mm');
+                var valorItem = mascaraFinanceira(dados[i]['VALOR_ITEM']);
+
+                htmlTabela += `
+                    <tr id="tableRow${dados[i]['ID']}" class="d-none d-lg-table-row">
+                        <td class="tdTexto" style="padding-left: 5px!important">${dados[i]['MATERIAL']}</td>
+                        <td class="tdTexto"><center>${dataInsercao}</center></td>
+                        <td class="tdTexto"><center>${valorItem}</center></td>
+                        <td class="tdTexto"><center>${dados[i]['NOME_FORNECEDOR']}</center></td>
+                    </tr>
+                    
+                    <tr id="tableRow${dados[i]['ID']}" class="d-table-row d-lg-none">
+                        <td>
+                            <div class="col-12">
+                                <center>
+                                    <b>${dados[i]['MATERIAL']} </b>
+                                </center>
+                            </div>
+                            <div class="col-12 row d-flex justify-content-between">
+                                <div class="col-4">
+                                    <b>Data: </b>${dataInsercao}
+                                </div>
+                                <div class="col-4">
+                                    <b>Valor: </b>${valorItem}
+                                </div>
+                            </div>
+                            <div class="col-12 row d-flex justify-content-between">
+                                <div class="col-6">
+                                    ${dados[i]['NOME_FORNECEDOR']}
+                                </div>
+                            </div>
+                        </td>
+                    </tr>`;
+            }
+            $('#tableBodyHistorico').html(htmlTabela)
         }
 
         function popularSelectMarca(dados){

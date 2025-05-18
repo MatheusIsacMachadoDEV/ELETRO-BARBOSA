@@ -47,6 +47,7 @@
                 <table class="table table-responsive-xs">
                     <thead>
                         <th class="d-none d-lg-table-cell" style="padding-left: 5px!important">ID</th>
+                        <th class="d-none d-lg-table-cell"><center>Projeto</center></th>
                         <th class="d-none d-lg-table-cell"><center>Data</center></th>
                         <th class="d-none d-lg-table-cell"><center>Valor</center></th>
                         <th class="d-none d-lg-table-cell"><center>Situação</center></th>
@@ -69,7 +70,7 @@
                     </button> 
                 </div> 
                 <div class="modal-body"> 
-                    <div class="row d-flex">
+                    <div class="row d-flex p-0 m-0">
                         <input type="hidden" class="form-control form-control-border" id="inputCadastroID" disabled>
 
                         <div class="col-12 row d-flex p-0 m-0">
@@ -81,12 +82,26 @@
                                 <button id="btnLimparCadastroFornecedor" class="btnLimparCadastroFornecedor btn btn-sm btn-danger d-none col-12"><i class="fas fa-eraser"></i>LIMPAR</button>
                             </div>                         
     
-                            <div class="form-group col-4">
+                            <div class="form-group col-4 p-0 m-0">
                                 <input type="text" class="form-control form-control-border" placeholder="Item: Valor Total" id="inputCadastroValorTotal" disabled>
                             </div>
                         </div>
 
-                        <div class="col-12 row d-flex" id="divItens">
+                        <div class="col-12 row p-0 m-0" id="divSelecionarProjeto">
+                            <div class="col">
+                                <input type="text" class="form-control form-control-border col-12" placeholder="Projeto" id="inputProjeto">
+                                <input type="hidden" id="inputIDProjeto">
+                            </div>
+                            <div class="col btnLimparProjeto d-none m-0 p-0">
+                                <button id="btnLimparProjeto" class="btnLimparProjeto btn btn-sm btn-danger d-none col-12"><i class="fas fa-eraser"></i>LIMPAR</button>
+                            </div>
+                        </div>
+
+                        <div class="col-12">
+                            <textarea class="form-control form-control-border" placeholder="Especificação" id="textareaEspecificacao" rows="3" maxlength="1000"></textarea>
+                        </div>
+
+                        <div class="col-12 row d-flex p-0 m-0" id="divItens">
     
                             <div class="col-6 row d-flex p-0 m-0">
                                 <div class="col">
@@ -98,15 +113,15 @@
                                 </div>
                             </div>   
     
-                            <div class="col-6">
+                            <div class="col-6 p-0 m-0">
                                 <button type="button" class="btn btn-block btn-info" id="btnCadastroAdicionarItem"><i class="fas fa-plus"></i> Item</button>
                             </div>
                             
-                            <div class="form-group col-6">
+                            <div class="form-group col-6 p-0 m-0">
                                 <input type="text" class="form-control form-control-border" placeholder="Item: Quantidade" id="inputCadastroItemQTDE">
                             </div>
 
-                            <div class="form-group col-6">
+                            <div class="form-group col-6 p-0 m-0">
                                 <input type="text" class="form-control form-control-border" placeholder="Item: Valor Unitário" id="inputCadastroItemValor">
                             </div>
                         </div>
@@ -250,7 +265,16 @@
                     var dados = r.dados[0];
         
                     $('#inputCadastroID').val(idLista);
+
+                    if(dados['ID_PROJETO'] > 0){
+                        $('#inputProjeto').attr('disabled', true);
+                        $('.btnLimparProjeto').removeClass('d-none');
+                        $('#inputProjeto').val(dados['PROJETO']);
+                        $('#inputIDProjeto').val(dados['ID_PROJETO']);
+                    }
+
                     $('#inputCadastroValorTotal').val(mascaraFinanceira(dados['VALOR_TOTAL']));
+                    $('#textareaEspecificacao').val(dados['ESPECIFICACAO']);
                     
                     dadosItens = dados['ITENS'];
         
@@ -375,6 +399,7 @@
                 htmlTabela += `
                     <tr id="tableRow${dados[i]['ID']}" class="d-none d-lg-table-row">
                         <td class="tdTexto" style="padding-left: 5px!important">${dados[i]['ID']} - ${usuarioCadastro}${usuarioInativacao}</td>
+                        <td class="tdTexto"><center>${dados[i]['PROJETO'] ?? '-'}</center></td>
                         <td class="tdTexto"><center>${dataFormatada}</center></td>
                         <td class="tdTexto"><center>${mascaraFinanceira(dados[i]['VALOR_TOTAL'])}</center></td>
                         <td class="tdTexto"><center><span class="badge ${classeSituacao}">${situacao}</center></td>
@@ -452,6 +477,8 @@
                 
                 const data = {
                     '_token': '{{csrf_token()}}',
+                    'ID_PROJETO': $('#inputIDProjeto').val(),
+                    'ESPECIFICACAO': $('#textareaEspecificacao').val(),
                     'valorTotal': valorTotal,
                     'dadosItens': dadosItens
                 };
@@ -619,6 +646,10 @@
         
             dadosItens = [];
             valorTotalLista = 0;
+
+            limparCampo('inputProjeto', 'inputIDProjeto', 'btnLimparProjeto');
+
+            $('#textareaEspecificacao').val('');
         
             popularListaItens();
         }
@@ -698,7 +729,9 @@
         
         // Event Listeners
         $('#btnCadastroSalvar').click(inserirMaterialLista);
+
         $('#btnCadastroAdicionarItem').click(inserirItemLista);
+
         $('#btnNovo').click(exibirModalCadastro);
         
         $('#btnLimparCadastroItem').click(function() {
@@ -712,6 +745,48 @@
         $('#inputFiltroDataInicio, #inputFiltroDataFim').change(function() {
             clearTimeout(timeoutFiltro);
             timeoutFiltro = setTimeout(buscarDados, 1500);
+        });
+
+        $("#inputProjeto").autocomplete({
+            source: function(request, cb) {
+                param = request.term;
+                $.ajax({
+                    url: "{{route('projeto.buscar')}}",
+                    method: 'post',
+                    data: {
+                        '_token': '{{csrf_token()}}',
+                        'filtro': param
+                    },
+                    dataType: 'json',
+                    success: function(r) {
+                        result = $.map(r.dados, function(obj) {
+                            return {
+                                label: obj.info,
+                                value: obj.TITULO,
+                                data: obj
+                            };
+                        });
+                        cb(result);
+                    },
+                    error: err => {
+                        console.log(err);
+                    }
+                });
+            },
+            select: function(e, selectedData) {
+                if (selectedData.item.label != 'Nenhum Funcionário Encontrado.') {
+                    $('#inputProjeto').val(selectedData.item.data.TITULO);
+                    $('#inputIDProjeto').val(selectedData.item.data.ID);
+                    $('#inputProjeto').attr('disabled', true);
+                    $('.btnLimparProjeto').removeClass('d-none');
+                } else {
+                    limparCampo('inputProjeto', 'inputIDProjeto', 'btnLimparProjeto');
+                }
+            }
+        });
+
+        $('#btnLimparProjeto').on('click', () => {
+            limparCampo('inputProjeto', 'inputIDProjeto', 'btnLimparProjeto');
         });
         
         $(document).ready(function() {

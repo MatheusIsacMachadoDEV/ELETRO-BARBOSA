@@ -120,6 +120,28 @@ class MateriaisController extends Controller
         return $result;
     }
 
+    public function buscarMaterialHistorico(Request $request){
+        $dadosRecebidos = $request->except('_token');
+        $idMaterial = $dadosRecebidos['ID_MATERIAL'];
+        $return = [];
+
+        $query = "SELECT material_lista_item.VALOR_ITEM
+                       , material_lista_item.QTDE
+                       , material_lista_item.NOME_FORNECEDOR
+                       , material_lista_item.DATA_INSERCAO
+                       , (SELECT MATERIAL
+                            FROM material
+                           WHERE ID = material_lista_item.ID_MATERIAL) AS MATERIAL
+                    FROM material_lista_item
+                   WHERE STATUS = 'A'
+                     AND ID_MATERIAL = $idMaterial
+                    ORDER BY material_lista_item.DATA_INSERCAO DESC";
+        $result = DB::select($query);
+
+        $return['dados'] = $result;
+        return $return;
+    }
+
     public function buscarMaterialMovimento(Request $request){
         $dadosRecebidos = $request->except('_token');
         $filtroLimit = "";
@@ -287,7 +309,10 @@ class MateriaisController extends Controller
                           WHERE users.ID = material_lista.ID_USUARIO) as USUARIO_CADASTRO,
                          (SELECT name
                           FROM users
-                          WHERE users.ID = material_lista.ID_USUARIO_INATIVACAO) as USUARIO_INATIVACAO
+                          WHERE users.ID = material_lista.ID_USUARIO_INATIVACAO) as USUARIO_INATIVACAO,
+                         (SELECT TITULO
+                            FROM projeto
+                           WHERE projeto.ID = material_lista.ID_PROJETO) as PROJETO
                   FROM material_lista
                   WHERE STATUS = 'A'
                   $filtro
@@ -305,6 +330,10 @@ class MateriaisController extends Controller
                                        QTDE,
                                        NOME_FORNECEDOR,
                                        ID_FORNECEDOR,
+                                       ID_MATERIAL,
+                                       (SELECT MATERIAL
+                                          FROM material
+                                         WHERE ID = material_lista_item.ID_MATERIAL) AS ITEM,
                                        (SELECT name
                                         FROM users
                                         WHERE users.ID = material_lista_item.ID_USUARIO) as USUARIO_CADASTRO
@@ -322,7 +351,7 @@ class MateriaisController extends Controller
         $valor = $dadosRecebidos['valor'];
         $material = $dadosRecebidos['material'];
         $marca = $dadosRecebidos['marca'];
-        $QTDE = $dadosRecebidos['QTDE'];
+        $QTDE = $dadosRecebidos['QTDE'] ?? 0;
         $disponivel = $dadosRecebidos['disponivel'];
         $ultimaRetirada = isset($dadosRecebidos['ultimaRetirada']) ? "'{$dadosRecebidos['ultimaRetirada']}'" : 'null';
         $TIPO_MATERIAL = $dadosRecebidos['TIPO_MATERIAL'];
@@ -423,6 +452,8 @@ class MateriaisController extends Controller
     public function inserirMaterialLista(Request $request) {
         $dadosRecebidos = $request->except('_token');
         $valorTotal = isset($dadosRecebidos['valorTotal']) ? $dadosRecebidos['valorTotal'] : 0;
+        $ID_PROJETO = isset($dadosRecebidos['ID_PROJETO']) ? $dadosRecebidos['ID_PROJETO'] : 0;
+        $ESPECIFICACAO = isset($dadosRecebidos['ESPECIFICACAO']) ? $dadosRecebidos['ESPECIFICACAO'] : '';
         $usuario = auth()->user()->name;
         $idUsuario = auth()->user()->id;
         $return = [];
@@ -438,12 +469,16 @@ class MateriaisController extends Controller
                     ID,
                     VALOR_TOTAL,
                     ID_USUARIO,
+                    ID_PROJETO,
+                    ESPECIFICACAO,
                     DATA_INSERCAO,
                     STATUS
                   ) VALUES (
                     $idCodigo,
                     $valorTotal,
                     $idUsuario,
+                    $ID_PROJETO,
+                    '$ESPECIFICACAO',
                     NOW(),
                     'A'
                   )";
@@ -492,7 +527,7 @@ class MateriaisController extends Controller
         $valor = $dadosRecebidos['valor'];
         $material = $dadosRecebidos['material'];
         $marca = $dadosRecebidos['marca'];
-        $QTDE = $dadosRecebidos['QTDE'];
+        $QTDE = $dadosRecebidos['QTDE'] ?? 0;
         $disponivel = $dadosRecebidos['disponivel'];
         $ultimaRetirada = strlen($dadosRecebidos['ultimaRetirada']) > 0 ? "'{$dadosRecebidos['ultimaRetirada']}'" : 'null';
         $TIPO_MATERIAL = $dadosRecebidos['TIPO_MATERIAL'];
@@ -528,12 +563,16 @@ class MateriaisController extends Controller
         $dadosRecebidos = $request->except('_token');
         $idCodigo = $dadosRecebidos['ID'];
         $valorTotal = isset($dadosRecebidos['valorTotal']) ? $dadosRecebidos['valorTotal'] : 0;
+        $ID_PROJETO = isset($dadosRecebidos['ID_PROJETO']) ? $dadosRecebidos['ID_PROJETO'] : 0;
+        $ESPECIFICACAO = isset($dadosRecebidos['ESPECIFICACAO']) ? $dadosRecebidos['ESPECIFICACAO'] : '';
         $usuario = auth()->user()->name;
         $idUsuario = auth()->user()->id;
         $return = [];
     
         $query = "UPDATE material_lista
-                  SET VALOR_TOTAL = $valorTotal
+                     SET VALOR_TOTAL = $valorTotal
+                       , ID_PROJETO = $ID_PROJETO
+                       , ESPECIFICACAO = '$ESPECIFICACAO'
                   WHERE ID = $idCodigo";
         $result = DB::select($query);
     
@@ -546,7 +585,7 @@ class MateriaisController extends Controller
             $qtde = $dadosRecebidos['dadosItens'][$i]['QTDE'];
             $nomeFornecedor = $dadosRecebidos['dadosItens'][$i]['NOME_FORNECEDOR'];
             $idFornecedor = $dadosRecebidos['dadosItens'][$i]['ID_FORNECEDOR'];
-            $idMaterial = $dadosRecebidos['dadosItens'][$i]['ID_ITEM'];
+            $idMaterial = $dadosRecebidos['dadosItens'][$i]['ID_MATERIAL'];
             
             $queryItem = "INSERT INTO material_lista_item (
                             ID_MATERIAL_LISTA,
