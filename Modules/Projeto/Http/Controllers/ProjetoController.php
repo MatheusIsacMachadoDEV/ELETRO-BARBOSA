@@ -60,7 +60,7 @@ class ProjetoController extends Controller
                              OR YEAR(DATA_INICIO) = '{$dadosRecebidos['filtro']}'
                              OR (SELECT COUNT(*)
                                    FROM pessoa
-                                  WHERE pessoa.ID = P.ID_CLIENTE
+                                  WHERE pessoa.ID = p.ID_CLIENTE
                                     AND NOME LIKE '%{$dadosRecebidos['filtro']}%') > 0)";
         } else {
             $filtro = "";
@@ -81,6 +81,11 @@ class ProjetoController extends Controller
                             FROM contas_pagar
                            WHERE contas_pagar.ID_PROJETO = p.ID
                              AND contas_pagar.STATUS = 'A') AS VALOR_GASTO
+                       , CASE 
+                         WHEN p.ID_USUARIO_INSERCAO = $idUsuario
+                         THEN 1
+                         ELSE 0
+                         END AS USUARIO_LOGADO_RESPONSAVEL
                        , ROUND(
                             (SELECT COUNT(*) 
                             FROM projeto_etapa 

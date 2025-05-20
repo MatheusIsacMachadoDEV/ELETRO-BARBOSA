@@ -42,8 +42,8 @@
                                 <th><center>Fim</center></th>
                                 @can('ADMINISTRADOR')
                                 <th><center>Valor</center></th>
-                                @endcan
                                 <th><center>Pagamento</center></th>
+                                @endcan
                                 <th><center>Conclusão</center></th>
                                 <th><center>Ações</center></th>
                             </tr>
@@ -551,6 +551,12 @@
 
         function popularTabelaDados(dados) {
             let htmlTabela = '';
+            let usuarioAdm = false;
+
+            @CAN('ADMINISTRADOR')
+                usuarioAdm = true;
+            @ENDCAN
+
             dados.forEach(projeto => {
                 const dataInicio = moment(projeto.DATA_INICIO).format('DD/MM/YYYY');
                 const dataFim = moment(projeto.DATA_FIM).format('DD/MM/YYYY');
@@ -571,7 +577,10 @@
                     </div>
                 `;
 
-                btnEditar = `<li class="dropdown-item" onclick="editarProjeto(${projeto.ID})"><span class="btn"><i class="fas fa-pen"></i></span> Editar</li>`;
+                btnEditar = ``;
+                if(projeto.USUARIO_LOGADO_RESPONSAVEL > 0 || usuarioAdm){
+                    btnEditar = `<li class="dropdown-item" onclick="editarProjeto(${projeto.ID})"><span class="btn"><i class="fas fa-pen"></i></span> Editar</li>`;
+                }
                 btnArquivos = `<li class="dropdown-item" onclick="cadastarDocumento(${projeto.ID}, '${projeto.TITULO}')"><span class="btn"><i class="fas fa-file"></i></span> Arquivos</li>`;
                 btnPessoas = `<li class="dropdown-item" onclick="buscarPessoaProjeto(${projeto.ID}, '${projeto.TITULO}')"><span class="btn"><i class="fas fa-user"></i></span> Participantes</li>`;
                 btnEtapas = `<li class="dropdown-item" onclick="abrirModalEtapas(${projeto.ID})"><span class="btn"><i class="fas fa-tasks"></i></span> Etapas</li>`;
@@ -601,11 +610,11 @@
 
                         @can('ADMINISTRADOR')
                         htmlTabela += `
-                        <td><center>${mascaraFinanceira(projeto.VALOR)}</center></td>`;
+                        <td><center>${mascaraFinanceira(projeto.VALOR)}</center></td>
+                        <td><center>${pagamento}</center></td>`;
                         @endcan
 
                         htmlTabela += `
-                        <td><center>${pagamento}</center></td>
                         <td><center>${progressoHTML}</center></td>
                         <td>
                             <center>
