@@ -489,9 +489,11 @@ class MateriaisController extends Controller
             $nomeFornecedor = $dadosRecebidos['dadosItens'][$i]['NOME_FORNECEDOR'];
             $idFornecedor = $dadosRecebidos['dadosItens'][$i]['ID_FORNECEDOR'];
             $idMaterial = $dadosRecebidos['dadosItens'][$i]['ID_ITEM'];
+            $material = $dadosRecebidos['dadosItens'][$i]['ITEM'];
             
             $queryItem = "INSERT INTO material_lista_item (
                             ID_MATERIAL_LISTA,
+                            MATERIAL,
                             VALOR_ITEM,
                             QTDE,
                             NOME_FORNECEDOR,
@@ -502,6 +504,7 @@ class MateriaisController extends Controller
                             STATUS
                           ) VALUES (
                             $idCodigo,
+                            '$material',
                             $valorItem,
                             $qtde,
                             '$nomeFornecedor',
@@ -585,9 +588,11 @@ class MateriaisController extends Controller
             $nomeFornecedor = $dadosRecebidos['dadosItens'][$i]['NOME_FORNECEDOR'];
             $idFornecedor = $dadosRecebidos['dadosItens'][$i]['ID_FORNECEDOR'];
             $idMaterial = $dadosRecebidos['dadosItens'][$i]['ID_MATERIAL'];
+            $material = $dadosRecebidos['dadosItens'][$i]['ITEM'];
             
             $queryItem = "INSERT INTO material_lista_item (
                             ID_MATERIAL_LISTA,
+                            MATERIAL,
                             VALOR_ITEM,
                             QTDE,
                             NOME_FORNECEDOR,
@@ -598,6 +603,7 @@ class MateriaisController extends Controller
                             STATUS
                           ) VALUES (
                             $idCodigo,
+                            '$material',
                             $valorItem,
                             $qtde,
                             '$nomeFornecedor',
@@ -736,9 +742,9 @@ class MateriaisController extends Controller
         $dadosOrdemCompra = DB::select($queryOrdemCompra)[0];
 
         $queryItemOrdemCompra = "SELECT material_lista_item.*
-                                   , (SELECT MATERIAL
-                                        FROM material
-                                       WHERE material.ID = material_lista_item.ID_MATERIAL) as MATERIAL
+                                      , COALESCE(MATERIAL, (SELECT MATERIAL
+                                                              FROM material
+                                                             WHERE material.ID = material_lista_item.ID_MATERIAL)) as MATERIAL
                                 FROM material_lista_item
                                WHERE STATUS = 'A'
                                  AND ID_MATERIAL_LISTA = $id";
