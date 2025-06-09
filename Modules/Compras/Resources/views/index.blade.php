@@ -51,12 +51,13 @@
             <div class="card-body">
                 <table class="table table-responsive-xs">
                     <thead>
-                        <th class="d-none d-lg-table-cell" style="padding-left: 5px!important">Título</th>
+                        <th class="d-none d-lg-table-cell" style="padding-left: 5px!important">Nº</th>
+                        <th class="d-none d-lg-table-cell"><center>Título</center></th>
                         <th class="d-none d-lg-table-cell"><center>Projeto</center></th>
-                        <th class="d-none d-lg-table-cell"><center>Data</center></th>
+                        <th class="d-none d-lg-table-cell"><center>Cliente</center></th>
+                        <th class="d-none d-lg-table-cell"><center>Emissão</center></th>
+                        <th class="d-none d-lg-table-cell"><center>Total</center></th>
                         <th class="d-none d-lg-table-cell"><center>Situação</center></th>
-                        <th class="d-none d-lg-table-cell"><center>Aprovação</center></th>
-                        <th class="d-none d-lg-table-cell"><center>Observação</center></th>
                         <th class="d-none d-lg-table-cell" style="width: 10vw"><center></center></th>
                     </thead>
                     <tbody id="tableBodyDados">
@@ -422,7 +423,7 @@
                 var btnImprimir = `<li class="dropdown-item" onclick="gerarImpresso(${dados[i]['ID']}, 1)"><span class="btn"><i class="fas fa-print"></i> Imprimir</span></li>`;
                 var btnVisualizar = `<li class="dropdown-item" onclick="exibirModalVisualizacao(${dados[i]['ID']})"><span class="btn"><i class="fas fa-eye"></i> Visualizar</span></li>`;
                 var classeBadgeSituacao = 'bg-warning';
-                var dataFormatada = moment(dados[i]['DATA_CADASTRO']).format('DD/MM/YYYY H:m');
+                var dataFormatada = moment(dados[i]['DATA_CADASTRO']).format('DD/MM/YYYY HH:mm');
 
                 if(dados[i]['ID_USUARIO_APROVACAO'] != null && dados[i]['ID_USUARIO_APROVACAO'] > 0){
                     situacaoAprovacao = `<span class="badge bg-info">${dados[i]['USUARIO_APROVACAO']} - ${moment(dados[i]['DATA_APROVACAO']).format('DD/MM/YYYY H:m')}</span>`;
@@ -465,12 +466,13 @@
 
                 htmlTabela += `
                     <tr id="tableRow${dados[i]['ID']}" class="d-none d-lg-table-row">
-                        <td class="tdTexto" style="padding-left: 5px!important">${dados[i]['ID']} - ${dados[i]['TITULO'] == '' ? dados[i]['USUARIO'] : dados[i]['TITULO']} <span class="badge bg-success">${mascaraFinanceira(dados[i]['VALOR'])}</span></td>
+                        <td class="tdTexto" style="padding-left: 5px!important">${dados[i]['ID']}</td>
+                        <td class="tdTexto"><center>${dados[i]['TITULO']}</center></td>
                         <td class="tdTexto"><center>${dados[i]['PROJETO'] ?? '-'}</center></td>
+                        <td class="tdTexto"><center>${dados[i]['NOME_CLIENTE']}</center></td>
                         <td class="tdTexto"><center>${dataFormatada}</center></td>
+                        <td class="tdTexto"><center><span class="badge bg-success">${mascaraFinanceira(dados[i]['VALOR'])}</span></center></td>
                         <td class="tdTexto"><center>${badgeSituacao}</center></td>
-                        <td class="tdTexto"><center>${situacaoAprovacao}</center></td>
-                        <td class="tdTexto"><center>${dados[i]['OBSERVACAO'].substr(0, 20)}</center></td>
                         <td>
                             <center>
                             ${btnOpcoes}
