@@ -83,7 +83,6 @@
 
         .dados-gerais{
             border: 1px solid #000;
-            padding: 5!important;
         }
 
         .dados-itens{
@@ -131,43 +130,33 @@
         </div>
     </div>
 
-    <div class="dados-gerais">
-        <table style="width: 100%; border-collapse: collapse;">
+    <div >
+        <table class="dados-gerais" style="width: 100%; border-collapse: collapse;">
             <tr>
-                <td style="width: 70%;font-weight: bold;">Cliente: {{count($dadosCliente) > 0 ? $dadosCliente->NOME : ''}}</td>
-                <td style="width: 30%;font-weight: bold;">Fone: {{count($dadosCliente) > 0 ? $dadosCliente->TELEFONE : ''}}</td>
+                <td style="width: 70%;font-weight: bold;">Projeto: {{$dadosOrdemCompra->PROJETO}}</td>
             </tr>
         </table>
-        <table style="width: 100%; border-collapse: collapse;">
+        <table class="dados-gerais" style="width: 100%; border-collapse: collapse;">
             <tr>
-                <td style="width: 70%;font-weight: bold;">Obra: {{$dadosOrdemCompra->PROJETO}}</td>
-                <td style="width: 30%;font-weight: bold;">Responsável: {{$dadosOrdemCompra->USUARIO}}</td>
+                <td style="width: 70%;font-weight: bold;">Cliente: {{$dadosCliente->NOME != null ? $dadosCliente->NOME : ''}}</td>
             </tr>
         </table>
-        <table style="width: 100%; border-collapse: collapse;">
+        <table class="dados-gerais" style="width: 100%; border-collapse: collapse;">
             <tr>
-                <td style="width: 70%;font-weight: bold;">Endereço: {{count($dadosCliente) > 0 ? $dadosCliente->RUA : ''}}, {{count($dadosCliente) > 0 ? $dadosCliente->NUMERO : ''}}</td>
-                <td style="width: 30%;font-weight: bold;">CEP: {{count($dadosCliente) > 0 ? $dadosCliente->CEP : ''}}</td>
-            </tr>
-        </table>
-        <table style="width: 100%; border-collapse: collapse;">
-            <tr>
-                <td style="width: 40%;font-weight: bold;">Cidade: {{count($dadosCliente) > 0 ? $dadosCliente->CIDADE : ''}}</td>
-                <td style="width: 30%;font-weight: bold;">Bairro: {{count($dadosCliente) > 0 ? $dadosCliente->BAIRRO : ''}}</td>
-                <td style="width: 30%;font-weight: bold;">UF: {{count($dadosCliente) > 0 ? $dadosCliente->ESTADO : ''}}</td>
+                <td style="width: 70%;font-weight: bold;">Título: {{$dadosOrdemCompra->TITULO != null ? $dadosOrdemCompra->TITULO : ''}}</td>
             </tr>
         </table>
     </div>
         
     <div class="dados-itens">
-        <table style="width: 100%; border-collapse: collapse;">
+        <table style="width: 100%; border-collapse: collapse;font-size: 12px!important">
             <thead style="background-color: red">
                 <th>Item</th>
                 <th>Descrição</th>
+                <th>Especificação</th>
                 <th>Quantidade</th>
                 <th>Valor Unit</th>
                 <th>Valor Total</th>
-                <th>Observação</th>
             </thead>
             <tbody>
                 @foreach($dadosItemOrdemCompra as $item)
@@ -178,6 +167,9 @@
                     <td style="width: 25%; border: 0px 1px 0px 0px solid black;;font-size: 13px">
                         <center>{{ $item->MATERIAL }}</center>
                     </td>
+                    <td style="width: 15%; border: 0px 1px 0px 0px solid black;;">
+                        <center>{{ $item->OBSERVACAO }}</center>
+                    </td>
                     <td style="width: 10%; border: 0px 1px 0px 0px solid black;;">
                         <center>{{ $item->QTDE }}</center>
                     </td>
@@ -186,9 +178,6 @@
                     </td>
                     <td style="width: 20%; border: 0px 1px 0px 0px solid black;;">
                         <center>R$ {{ number_format($item->VALOR_TOTAL, 2, ',', '.') }}</center>
-                    </td>
-                    <td style="width: 15%; border: 0px 1px 0px 0px solid black;;">
-                        <center>{{ $item->OBSERVACAO }}</center>
                     </td>
                 </tr>
                 @endforeach

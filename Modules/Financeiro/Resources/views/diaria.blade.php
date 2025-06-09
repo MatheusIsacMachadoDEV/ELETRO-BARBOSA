@@ -123,11 +123,22 @@
                         </div>
                     </div>
 
+                    <div class="col-12 row p-0 m-0" id="divSelecionarProjeto">
+                        <div class="col">
+                            <input type="text" class="form-control form-control-border col-12" placeholder="Projeto" id="inputProjeto">
+                            <input type="hidden" id="inputIDProjeto">
+                        </div>
+                        <div class="col btnLimparProjeto d-none m-0 p-0">
+                            <button id="btnLimparProjeto" class="btnLimparProjeto btn btn-sm btn-danger d-none col-12"><i class="fas fa-eraser"></i>LIMPAR</button>
+                        </div>
+                    </div>
+
                     <!-- Data Início e Data Fim -->
                     <div class="form-group">
                         <label>Inicio</label>
                         <input type="date" class="form-control form-control-border" id="inputDataInicio">
                     </div>
+                    
                     <div class="form-group">
                         <label>Fim</label>
                         <input type="date" class="form-control form-control-border" id="inputDataFim">
@@ -710,6 +721,44 @@
 
         $('#btnNovo').on('click',  () => {
             exibirModalCadastro();
+        });
+        
+        $("#inputProjeto").autocomplete({
+            source: function(request, cb) {
+                param = request.term;
+                $.ajax({
+                    url: "{{route('projeto.buscar')}}",
+                    method: 'post',
+                    data: {
+                        '_token': '{{csrf_token()}}',
+                        'filtro': param
+                    },
+                    dataType: 'json',
+                    success: function(r) {
+                        result = $.map(r.dados, function(obj) {
+                            return {
+                                label: obj.info,
+                                value: obj.TITULO,
+                                data: obj
+                            };
+                        });
+                        cb(result);
+                    },
+                    error: err => {
+                        console.log(err);
+                    }
+                });
+            },
+            select: function(e, selectedData) {
+                if (selectedData.item.label != 'Nenhum Funcionário Encontrado.') {
+                    $('#inputProjeto').val(selectedData.item.data.TITULO);
+                    $('#inputIDProjeto').val(selectedData.item.data.ID);
+                    $('#inputProjeto').attr('disabled', true);
+                    $('.btnLimparProjeto').removeClass('d-none');
+                } else {
+                    limparCampo('inputProjeto', 'inputIDProjeto', 'btnLimparProjeto');
+                }
+            }
         });
 
         $(document).ready(function() {

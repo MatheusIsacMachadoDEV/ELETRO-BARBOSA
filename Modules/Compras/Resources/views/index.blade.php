@@ -51,9 +51,9 @@
             <div class="card-body">
                 <table class="table table-responsive-xs">
                     <thead>
-                        <th class="d-none d-lg-table-cell" style="padding-left: 5px!important">Responsável</th>
+                        <th class="d-none d-lg-table-cell" style="padding-left: 5px!important">Título</th>
+                        <th class="d-none d-lg-table-cell"><center>Projeto</center></th>
                         <th class="d-none d-lg-table-cell"><center>Data</center></th>
-                        <th class="d-none d-lg-table-cell"><center>Valor</center></th>
                         <th class="d-none d-lg-table-cell"><center>Situação</center></th>
                         <th class="d-none d-lg-table-cell"><center>Aprovação</center></th>
                         <th class="d-none d-lg-table-cell"><center>Observação</center></th>
@@ -79,16 +79,19 @@
                     <div class="row d-flex">
                         <input type="hidden" class="form-control form-control-border" id="inputCadastroID" disabled>
                         <div class="form-group col-12 col-md-6">
+                            <input type="text" class="form-control form-control-border" placeholder="Titulo" id="inputCadastroTitulo">
+                        </div>
+                        <div class="form-group col-12 col-md-6 d-none">
                             <input type="datetime-local" class="form-control form-control-border" id="inputCadastroData" value="{{date('Y-m-d H:i')}}">
                         </div>
                         
                         <div class="form-group col-12 col-md-6">
-                            <input type="text" class="form-control form-control-border" placeholder="Valor Total Ordem" id="inputCadastroValorTotal">
+                            <input type="text" class="form-control form-control-border" placeholder="Valor Total Ordem" id="inputCadastroValorTotal" disabled>
                         </div>
 
-                        <div class="col-12 row d-flex p-0 m-0">
+                        <div class="col-12 col-md-6 row d-flex p-0 m-0">
                             <div class="col">
-                                <input type="text" class="form-control form-control-border col-12" placeholder="Cliente" id="inputCadastroCliente">
+                                <input type="text" class="form-control form-control-border col-12" placeholder="Cliente/Fornecedor" id="inputCadastroCliente">
                                 <input type="hidden" id="inputCadastroIDCliente">
                             </div>
                             <div class="col btnLimparCadastroCliente d-none">
@@ -96,7 +99,7 @@
                             </div>
                         </div>
 
-                        <div class="col-12 row d-flex p-0 m-0">
+                        <div class="col-12 col-md-6 row d-flex p-0 m-0">
                             <div class="col">
                                 <input type="text" class="form-control form-control-border col-12" placeholder="Projeto" id="inputCadastroProjeto">
                                 <input type="hidden" id="inputCadastroIDProjeto">
@@ -138,11 +141,11 @@
                             </div>
     
                             <div class="form-group col-4">
-                                <input type="text" class="form-control form-control-border" placeholder="Item: Valor Total" id="inputCadastroItemValorTotal">
+                                <input type="text" class="form-control form-control-border" placeholder="Item: Valor Total" id="inputCadastroItemValorTotal" disabled>
                             </div>
     
                             <div class="form-group col-12">
-                                <textarea class="form-control form-control-border" placeholder="Item: Observação" id="inputCadastroItemObs"></textarea>
+                                <textarea class="form-control form-control-border" placeholder="Item: Especificação" id="inputCadastroItemObs"></textarea>
                             </div>
                         </div>
 
@@ -299,11 +302,13 @@
 
                     $('#inputCadastroCliente').val(dados['NOME_CLIENTE']);
                     $('#inputCadastroIDCliente').val(dados['ID_PESSOA']);
-
+                    
                     if(dados['ID_PESSOA'] > 0){                        
                         $('#inputCadastroCliente').attr('disabled', true);
                         $('.btnLimparCadastroCliente').removeClass('d-none');
                     }
+
+                    $('#inputCadastroTitulo').val(dados['TITULO']);
                     
                     dadosItens = dados['ITENS'];
 
@@ -348,6 +353,10 @@
                     if(dados['ID_PROJETO'] > 0){                        
                         $('#inputCadastroProjeto').attr('disabled', true);
                     }
+
+                    $('#inputCadastroCliente').val(dados['NOME_CLIENTE']);
+                    $('#inputCadastroIDCliente').val(dados['ID_PESSOA']);
+                    $('#inputCadastroCliente').attr('disabled', true);
 
                     dadosItens = dados['ITENS'];
 
@@ -456,9 +465,9 @@
 
                 htmlTabela += `
                     <tr id="tableRow${dados[i]['ID']}" class="d-none d-lg-table-row">
-                        <td class="tdTexto" style="padding-left: 5px!important">${dados[i]['ID']} - ${dados[i]['USUARIO']}</td>
+                        <td class="tdTexto" style="padding-left: 5px!important">${dados[i]['ID']} - ${dados[i]['TITULO'] == '' ? dados[i]['USUARIO'] : dados[i]['TITULO']} <span class="badge bg-success">${mascaraFinanceira(dados[i]['VALOR'])}</span></td>
+                        <td class="tdTexto"><center>${dados[i]['PROJETO'] ?? '-'}</center></td>
                         <td class="tdTexto"><center>${dataFormatada}</center></td>
-                        <td class="tdTexto"><center>${mascaraFinanceira(dados[i]['VALOR'])}</center></td>
                         <td class="tdTexto"><center>${badgeSituacao}</center></td>
                         <td class="tdTexto"><center>${situacaoAprovacao}</center></td>
                         <td class="tdTexto"><center>${dados[i]['OBSERVACAO'].substr(0, 20)}</center></td>
@@ -479,6 +488,9 @@
                                 <span><b>${dataFormatada}</b></span>
                                 <span><b>${mascaraFinanceira(dados[i]['VALOR'])}</b></span>
                                 <span><b>${situacaoAprovacao}</b></span>
+                            </div>
+                            <div class="col-12 d-flex justify-content-center">
+                                <span><b>${dados[i]['PROJETO'] ?? '-'}</b></span>
                             </div>
                             <div class="col-12 d-flex justify-content-center">
                                 <span><b>${dados[i]['OBSERVACAO'].substr(0, 20)}</b></span>
@@ -547,7 +559,7 @@
         function inserirOrdemServico() {
             validacao = true;
 
-            var inputIDs = ['inputCadastroData', 'inputCadastroValorTotal'];
+            var inputIDs = ['inputCadastroData', 'inputCadastroValorTotal', 'inputCadastroTitulo'];
 
             for (var i = 0; i < inputIDs.length; i++) {
                 var inputID = inputIDs[i];
@@ -587,6 +599,7 @@
                 var observacao = $('#inputCadastroObservacao').val();
                 var cliente = $('#inputCadastroCliente').val();
                 var idCliente = $('#inputCadastroIDCliente').val();
+                var titulo = $('#inputCadastroTitulo').val();
             
                 if(cadastroID == 0){
                     $.ajax({
@@ -601,6 +614,7 @@
                             'dadosItens': dadosItens,
                             'cliente': cliente,
                             'idCliente': idCliente,
+                            'titulo': titulo,
                         },
                         url:"{{route('compras.inserir.ordem')}}",
                         success:function(r){
@@ -630,6 +644,7 @@
                             'ID': cadastroID,
                             'cliente': cliente,
                             'idCliente': idCliente,
+                            'titulo': titulo,
                         },
                         url:"{{route('compras.alterar.ordem')}}",
                         success:function(r){
@@ -798,6 +813,7 @@
             $('#inputCadastroItemQTDE').val('')
             $('#inputCadastroItemValorUnitario').val('')
             $('#inputCadastroItemValorTotal').val('')
+            $('#inputCadastroTitulo').val('')
 
             $('#divItens').removeClass('d-none');
             $('#btnCadastroSalvar').removeClass('d-none')
@@ -808,7 +824,6 @@
             $('#inputCadastroID').prop('disabled', false)
             $('#inputCadastroData').prop('disabled', false)
             $('#inputCadastroObservacao').prop('disabled', false)
-            $('#inputCadastroValorTotal').prop('disabled', false)
             $('#inputCadastroProjeto').prop('disabled', false)
 
             limparCampo('inputCadastroProjeto', 'inputCadastroIDProjeto', 'btnLimparProjeto');

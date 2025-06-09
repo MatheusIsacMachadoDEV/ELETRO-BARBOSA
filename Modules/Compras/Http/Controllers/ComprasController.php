@@ -100,9 +100,9 @@ class ComprasController extends Controller
           $queryOrdemItem = "SELECT ID
                                   , ID_ITEM
                                   , ID_UNICO_ITEM AS ID_UNICO
-                                  , (SELECT MATERIAL
-                                       FROM material
-                                      WHERE material.ID = ordem_compra_item.ID_ITEM) AS ITEM
+                                  , COALESCE(DESCRICAO_ITEM, (SELECT MATERIAL
+                                                                FROM material
+                                                               WHERE material.ID = ordem_compra_item.ID_ITEM)) AS ITEM
                                   , OBSERVACAO
                                   , QTDE
                                   , VALOR_UNITARIO
@@ -139,6 +139,7 @@ class ComprasController extends Controller
         $idProjeto = isset($dadosRecebidos['idProjeto']) ? $dadosRecebidos['idProjeto'] : 0;
         $idCliente = isset($dadosRecebidos['idCliente']) ? $dadosRecebidos['idCliente'] : 0;
         $observacao = $dadosRecebidos['observacao'];
+        $titulo = $dadosRecebidos['titulo'];
         $usuario = auth()->user()->name;
         $idUsuario = auth()->user()->id;
         $return = [];
@@ -159,6 +160,7 @@ class ComprasController extends Controller
                                             , USUARIO
                                             , ID_USUARIO
                                             , ID_PESSOA
+                                            , TITULO
                                            ) VALUES (
                                             $idCodigo
                                            , $valor
@@ -169,6 +171,7 @@ class ComprasController extends Controller
                                            , '$usuario'
                                            , $idUsuario
                                            , $idCliente
+                                           , '$titulo'
                                            )";
         $result = DB::select($query);
 
@@ -179,6 +182,7 @@ class ComprasController extends Controller
             $id_item_unico = $dadosRecebidos['dadosItens'][$i]['ID_UNICO'];
             $qtde = $dadosRecebidos['dadosItens'][$i]['QTDE'];
             $observacao_item = $dadosRecebidos['dadosItens'][$i]['OBSERVACAO'];
+            $descricao_item = $dadosRecebidos['dadosItens'][$i]['ITEM'];
             
             $queryItem = "INSERT INTO ordem_compra_item ( 
                                                       ID_ORDEM_COMPRA
@@ -190,6 +194,7 @@ class ComprasController extends Controller
                                                     , OBSERVACAO
                                                     , USUARIO
                                                     , ID_USUARIO
+                                                    , DESCRICAO_ITEM
                                                     ) VALUES (
                                                       $idCodigo
                                                     , $id_item
@@ -200,6 +205,7 @@ class ComprasController extends Controller
                                                     , '$observacao_item'
                                                     , '$usuario'
                                                     , $idUsuario
+                                                    , '$descricao_item'
                                                     )";
             $resultItem = DB::select($queryItem);
         }
@@ -229,6 +235,7 @@ class ComprasController extends Controller
         $idProjeto = isset($dadosRecebidos['idProjeto']) ? $dadosRecebidos['idProjeto'] : 0;
         $idCliente = isset($dadosRecebidos['idCliente']) ? $dadosRecebidos['idCliente'] : 0;
         $observacao = $dadosRecebidos['observacao'];
+        $titulo = $dadosRecebidos['titulo'];
         $usuario = auth()->user()->name;
         $idUsuario = auth()->user()->id;
         $return = [];
@@ -239,6 +246,7 @@ class ComprasController extends Controller
                        , DATA_CADASTRO = '$data'
                        , ID_PROJETO = $idProjeto
                        , ID_PESSOA = $idCliente
+                       , TITULO = '$titulo'
                    WHERE ID = $idCodigo";
         $result = DB::select($query);
 
@@ -253,6 +261,7 @@ class ComprasController extends Controller
             $id_item_unico = $dadosRecebidos['dadosItens'][$i]['ID_UNICO'];
             $qtde = $dadosRecebidos['dadosItens'][$i]['QTDE'];
             $observacao_item = $dadosRecebidos['dadosItens'][$i]['OBSERVACAO'];
+            $descricao_item = $dadosRecebidos['dadosItens'][$i]['ITEM'];
             
             $queryItem = "INSERT INTO ordem_compra_item ( 
                                                       ID_ORDEM_COMPRA
@@ -264,6 +273,7 @@ class ComprasController extends Controller
                                                     , OBSERVACAO
                                                     , USUARIO
                                                     , ID_USUARIO
+                                                    , DESCRICAO_ITEM
                                                     ) VALUES (
                                                       $idCodigo
                                                     , $id_item
@@ -274,6 +284,7 @@ class ComprasController extends Controller
                                                     , '$observacao_item'
                                                     , '$usuario'
                                                     , $idUsuario
+                                                    , '$descricao_item'
                                                     )";
             $resultItem = DB::select($queryItem);
         }
@@ -407,9 +418,9 @@ class ComprasController extends Controller
         $dadosOrdemCompra = DB::select($queryOrdemCompra)[0];
 
         $queryItemOrdemCompra = "SELECT ordem_compra_item.*
-                                   , (SELECT MATERIAL
-                                        FROM material
-                                       WHERE material.ID = ordem_compra_item.ID_ITEM) as MATERIAL
+                                   , COALESCE(DESCRICAO_ITEM, (SELECT MATERIAL
+                                                                 FROM material
+                                                                WHERE material.ID = ordem_compra_item.ID_ITEM)) as MATERIAL
                                 FROM ordem_compra_item
                                WHERE STATUS = 'A'
                                  AND ID_ORDEM_COMPRA = $id";

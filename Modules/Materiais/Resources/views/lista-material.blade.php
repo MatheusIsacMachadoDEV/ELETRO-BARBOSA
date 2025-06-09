@@ -597,24 +597,62 @@
                 cancelButtonText: 'Cancelar'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    $.ajax({
-                        type: 'post',
-                        datatype: 'json',
-                        data: {
-                            '_token': '{{csrf_token()}}',
-                            'ID': idLista,
-                            'SITUACAO': tipo
-                        },
-                        url: "{{route('material.situacao.lista')}}",
-                        success: function() {
-                            Swal.fire('Sucesso!', 'Lista alterada com sucesso.', 'success');
-                            buscarDados();
-                        },
-                        error: err => {
-                            console.error(err);
-                            Swal.fire('Erro!', 'Não foi possível inativar a lista.', 'error');
-                        }
-                    });
+                    if(tipo == 'APROVADO'){
+                        Swal.fire({
+                            title: 'Informe a senha de aprovação',
+                            html: `
+                                <div class="form-group">
+                                    <label>Senha de Aprovação</label>
+                                    <input type="password" class="form-control" placeholder="Senha" id="inputSenhaAprovacao">
+                                </div>`,
+                            icon: 'warning',
+                            showCancelButton: true,
+                            confirmButtonText: 'Sim',
+                            cancelButtonText: 'Cancelar'
+                        }).then((result) => {
+                            if($('#inputSenhaAprovacao').val() == '5793'){
+                                $.ajax({
+                                    type: 'post',
+                                    datatype: 'json',
+                                    data: {
+                                        '_token': '{{csrf_token()}}',
+                                        'ID': idLista,
+                                        'SITUACAO': tipo
+                                    },
+                                    url: "{{route('material.situacao.lista')}}",
+                                    success: function() {
+                                        Swal.fire('Sucesso!', 'Lista alterada com sucesso.', 'success');
+                                        buscarDados();
+                                    },
+                                    error: err => {
+                                        console.error(err);
+                                        Swal.fire('Erro!', 'Não foi possível inativar a lista.', 'error');
+                                    }
+                                });
+                            } else {
+                                dispararAlerta('warning', 'Senha de aprovação INVÁLIDA')
+                            }
+                        });
+                    } else {
+                        $.ajax({
+                            type: 'post',
+                            datatype: 'json',
+                            data: {
+                                '_token': '{{csrf_token()}}',
+                                'ID': idLista,
+                                'SITUACAO': tipo
+                            },
+                            url: "{{route('material.situacao.lista')}}",
+                            success: function() {
+                                Swal.fire('Sucesso!', 'Lista alterada com sucesso.', 'success');
+                                buscarDados();
+                            },
+                            error: err => {
+                                console.error(err);
+                                Swal.fire('Erro!', 'Não foi possível inativar a lista.', 'error');
+                            }
+                        });
+                    }
                 }
             });
         }
