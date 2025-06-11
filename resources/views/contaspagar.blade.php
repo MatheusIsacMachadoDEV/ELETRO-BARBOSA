@@ -115,7 +115,7 @@
     </div>
 
     <div class="modal fade" id="modal-documentacao">
-        <div class="modal-dialog ">
+        <div class="modal-dialog modal-lg">
             <div class="modal-content p-0">
                 <div class="modal-header">
                     <h5 class="modal-title" >Comprovante/Documento - CPG <span id="titleDocumento"></span></h5>

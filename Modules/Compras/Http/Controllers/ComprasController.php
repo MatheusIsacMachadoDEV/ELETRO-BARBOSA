@@ -23,6 +23,11 @@ class ComprasController extends Controller
         return view('compras::index');
     }
 
+    public function orcamento()
+    {
+        return view('compras::orcamento');
+    }
+
     public function buscarOrdemCompra(Request $request){
         $dadosRecebidos = $request->except('_token');
         $idUsuario = auth()->user()->id;
@@ -398,6 +403,381 @@ class ComprasController extends Controller
         return $result;
     }
 
+    public function buscarOrcamento(Request $request){
+        $dadosRecebidos = $request->except('_token');
+        $idUsuario = auth()->user()->id;
+
+        if(isset($dadosRecebidos['DATA_INICIO']) && isset($dadosRecebidos['DATA_FIM'])){
+            $filtroData = "AND orcamento.DATA_CADASTRO BETWEEN '{$dadosRecebidos['DATA_INICIO']} 00:00:00'
+                                                AND '{$dadosRecebidos['DATA_FIM']} 23:59:59'";
+        } else if(isset($dadosRecebidos['DATA_FIM']) && !isset($dadosRecebidos['DATA_INICIO'])){
+            $filtroData = "AND orcamento.DATA_CADASTRO <= '{$dadosRecebidos['DATA_FIM']} 23:59:59'";
+        } else if(isset($dadosRecebidos['DATA_INICIO']) && !isset($dadosRecebidos['DATA_FIM'])){
+            $filtroData = "AND orcamento.DATA_CADASTRO >= '{$dadosRecebidos['DATA_INICIO']} 00:00:00'";
+        } else {
+            $filtroData = "AND 1 = 1";
+        }
+
+        if(isset($dadosRecebidos['ID'])){
+            $filtroID = "AND ID = '{$dadosRecebidos['ID']}'";
+        } else {
+            $filtroID = 'AND 1 = 1';
+        }
+
+        if(isset($dadosRecebidos['ID_SITUACAO']) && $dadosRecebidos['ID_SITUACAO'] > 0){
+            $filtroSituacao = "AND ID_SITUACAO = '{$dadosRecebidos['ID_SITUACAO']}'";
+        } else {
+            $filtroSituacao = 'AND 1 = 1';
+        }
+
+        if(isset($dadosRecebidos['filtro']) && strlen($dadosRecebidos['filtro']) > 0){
+            $filtro = "AND ((SELECT COUNT(*)
+                               FROM users
+                              WHERE users.ID = orcamento.ID_USUARIO
+                                AND users.name LIKE '%{$dadosRecebidos['filtro']}%') > 0
+                            OR (SELECT COUNT(*)
+                                  FROM users
+                                 WHERE users.ID = orcamento.ID_USUARIO_APROVACAO
+                                   AND users.name LIKE '%{$dadosRecebidos['filtro']}%') > 0
+                            OR orcamento.OBSERVACAO LIKE '%{$dadosRecebidos['filtro']}%')";
+        } else {
+            $filtro = 'AND 1 = 1';
+        }
+
+        if(Gate::allows('ADMINISTRADOR')){
+            $filtroUsuario = "AND 1 = 1";
+        } else {
+            $filtroUsuario = "AND ID_USUARIO = $idUsuario";
+        }
+
+        $query = "SELECT orcamento.*
+                       , (SELECT name
+                            FROM users
+                           WHERE users.ID = orcamento.ID_USUARIO_APROVACAO) as USUARIO_APROVACAO
+                       , (SELECT VALOR
+                            FROM situacoes
+                           WHERE situacoes.ID_ITEM = orcamento.ID_SITUACAO
+                             AND TIPO = 'ORDEM_COMPRA') AS SITUACAO
+                       , (SELECT TITULO
+                            FROM projeto
+                           WHERE projeto.ID = orcamento.ID_PROJETO) AS PROJETO
+                       , (SELECT NOME
+                            FROM pessoa
+                           WHERE pessoa.ID = orcamento.ID_PESSOA) AS NOME_CLIENTE
+                    FROM orcamento
+                   WHERE STATUS = 'A'
+                   $filtro
+                   $filtroSituacao
+                   $filtroID
+                   $filtroData
+                   $filtroUsuario
+                   ORDER BY orcamento.DATA_CADASTRO DESC";
+        $result['dados'] = DB::select($query);
+        $result['query'] = $query;
+
+        for ($i=0; $i < count($result['dados']) ; $i++) {
+          $idOrdem = $result['dados'][$i]->ID;
+          $queryOrdemItem = "SELECT ID
+                                  , ID_ITEM
+                                  , ID_UNICO_ITEM AS ID_UNICO
+                                  , COALESCE(DESCRICAO_ITEM, (SELECT MATERIAL
+                                                                FROM material
+                                                               WHERE material.ID = orcamento_item.ID_ITEM)) AS ITEM
+                                  , OBSERVACAO
+                                  , QTDE
+                                  , VALOR_UNITARIO
+                                  , VALOR_TOTAL
+                               FROM orcamento_item
+                              WHERE STATUS = 'A'
+                                AND ID_ORCAMENTO = $idOrdem";
+          $result['dados'][$i]->ITENS = DB::select($queryOrdemItem);
+
+        }
+
+        return $result;
+    }
+
+    public function buscarDocumentoOrcamento(Request $request){
+      $dadosRecebidos = $request->except('_token');
+      $idOrcamento = $dadosRecebidos['ID_ORDEM'];
+      $return = [];
+      
+      $query = " SELECT orcamento_documento.*
+                     FROM orcamento_documento
+                    WHERE STATUS = 'A'
+                     AND ID_ORCAMENTO = $idOrcamento";
+      $result = DB::select($query);
+      $return['dados'] = $result;
+      
+      return $return;
+    }
+
+    public function inserirOrcamento(Request $request){
+        $dadosRecebidos = $request->except('_token');
+        $data = $dadosRecebidos['data'];
+        $valor = isset($dadosRecebidos['valorTotal']) ? $dadosRecebidos['valorTotal'] : 0;
+        $idProjeto = isset($dadosRecebidos['idProjeto']) ? $dadosRecebidos['idProjeto'] : 0;
+        $idCliente = isset($dadosRecebidos['idCliente']) ? $dadosRecebidos['idCliente'] : 0;
+        $observacao = $dadosRecebidos['observacao'];
+        $titulo = $dadosRecebidos['titulo'];
+        $usuario = auth()->user()->name;
+        $idUsuario = auth()->user()->id;
+        $return = [];
+
+        $bancoDados = Config::get('database.connections.mysql.database'); // PEGA A DATABASE DO PROJETO ( FICA NO .ENV)
+        $queryNumDoc = "SELECT AUTO_INCREMENT
+                          FROM information_schema.TABLES
+                         WHERE TABLE_SCHEMA = '$bancoDados'
+                           AND TABLE_NAME = 'orcamento'"; // PEGA O AUTO INCREMENT DA TABELA EM QUESTAO ( NESSE EXMPLO NFCE)
+        $idCodigo = DB::select($queryNumDoc)[0]->AUTO_INCREMENT; // ATRIBUI O AUTO INCREMENT A UMA VARIAVEL
+
+        $query = "INSERT INTO orcamento ( ID
+                                            , VALOR
+                                            , DATA_CADASTRO
+                                            , ID_SITUACAO
+                                            , ID_PROJETO
+                                            , OBSERVACAO
+                                            , USUARIO
+                                            , ID_USUARIO
+                                            , ID_PESSOA
+                                            , TITULO
+                                           ) VALUES (
+                                            $idCodigo
+                                           , $valor
+                                           , '$data'
+                                           , 3
+                                           , $idProjeto
+                                           , '$observacao'
+                                           , '$usuario'
+                                           , $idUsuario
+                                           , $idCliente
+                                           , '$titulo'
+                                           )";
+        $result = DB::select($query);
+
+        for ($i=0; $i < count($dadosRecebidos['dadosItens']) ; $i++) { 
+            $valor_total = $dadosRecebidos['dadosItens'][$i]['VALOR_TOTAL'];
+            $valor_unitario = $dadosRecebidos['dadosItens'][$i]['VALOR_UNITARIO'];
+            $id_item = $dadosRecebidos['dadosItens'][$i]['ID_ITEM'];
+            $id_item_unico = $dadosRecebidos['dadosItens'][$i]['ID_UNICO'];
+            $qtde = $dadosRecebidos['dadosItens'][$i]['QTDE'];
+            $observacao_item = $dadosRecebidos['dadosItens'][$i]['OBSERVACAO'];
+            $descricao_item = $dadosRecebidos['dadosItens'][$i]['ITEM'];
+            
+            $queryItem = "INSERT INTO orcamento_item ( 
+                                                      ID_ORCAMENTO
+                                                    , ID_ITEM
+                                                    , ID_UNICO_ITEM
+                                                    , VALOR_UNITARIO
+                                                    , VALOR_TOTAL
+                                                    , QTDE
+                                                    , OBSERVACAO
+                                                    , USUARIO
+                                                    , ID_USUARIO
+                                                    , DESCRICAO_ITEM
+                                                    ) VALUES (
+                                                      $idCodigo
+                                                    , $id_item
+                                                    , $id_item_unico
+                                                    , $valor_unitario
+                                                    , $valor_total
+                                                    , $qtde
+                                                    , '$observacao_item'
+                                                    , '$usuario'
+                                                    , $idUsuario
+                                                    , '$descricao_item'
+                                                    )";
+            $resultItem = DB::select($queryItem);
+        }
+
+        $return['situacao'] = 'SUCESSO';
+
+        return $return;
+    }
+
+    public function inserirDocumentoOrcamento(Request $request){
+        $dadosRecebidos = $request->except('_token');
+        $idOrdem = $dadosRecebidos['ID_ORDEM'];
+        $caminhoArquivo = $dadosRecebidos['caminhoArquivo'];
+
+        $query = "INSERT INTO orcamento_documento (ID_ORCAMENTO, CAMINHO_DOCUMENTO) 
+                                    VALUES ($idOrdem, '$caminhoArquivo')";
+        $result = DB::select($query);
+
+        return $result;
+    }
+
+    public function alterarOrcamento(Request $request){
+        $dadosRecebidos = $request->except('_token');
+        $idCodigo = $dadosRecebidos['ID'];
+        $data = $dadosRecebidos['data'];
+        $valor = isset($dadosRecebidos['valorTotal']) ? $dadosRecebidos['valorTotal'] : 0;
+        $idProjeto = isset($dadosRecebidos['idProjeto']) ? $dadosRecebidos['idProjeto'] : 0;
+        $idCliente = isset($dadosRecebidos['idCliente']) ? $dadosRecebidos['idCliente'] : 0;
+        $observacao = $dadosRecebidos['observacao'];
+        $titulo = $dadosRecebidos['titulo'];
+        $usuario = auth()->user()->name;
+        $idUsuario = auth()->user()->id;
+        $return = [];
+
+        $query = "UPDATE orcamento
+                     SET VALOR = $valor
+                       , OBSERVACAO = '$observacao'
+                       , DATA_CADASTRO = '$data'
+                       , ID_PROJETO = $idProjeto
+                       , ID_PESSOA = $idCliente
+                       , TITULO = '$titulo'
+                   WHERE ID = $idCodigo";
+        $result = DB::select($query);
+
+        $queryDelete = "DELETE FROM orcamento_item
+                         WHERE ID_ORDEM_COMPRA = $idCodigo";
+        $resultDelete = DB::select($queryDelete);
+
+        for ($i=0; $i < count($dadosRecebidos['dadosItens']) ; $i++) { 
+            $valor_total = $dadosRecebidos['dadosItens'][$i]['VALOR_TOTAL'];
+            $valor_unitario = $dadosRecebidos['dadosItens'][$i]['VALOR_UNITARIO'];
+            $id_item = $dadosRecebidos['dadosItens'][$i]['ID_ITEM'];
+            $id_item_unico = $dadosRecebidos['dadosItens'][$i]['ID_UNICO'];
+            $qtde = $dadosRecebidos['dadosItens'][$i]['QTDE'];
+            $observacao_item = $dadosRecebidos['dadosItens'][$i]['OBSERVACAO'];
+            $descricao_item = $dadosRecebidos['dadosItens'][$i]['ITEM'];
+            
+            $queryItem = "INSERT INTO orcamento_item ( 
+                                                      ID_ORCAMENTO
+                                                    , ID_ITEM
+                                                    , ID_UNICO_ITEM
+                                                    , VALOR_UNITARIO
+                                                    , VALOR_TOTAL
+                                                    , QTDE
+                                                    , OBSERVACAO
+                                                    , USUARIO
+                                                    , ID_USUARIO
+                                                    , DESCRICAO_ITEM
+                                                    ) VALUES (
+                                                      $idCodigo
+                                                    , $id_item
+                                                    , $id_item_unico
+                                                    , $valor_unitario
+                                                    , $valor_total
+                                                    , $qtde
+                                                    , '$observacao_item'
+                                                    , '$usuario'
+                                                    , $idUsuario
+                                                    , '$descricao_item'
+                                                    )";
+            $resultItem = DB::select($queryItem);
+        }
+
+        $return['situacao'] = 'SUCESSO';
+
+        return $return;
+    }
+
+    public function alterarSituacaoOrcamento(Request $request){
+        $dadosRecebidos = $request->except('_token');
+        $idCodigo = $dadosRecebidos['ID'];
+        $idSituacao = $dadosRecebidos['ID_SITUACAO'];
+        $usuario = auth()->user()->name;
+        $idUsuario = auth()->user()->id;
+        $return = [];
+
+        $query = "UPDATE orcamento 
+                     SET ID_SITUACAO = $idSituacao
+                   WHERE ID = $idCodigo";
+        $result = DB::select($query);
+
+        $queryDadosItemOrdem = "SELECT *
+                                  FROM orcamento_item
+                                 WHERE ID_ORDEM_COMPRA = $idCodigo";
+        $dadosItemOrdem = DB::select($queryDadosItemOrdem);
+
+        for ($i=0; $i < count($dadosItemOrdem); $i++) { 
+            $idOrcamentoItem = $dadosItemOrdem[$i]->ID;
+            $idItem = $dadosItemOrdem[$i]->ID_ITEM;
+            $qtde = $dadosItemOrdem[$i]->QTDE;
+
+            $queryDadosKardex = "INSERT INTO kardex
+                                             (
+                                               ID_MATERIAL
+                                             , DATA_CADASTRO
+                                             , VALOR
+                                             , ID_ORIGEM
+                                             , ORIGEM
+                                             , TIPO
+                                             , ID_USUARIO
+                                             , USUARIO
+                                            ) VALUES (
+                                              $idItem
+                                             , NOW()
+                                             , $qtde
+                                             , $idOrcamentoItem
+                                             , 'orcamento_item'
+                                             , $idSituacao
+                                             , $idUsuario
+                                             , '$usuario'
+                                             )";
+            $dadosKardex = DB::select($queryDadosKardex);
+
+            if($idSituacao == 1){
+                $updateEstoque = "QTDE + $qtde";
+            } else {
+                $updateEstoque = "QTDE - $qtde";
+            }
+
+            $querydadosOrcamentoUpdate = "UPDATE material
+                                               SET QTDE = $updateEstoque
+                                             WHERE ID = $idItem";
+            $dadosOrcamentoUpdate = DB::select($querydadosOrcamentoUpdate);
+        }
+
+        if($idSituacao == 1){
+
+            $queryDadosOrdem = "SELECT *
+                                  FROM orcamento
+                                 WHERE ID = $idCodigo";
+            $dadosOrdem = DB::select($queryDadosOrdem)[0];
+
+            $queryUpdateAprovacao = "UPDATE orcamento 
+                                        SET DATA_APROVACAO = NOW()
+                                          , ID_USUARIO_APROVACAO = $idUsuario
+                                      WHERE ID = $idCodigo";
+            $resultUpdateAprovacao = DB::select($queryUpdateAprovacao);
+
+            $queryCPG = "INSERT INTO contas_pagar (ID_USUARIO, DESCRICAO, DATA_VENCIMENTO, VALOR, SITUACAO, DATA_PAGAMENTO, OBSERVACAO, ID_ORIGEM) 
+                                    VALUES ($idUsuario, 'Ordem de Compra $idCodigo', now(), {$dadosOrdem->VALOR}, 'PENDENTE', now(), 'CPG automático referente a APROVAÇÃO da ordem de compra : {$dadosOrdem->ID}-{$dadosOrdem->OBSERVACAO}.', 5)";
+            $result = DB::select($queryCPG);            
+            
+        }
+
+        $return['SITUACAO'] = 'SUCESSO';
+        return $return;
+    }
+
+    public function inativarOrcamento(Request $request){
+        $dadosRecebidos = $request->except('_token');
+        $idCodigo = $dadosRecebidos['ID'];
+
+        $query = "UPDATE orcamento 
+                     SET STATUS = 'I'
+                    WHERE ID = $idCodigo";
+        $result = DB::select($query);
+
+        return $result;
+    }
+
+    public function inativarDocumentoOrcamento(Request $request){
+        $dadosRecebidos = $request->except('_token');
+        $idCodigo = $dadosRecebidos['idDocumento'];
+
+        $query = "UPDATE orcamento_documento 
+                     SET STATUS = 'I'
+                    WHERE ID = $idCodigo";
+        $result = DB::select($query);
+
+        return $result;
+    }
+
     public function imprimirOrdemCompra($id){
         $data = (new DateTime())->format('d/m/Y H:i');
 
@@ -442,6 +822,52 @@ class ComprasController extends Controller
         
         // Exibir o PDF inline no navegador
         return $pdf->stream("ORDEM-COMPRA-$id.pdf");
+    }
+
+    public function imprimirOrcamento($id){
+        $data = (new DateTime())->format('d/m/Y H:i');
+
+        $queryOrdemCompra = "SELECT orcamento.*
+                                   , (SELECT name
+                                        FROM users
+                                       WHERE users.ID = orcamento.ID_USUARIO_APROVACAO) as USUARIO_APROVACAO
+                                   , (SELECT VALOR
+                                        FROM situacoes
+                                       WHERE situacoes.ID_ITEM = orcamento.ID_SITUACAO
+                                         AND TIPO = 'orcamento') AS SITUACAO
+                                   , (SELECT TITULO
+                                        FROM projeto
+                                       WHERE projeto.ID = orcamento.ID_PROJETO) AS PROJETO
+                                FROM orcamento
+                               WHERE STATUS = 'A'
+                                 AND ID = $id";
+        $dadosOrcamento = DB::select($queryOrdemCompra)[0];
+
+        $queryItemOrdemCompra = "SELECT orcamento_item.*
+                                   , COALESCE(DESCRICAO_ITEM, (SELECT MATERIAL
+                                                                 FROM material
+                                                                WHERE material.ID = orcamento_item.ID_ITEM)) as MATERIAL
+                                FROM orcamento_item
+                               WHERE STATUS = 'A'
+                                 AND ID_ORCAMENTO = $id";
+        $dadosItemOrcamento = DB::select($queryItemOrdemCompra);
+
+        $idPessoa = $dadosOrcamento->ID_PESSOA != null ? $dadosOrcamento->ID_PESSOA : 0;
+        $queryCliente = "SELECT pessoa.*
+                           FROM pessoa
+                          WHERE ID = '$idPessoa'";
+        $dadosCliente = count(DB::select($queryCliente)) > 0 ? DB::select($queryCliente)[0] : [];
+
+        $queryEmpresa = "SELECT empresa_cliente.*
+                           FROM empresa_cliente
+                          WHERE ID = 1";
+        $dadosEmpresa = DB::select($queryEmpresa)[0];
+
+        // Carregar a view 'ORDEM-COMPRA' passando a variável $data
+        $pdf = PDF::loadView('compras::impressos.orcamento', compact('data', 'dadosOrcamento', 'dadosItemOrcamento', 'dadosEmpresa', 'dadosCliente'));
+        
+        // Exibir o PDF inline no navegador
+        return $pdf->stream("ORCAMENTO-$id.pdf");
     }
 
 }

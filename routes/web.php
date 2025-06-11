@@ -120,6 +120,8 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/lucroPDV/mensal', [App\Http\Controllers\DashboardController::class, 'bucarDashboardMensal'])->name('dashboard.buscar.mensal');
     Route::post('/lucroPDV/anual', [App\Http\Controllers\DashboardController::class, 'buscarDashboardAnual'])->name('dashboard.buscar.anual');
     Route::post('/lucroPDV/lista', [App\Http\Controllers\DashboardController::class, 'buscarListaDashboard'])->name('dashboard.buscar.lista');
+
+    Route::get('/orcamento', [Modules\Compras\Http\Controllers\ComprasController::class, 'orcamento']);
 });
 
 

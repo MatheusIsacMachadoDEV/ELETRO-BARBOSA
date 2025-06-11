@@ -4,20 +4,26 @@
 
 @extends('adminlte::page')
 
-@section('title', 'Compras | GSSoftware')
+@section('title', 'Orçamento')
 
 @section('content')
     <div class="content-title">
         <div class="row d-flex">
             <div class="col-3 d-none d-md-block">
-                <h1>Compras</h1>
+                <h1>Orçamento</h1>
             </div>
             <div class="col-12 col-md-9 d-flex justify-content-end p-2">
                 <div class="col-12 col-md-6 row d-flex d-flex justify-content-end ">
                     <div class="col-12 col-md-6">
                         <button class="btn btn-block btn-warning" id="btnNovo">
-                            <i class="fas fa-shopping-basket"></i>
-                            <span class="ml-1">Nova Compra</span>
+                            <i class="fas fa-file-alt"></i>
+                            <span class="ml-1">Novo Orçamento</span>
+                        </button>
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <button class="btn btn-block btn-info" id="btnNovoMaterial">
+                            <i class="fas fa-plug"></i>
+                            <span class="ml-1">Novo Material</span>
                         </button>
                     </div>
                 </div>
@@ -71,7 +77,7 @@
         <div class="modal-dialog modal-xl"> 
             <div class="modal-content"> 
                 <div class="modal-header"> 
-                    <h4 class="modal-title">Cadastro de Ordem de Compra</h4> 
+                    <h4 class="modal-title">Cadastro de Orçamento</h4> 
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close"> 
                         <span aria-hidden="true">×</span> 
                     </button> 
@@ -87,7 +93,7 @@
                         </div>
                         
                         <div class="form-group col-12 col-md-6">
-                            <input type="text" class="form-control form-control-border" placeholder="Valor Total Ordem" id="inputCadastroValorTotal" disabled>
+                            <input type="text" class="form-control form-control-border" placeholder="Valor Total Orçamento" id="inputCadastroValorTotal" disabled>
                         </div>
 
                         <div class="col-12 col-md-6 row d-flex p-0 m-0">
@@ -173,11 +179,63 @@
         </div> 
     </div> 
 
+    <div class="modal fade" id="modal-cadastro-material">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content p-0">
+                <div class="modal-header">
+                    <h5 class="modal-title">Cadastro de Material</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="row d-flex">
+                        <div class="form-group col-12 col-md-4">
+                            <label>Material</label>
+                            <input type="text" class="form-control form-control-border  col-12" id="inputMaterial" placeholder="Material">
+                            <input type="hidden" class="form-control form-control-border  col-12" id="inputCodMaterial">
+                        </div>
+                        <div class="form-group col-12 col-md-4">
+                            <label>Marca</label>
+                            <select id="selectMaterialMarca" class="form-control  form-control-border">
+                                <option value="0">Selecionar Marca</option>
+                            </select>
+                        </div>
+
+                        <div class="col-12 col-md-4 row d-flex p-0 m-0">
+                            <div class="col">
+                                <label>Fornecedor</label>
+                                <input type="text" class="form-control form-control-border col-12" placeholder="Fornecedor" id="inputFornecedor">
+                                <input type="hidden" id="inputIDFornecedor">
+                                <div class="col btnLimparFornecedor d-none p-0 m-0">
+                                    <button id="btnLimparFornecedor" class="btnLimparFornecedor btn btn-sm btn-danger d-none col-12"><i class="fas fa-eraser"></i>LIMPAR</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group col-4 col-md-2">
+                            <label>Valor</label>
+                            <input type="text" class="form-control form-control-border  col-12" id="inputMaterialValor" placeholder="Valor">
+                        </div>
+                        <div class="form-group col-4 col-md-2">
+                            <label>Quantidade</label>
+                            <input type="text" class="form-control form-control-border  col-12" id="inputMaterialQtde" placeholder="Quantidade">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="btnConfirmarMaterial">Confirmar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="modal fade" id="modal-documentacao">
         <div class="modal-dialog modal-lg">
             <div class="modal-content p-0">
                 <div class="modal-header">
-                    <h5 class="modal-title" >Documentação da Ordem <span id="titleDocumento"></span></h5>
+                    <h5 class="modal-title" >Documentação da Orçamento <span id="titleDocumento"></span></h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -186,7 +244,7 @@
                     <div class="card">
                         <div class="card-header">
                             <div class="">
-                                <input type="hidden" id="inputIDOrdemCompra">
+                                <input type="hidden" id="inputIDOrçamentoCompra">
                                 <div class="input-group">
                                     <div class="custom-file">
                                         <input type="file" class="custom-file-input" id="inputArquivoDocumentacao" onchange="validaDocumento()">
@@ -259,7 +317,7 @@
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
     <script>
         var dadosItens = [];
-        var valorTotalOrdem = 0;
+        var valorTotalOrçamento = 0;
         var timeoutFiltro = 0;
         let inputsAdicionaisItemCadastro = ['inputCadastroItemQTDE', 'inputCadastroItemValorUnitario', 'inputCadastroItemValorTotal', 'inputCadastroItemObs'];
 
@@ -274,7 +332,7 @@
             $('#modal-cadastro').modal('show');
         }
 
-        function exibirModalEdicao(idOrdem){
+        function exibirModalEdicao(idOrçamento){
             resetarCampos();
 
             $.ajax({
@@ -282,13 +340,13 @@
                 datatype:'json',
                 data:{
                    '_token':'{{csrf_token()}}',
-                   'ID': idOrdem
+                   'ID': idOrçamento
                 },
-                url:"{{route('compras.buscar.ordem')}}",
+                url:"{{route('compras.buscar.orcamento')}}",
                 success:function(r){
                     var dados = r.dados[0];
 
-                    $('#inputCadastroID').val(idOrdem)
+                    $('#inputCadastroID').val(idOrçamento)
                     $('#inputCadastroData').val(dados['DATA_CADASTRO'])
                     $('#inputCadastroObservacao').val(dados['OBSERVACAO'])
                     $('#inputCadastroValorTotal').val(mascaraFinanceira(dados['VALOR']))
@@ -320,7 +378,7 @@
             })
         }
 
-        function exibirModalVisualizacao(idOrdem){
+        function exibirModalVisualizacao(idOrçamento){
             resetarCampos();
 
             $.ajax({
@@ -328,16 +386,16 @@
                 datatype:'json',
                 data:{
                    '_token':'{{csrf_token()}}',
-                   'ID': idOrdem
+                   'ID': idOrçamento
                 },
-                url:"{{route('compras.buscar.ordem')}}",
+                url:"{{route('compras.buscar.orcamento')}}",
                 success:function(r){
                     var dados = r.dados[0];
                     $('#divItens').addClass('d-none');
                     $('#btnCadastroSalvar').addClass('d-none')
                     $('#divItens').removeClass('d-flex');
 
-                    $('#inputCadastroID').val(idOrdem)
+                    $('#inputCadastroID').val(idOrçamento)
                     $('#inputCadastroData').val(dados['DATA_CADASTRO'])
                     $('#inputCadastroObservacao').val(dados['OBSERVACAO'])
                     $('#inputCadastroValorTotal').val(mascaraFinanceira(dados['VALOR']))
@@ -347,6 +405,8 @@
                     $('#inputCadastroObservacao').prop('disabled', true)
                     $('#inputCadastroValorTotal').prop('disabled', true)
                     $('#inputCadastroProjeto').prop('disabled', true)
+                    $('#inputCadastroTitulo').prop('disabled', true)
+                    $('#inputCadastroCliente').attr('disabled', true)
 
                     $('#inputCadastroProjeto').val(dados['PROJETO']);
                     $('#inputCadastroIDProjeto').val(dados['ID_PROJETO']);
@@ -357,7 +417,7 @@
 
                     $('#inputCadastroCliente').val(dados['NOME_CLIENTE']);
                     $('#inputCadastroIDCliente').val(dados['ID_PESSOA']);
-                    $('#inputCadastroCliente').attr('disabled', true);
+                    $('#inputCadastroTitulo').val(dados['TITULO']);
 
                     dadosItens = dados['ITENS'];
 
@@ -366,6 +426,12 @@
                 },
                 error:err=>{exibirErroAJAX(err)}
             })
+        }
+
+        function exibirModalCadastroMaterial(){
+            resetarCamposMaterial();
+            buscarMarca();
+            $('#modal-cadastro-material').modal('show');
         }
 
         function buscarDados(){
@@ -380,7 +446,7 @@
                     'DATA_INICIO': $('#inputFiltroDataInicio').val(),
                     'DATA_FIM': $('#inputFiltroDataFim').val(),
                 },
-                url:"{{route('compras.buscar.ordem')}}",
+                url:"{{route('compras.buscar.orcamento')}}",
                 success:function(r){
                     popularListaDados(r.dados);
                 },
@@ -395,11 +461,31 @@
                 datatype:'json',
                 data:{
                     '_token':'{{csrf_token()}}',
-                    'TIPO': 'ORDEM_COMPRA'
+                    'TIPO': 'ORCAMENTO'
                 },
                 url:"{{route('buscar.situacoes')}}",
                 success:function(r){
                     popularSelectSituacoes(r.dados);
+                },
+                error:err=>{exibirErro(err)}
+            })
+        }
+
+        function buscarMarca(abrirModalMarca = false){
+            editarMaterial = false;
+            $.ajax({
+                type:'post',
+                datatype:'json',
+                data:{
+                    '_token':'{{csrf_token()}}'
+                },
+                url:"{{route('material.busca.marca')}}",
+                success:function(r){
+                    if(abrirModalMarca){
+                        popularListaMarca(r);
+                    } else {
+                        popularSelectMarca(r);
+                    }
                 },
                 error:err=>{exibirErro(err)}
             })
@@ -426,7 +512,7 @@
                 var dataFormatada = moment(dados[i]['DATA_CADASTRO']).format('DD/MM/YYYY HH:mm');
 
                 if(dados[i]['ID_USUARIO_APROVACAO'] != null && dados[i]['ID_USUARIO_APROVACAO'] > 0){
-                    situacaoAprovacao = `<span class="badge bg-info">${dados[i]['USUARIO_APROVACAO']} - ${moment(dados[i]['DATA_APROVACAO']).format('DD/MM/YYYY H:m')}</span>`;
+                    situacaoAprovacao = `<span class="badge bg-info">${dados[i]['USUARIO_APROVACAO']} - ${moment(dados[i]['DATA_APROVACAO']).format('DD/MM/YYYY HH:mm')}</span>`;
                 }
 
                 if(dados[i]['ID_SITUACAO'] == 1){
@@ -436,14 +522,14 @@
                 } else if(dados[i]['STATUS'] == 'A' && dados[i]['ID_SITUACAO'] == 3){
 
                     @CAN('GESTAO_COMPRAS')
-                    btnAprovavaco = `<li class="dropdown-item" onclick="alterarSituacaoOrdem(${dados[i]['ID']}, 1)"><span class="btn"><i class="fas fa-check" style="color: #63E6BE;"></i></span> Aprovar</li>
-                                     <li class="dropdown-item" onclick="alterarSituacaoOrdem(${dados[i]['ID']}, 2)"><span class="btn"><i class="fas fa-times" style="color: #ff0000;"></i></span> Reprovar</li>`;
+                    btnAprovavaco = `<li class="dropdown-item" onclick="alterarSituacaoOrçamento(${dados[i]['ID']}, 1)"><span class="btn"><i class="fas fa-check" style="color: #63E6BE;"></i></span> Aprovar</li>
+                                     <li class="dropdown-item" onclick="alterarSituacaoOrçamento(${dados[i]['ID']}, 2)"><span class="btn"><i class="fas fa-times" style="color: #ff0000;"></i></span> Reprovar</li>`;
                     @ENDCAN
                 }
 
                 if(dados[i]['STATUS'] == 'A' && dados[i]['ID_SITUACAO'] == 3){
                     btnAcoes = `<li class="dropdown-item" onclick="exibirModalEdicao(${dados[i]['ID']})"><span class="btn"><i class="fas fa-pen"></i> Editar</span></li>
-                                <li class="dropdown-item" onclick="inativarOrdem(${dados[i]['ID']})"><span class="btn"><i class="fas fa-trash"></i> Inativar</span></li>`;
+                                <li class="dropdown-item" onclick="inativarOrçamento(${dados[i]['ID']})"><span class="btn"><i class="fas fa-trash"></i> Inativar</span></li>`;
                 }
 
                 btnArquivos = `<li class="dropdown-item" onclick="cadastarDocumento(${dados[i]['ID']}, '${dataFormatada}')"><span class="btn"><i class="fas fa-file-alt"></i></span> Arquivos</li>`;
@@ -557,8 +643,25 @@
             }
             $('#selectFiltroSituacao').html(htmlTabela)
         }
+
+        function popularSelectMarca(dados){
+            var htmlTabela = `<option value="0">Selecionar Marca</option>`;
+
+            for(i=0; i< dados.length; i++){
+                var materialKeys = Object.keys(dados[i]);
+                for(j=0;j<materialKeys.length;j++){
+                    if(dados[i][materialKeys[j]] == null){
+                        dados[i][materialKeys[j]] = "";
+                    }
+                }
+
+                htmlTabela += `
+                    <option value="${dados[i]['ID']}">${dados[i]['DESCRICAO']}</option>`;
+            }
+            $('#selectMaterialMarca').html(htmlTabela)
+        }
         
-        function inserirOrdemServico() {
+        function inserirOrçamentoServico() {
             validacao = true;
 
             var inputIDs = ['inputCadastroData', 'inputCadastroValorTotal', 'inputCadastroTitulo'];
@@ -578,7 +681,7 @@
             if(dadosItens.length == 0){
                 Swal.fire(
                     'Atenção!',
-                    'Insira ao menos um item para a ordem de compra!',
+                    'Insira ao menos um item para a orçamento!',
                     'warning'
                 );
                 validacao = false;
@@ -618,7 +721,7 @@
                             'idCliente': idCliente,
                             'titulo': titulo,
                         },
-                        url:"{{route('compras.inserir.ordem')}}",
+                        url:"{{route('compras.inserir.orcamento')}}",
                         success:function(r){
                             $('#modal-cadastro').modal('hide');
 
@@ -626,7 +729,7 @@
 
                             Swal.fire(
                                 'Sucesso!',
-                                'Ordem de Compra cadastrada com sucesso.',
+                                'Orçamento cadastrado com sucesso.',
                                 'success',
                             );
                         },
@@ -648,7 +751,7 @@
                             'idCliente': idCliente,
                             'titulo': titulo,
                         },
-                        url:"{{route('compras.alterar.ordem')}}",
+                        url:"{{route('compras.alterar.orcamento')}}",
                         success:function(r){
                             $('#modal-cadastro').modal('hide');
 
@@ -656,7 +759,7 @@
 
                             Swal.fire(
                                 'Sucesso!',
-                                'Ordem de Compra alterada com sucesso.',
+                                'Orçamento alterado com sucesso.',
                                 'success',
                             )
                         },
@@ -667,7 +770,7 @@
             
         }
 
-        function inserirItemOrdem() {
+        function inserirItemOrçamento() {
             var validacao = true;
 
             if($('#inputCadastroItem').val().trim().length == 0 || $('#inputCadastroItem').val() == ''){
@@ -702,10 +805,95 @@
             }
         }
 
-        function alterarSituacaoOrdem(idOrdem, situacao){
+        function inserirMaterial() {
+            validacao = true;
+
+            var inputIDs = ['inputMaterial'];
+
+            for (var i = 0; i < inputIDs.length; i++) {
+                var inputID = inputIDs[i];
+                var input = $('#' + inputID);
+                
+                if (input.val() === '') {
+                    input.addClass('is-invalid');
+                    validacao = false;
+                } else {
+                    input.removeClass('is-invalid');
+                }
+            }
+
+            if(validacao){
+                var codMaterial = $('#inputCodMaterial').val();
+                var valorMaterial = $('#inputMaterialValor').val().replace('R$', '').replace('.', '').replace(',', '.').replace(' ', '') ;
+                var material = $('#inputMaterial').val();
+                var marca = $('#selectMaterialMarca').val();
+                var QTDE = $('#inputMaterialQtde').val();
+                var disponivel = 1;
+                var ultimaRetirada = moment().format('YYYY-MM-DD HH:mm');
+                var tipoMaterial = 4;
+                var idFornecedor = $('#inputIDFornecedor').val();
+            
+                if(codMaterial == 0){
+                    $.ajax({
+                        type:'post',
+                        datatype:'json',
+                        data:{
+                        '_token':'{{csrf_token()}}',
+                        'valor': valorMaterial,
+                        'material': material,
+                        'marca': marca,
+                        'QTDE': QTDE,
+                        'disponivel': disponivel,
+                        'ultimaRetirada': ultimaRetirada,
+                        'TIPO_MATERIAL': tipoMaterial,
+                        'ID_FORNECEDOR': idFornecedor
+                        },
+                        url:"{{route('material.inserir')}}",
+                        success:function(r){
+                            $('#modal-cadastro-material').modal('hide');
+
+                            dispararAlerta('success', 'Material cadastrado com sucesso.')
+                        },
+                        error:err=>{exibirErro(err)}
+                    })
+                } else {
+                    $.ajax({
+                        type:'post',
+                        datatype:'json',
+                        data:{
+                        '_token':'{{csrf_token()}}',
+                        'valor': valorMaterial,
+                        'material': material,
+                        'marca': marca,
+                        'QTDE': QTDE,
+                        'disponivel': disponivel,
+                        'ultimaRetirada': ultimaRetirada,
+                        'TIPO_MATERIAL': tipoMaterial,
+                        'ID': codMaterial,
+                        'ID_FORNECEDOR': idFornecedor
+                        },
+                        url:"{{route('material.alterar')}}",
+                        success:function(r){
+                            $('#modal-cadastro-material').modal('hide');
+                            buscarMaterial();
+
+                            Swal.fire(
+                                'Sucesso!',
+                                'Material alterado com sucesso.',
+                                'success'
+                            )
+                        },
+                        error:err=>{exibirErro(err)}
+                    })
+                }
+            }
+            
+        }
+
+        function alterarSituacaoOrçamento(idOrçamento, situacao){
             Swal.fire({
                 title: 'Confirmação',
-                text: 'Deseja alterar a situação da ordem de compra?',
+                text: 'Deseja alterar a situação do orçamento?',
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonText: 'Sim',
@@ -717,10 +905,10 @@
                         datatype:'json',
                         data:{
                             '_token':'{{csrf_token()}}',
-                            'ID': idOrdem,
+                            'ID': idOrçamento,
                             'ID_SITUACAO' : situacao
                         },
-                        url:"{{route('compras.alterar.situacao')}}",
+                        url:"{{route('compras.alterar.situacao.orcamento')}}",
                         success:function(r){
                             Swal.fire('Sucesso!'
                                     , 'Situação alterada com sucesso.'
@@ -733,10 +921,10 @@
             });
         }
 
-        function inativarOrdem(idMovimentacao){
+        function inativarOrçamento(idMovimentacao){
             Swal.fire({
                 title: 'Confirmação',
-                text: `Deseja inativar a ordem de compra ${idMovimentacao}?`,
+                text: `Deseja inativar o orçamento ${idMovimentacao}?`,
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonText: 'Sim',
@@ -750,10 +938,10 @@
                             '_token':'{{csrf_token()}}',
                             'ID': idMovimentacao
                         },
-                        url:"{{route('compras.inativar.ordem')}}",
+                        url:"{{route('compras.inativar.orcamento')}}",
                         success:function(r){
                             Swal.fire('Sucesso!'
-                                    , 'Ordem de Compra inativada com sucesso.'
+                                    , 'orçamento inativada com sucesso.'
                                     , 'success');
                             buscarDados();
                         },
@@ -770,7 +958,7 @@
                 valorTotal = (valorTotal + valorItemAutal);
             }
 
-            valorTotalOrdem = valorTotal;
+            valorTotalOrçamento = valorTotal;
 
             $('#inputCadastroValorTotal').val(mascaraFinanceira(valorTotal));
         }
@@ -827,24 +1015,35 @@
             $('#inputCadastroData').prop('disabled', false)
             $('#inputCadastroObservacao').prop('disabled', false)
             $('#inputCadastroProjeto').prop('disabled', false)
+            $('#inputCadastroTitulo').prop('disabled', false)
 
             limparCampo('inputCadastroProjeto', 'inputCadastroIDProjeto', 'btnLimparProjeto');
             limparCampo('inputCadastroCliente', 'inputCadastroIDCliente', 'btnLimparCadastroCliente');
 
             dadosItens = [];
-            valorTotalOrdem = 0;
+            valorTotalOrçamento = 0;
 
             popularListaItens();
         }
 
-        function gerarImpresso(idOrdem){
-            window.open(`{{env('APP_URL')}}/compras/imprimir/ordem/${idOrdem}`)
+        function resetarCamposMaterial(){
+            $('#inputCodMaterial').val('0')
+            $('#inputMaterial').val('')
+            $('#selectMaterialMarca').val('0')
+            $('#inputMaterialValor').val('')
+            $('#inputMaterialQtde').val('')
+
+            limparCampo('inputFornecedor', 'inputIDFornecedor', 'btnLimparFornecedor');
+        }
+
+        function gerarImpresso(idOrçamento){
+            window.open(`{{env('APP_URL')}}/compras/imprimir/orcamento/${idOrçamento}`)
         }
 
         // DOCUMENTOS
             function cadastarDocumento(idDocumento, descricaoDocumento){
                 $('#titleDocumento').text(idDocumento +' - '+descricaoDocumento);
-                $('#inputIDOrdemCompra').val(idDocumento);
+                $('#inputIDOrçamentoCompra').val(idDocumento);
 
                 buscarDocumento();
 
@@ -852,15 +1051,15 @@
             }
 
             function buscarDocumento(){
-                var idOrdem = $('#inputIDOrdemCompra').val();
+                var idOrçamento = $('#inputIDOrçamentoCompra').val();
                 $.ajax({
                     type:'post',
                     datatype:'json',
                     data:{
                         '_token':'{{csrf_token()}}',                    
-                        'ID_ORDEM': idOrdem,
+                        'ID_ORDEM': idOrçamento,
                     },
-                    url:"{{route('compras.buscar.documento.ordem')}}",
+                    url:"{{route('compras.buscar.documento.orcamento')}}",
                     success:function(r){
                         popularListaDocumentos(r.dados);
                     },
@@ -885,7 +1084,7 @@
                                 '_token':'{{csrf_token()}}',
                                 'idDocumento': idDocumento
                             },
-                            url:"{{route('compras.inativar.documento')}}",
+                            url:"{{route('compras.inativar.documento.orcamento')}}",
                             success:function(r){
                                 Swal.fire('Sucesso!'
                                         , 'Documento inativado com sucesso.'
@@ -952,9 +1151,9 @@
             function uploadArquivo(){
                 var dataAnexo = new FormData();
                 anexoCaminho = "";
-                idOrdemCompra = $('#inputIDOrdemCompra').val();
+                idOrçamentoCompra = $('#inputIDOrçamentoCompra').val();
                 dataAnexo.append('meuArquivo', document.getElementById('inputArquivoDocumentacao').files[0]);
-                dataAnexo.append('ID', idOrdemCompra);
+                dataAnexo.append('ID', idOrçamentoCompra);
 
                 $.ajax({
                     processData: false,
@@ -971,9 +1170,9 @@
                                 data:{
                                     '_token':'{{csrf_token()}}',
                                     'caminhoArquivo': resultUpload,
-                                    'ID_ORDEM': idOrdemCompra
+                                    'ID_ORDEM': idOrçamentoCompra
                                 },
-                                url:"{{route('compras.inserir.documento.ordem')}}",
+                                url:"{{route('compras.inserir.documento.orcamento')}}",
                                 success:function(resultInsert){                               
                                     $("#inputArquivoDocumentacao").val('');
                                     validaDocumento();
@@ -1083,15 +1282,19 @@
         });
 
         $('#btnCadastroSalvar').on('click', () => {
-            inserirOrdemServico();
+            inserirOrçamentoServico();
         });
 
         $('#btnCadastroAdicionarItem').on('click', () => {
-            inserirItemOrdem();
+            inserirItemOrçamento();
         });
 
         $('#btnNovo').on('click', () => {
             exibirModalCadastro();
+        });
+
+        $('#btnNovoMaterial').click(() => {
+            exibirModalCadastroMaterial();
         });
 
         $('#btnLimparCadastroItem').on('click', () => {
@@ -1165,12 +1368,56 @@
             }
         });
 
+        $("#inputFornecedor").autocomplete({
+            source: function(request, cb){
+                param = request.term;
+                campoBuscado = param;
+                $.ajax({
+                    url:"{{route('pessoa.buscar')}}",
+                    method: 'post',
+                    data:{
+                        '_token': '{{csrf_token()}}',
+                        'nome': param,
+                        'ID_TIPO': 3
+                    },
+                    dataType: 'json',
+                    success: function(r){
+                        result = $.map(r, function(obj){
+                            return {
+                                label: obj.info,
+                                value: obj.NOME,
+                                data : obj
+                            };
+                        });
+                        cb(result);
+                    },
+                    error: err=>{
+                        console.log(err)
+                    }
+                });
+            },
+            select:function(e, selectedData) {
+                if (selectedData.item.label != 'Nenhum Veículo Encontrado.'){
+                    $('#inputFornecedor').val(selectedData.item.data.NOME);
+                    $('#inputIDFornecedor').val(selectedData.item.data.ID);
+                    $('#inputFornecedor').attr('disabled', true); 
+                    $('.btnLimparFornecedor').removeClass('d-none');
+                } else {
+                    limparCampo('inputFornecedor', 'inputIDFornecedor', 'btnLimparFornecedor');
+                }
+            }
+        });
+
         $('#btnLimparProjeto').click(function() {
             limparCampo('inputCadastroProjeto', 'inputCadastroIDProjeto', 'btnLimparProjeto');
         });
 
         $('#btnLimparCadastroCliente').click(function() {
             limparCampo('inputCadastroCliente', 'inputCadastroIDCliente', 'btnLimparCadastroCliente');
+        });
+
+        $('#btnConfirmarMaterial').click(() => {
+            inserirMaterial();
         });
 
         $(document).ready(function() {

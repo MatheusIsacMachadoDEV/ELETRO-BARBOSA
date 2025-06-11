@@ -428,6 +428,24 @@ class AuthServiceProvider extends ServiceProvider
             }
         });
 
+        Gate::define('ORCAMENTO', function () {
+            $idUsuario = auth()->user()->id;
+
+            $query = "SELECT COUNT(*) AS TOTAL
+                        FROM menus_usuario, menus
+                       WHERE menus_usuario.ID_MENU = menus.ID
+                         AND ID_USUARIO = $idUsuario
+                         AND menus_usuario.STATUS = 'A'
+                         AND menus.NOME = 'Orçamento'";
+            $validacao = DB::select($query)[0]->TOTAL;
+
+            if((auth()->user()->email == 'adm@adm.com' || auth()->user()->ADMINISTRADOR == 1) || $validacao > 0){
+                return true;
+            } else {
+                return false;
+            }
+        });
+
         Gate::define('GESTAO_COMPRAS', function () {
             if(auth()->user()->email == 'adm@adm.com' || auth()->user()->ADMINISTRADOR == 1){                    
                 return true;

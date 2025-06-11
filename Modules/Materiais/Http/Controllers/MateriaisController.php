@@ -351,7 +351,7 @@ class MateriaisController extends Controller
         $material = $dadosRecebidos['material'];
         $marca = $dadosRecebidos['marca'];
         $QTDE = $dadosRecebidos['QTDE'] ?? 0;
-        $disponivel = $dadosRecebidos['disponivel'];
+        $disponivel = isset($dadosRecebidos['disponivel']) ? $dadosRecebidos['disponivel'] : '1';
         $ultimaRetirada = isset($dadosRecebidos['ultimaRetirada']) ? "'{$dadosRecebidos['ultimaRetirada']}'" : 'null';
         $TIPO_MATERIAL = $dadosRecebidos['TIPO_MATERIAL'];
         $idFornecedor = isset($dadosRecebidos['ID_FORNECEDOR']) ? $dadosRecebidos['ID_FORNECEDOR'] : 0;
@@ -530,7 +530,7 @@ class MateriaisController extends Controller
         $material = $dadosRecebidos['material'];
         $marca = $dadosRecebidos['marca'];
         $QTDE = $dadosRecebidos['QTDE'] ?? 0;
-        $disponivel = $dadosRecebidos['disponivel'];
+        $disponivel = isset($dadosRecebidos['disponivel']) ? $dadosRecebidos['disponivel'] : '1';
         $ultimaRetirada = strlen($dadosRecebidos['ultimaRetirada']) > 0 ? "'{$dadosRecebidos['ultimaRetirada']}'" : 'null';
         $TIPO_MATERIAL = $dadosRecebidos['TIPO_MATERIAL'];
         $idFornecedor = isset($dadosRecebidos['ID_FORNECEDOR']) ? $dadosRecebidos['ID_FORNECEDOR'] : 0;

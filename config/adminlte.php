@@ -366,6 +366,12 @@ return [
                     'can'  => 'COMPRAS_PEDIDO'
                 ], 
                 [
+                    'text' => 'Orçamento',
+                    'url'  => 'orcamento',
+                    'icon' => 'fas fa-file-alt',
+                    'can'  => 'ORCAMENTO'
+                ],  
+                [
                     'text' => 'PDV',
                     'url'  => 'pdv',
                     'icon' => 'fas fa-shopping-cart',
