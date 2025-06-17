@@ -1052,7 +1052,7 @@
                     data: {
                         '_token': '{{csrf_token()}}',
                         'FILTRO_BUSCA': param,
-                        'ID_TIPO': 1
+                        'ID_TIPO': '1,3'
                     },
                     dataType: 'json',
                     success: function(r) {

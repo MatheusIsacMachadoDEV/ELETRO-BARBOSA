@@ -39,6 +39,12 @@ class GestaoEmpresaController extends Controller
             $filtroAdicional = "";
         }
 
+        if(isset($dadosRecebidos['ID']) && strlen($dadosRecebidos['ID']) > 0){
+            $filtroID = "AND  ID = {$dadosRecebidos['ID']}";
+        } else {
+            $filtroID = "";
+        }
+
         if(isset($dadosRecebidos['filtro']) && strlen($dadosRecebidos['filtro']) > 0){
             $filtro = "AND (DESCRICAO LIKE '%{$dadosRecebidos['filtro']}%' OR CODIGO LIKE '%{$dadosRecebidos['filtro']}%')";
         } else {
@@ -48,7 +54,8 @@ class GestaoEmpresaController extends Controller
         $query = "SELECT * 
                     FROM uniforme 
                    WHERE STATUS = 'A' 
-                   $filtro 
+                   $filtro
+                   $filtroID
                    $filtroAdicional
                    ORDER BY DESCRICAO ASC";
         $result['dados'] = DB::select($query);

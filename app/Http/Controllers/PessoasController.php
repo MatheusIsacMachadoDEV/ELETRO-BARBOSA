@@ -33,6 +33,7 @@ class PessoasController extends Controller
         $filtroIdTipo = "AND 1 = 1";
         $filtroIdProjeto = "AND 1 = 1";
         $filtroPontoEletronico = "AND 1 = 1";
+        $filtroBusca  = "AND 1 = 1";
         $filtroDiaria = "AND diaria.DATA_FIM >= CURDATE()";
 
         if($nome != "" && $nome != null){
@@ -42,7 +43,7 @@ class PessoasController extends Controller
         }
 
         if(isset($dadosRecebidos['ID_TIPO']) && $dadosRecebidos['ID_TIPO'] != 0){
-            $filtroIdTipo = "AND ID_TIPO = ".$dadosRecebidos['ID_TIPO'];
+            $filtroIdTipo = "AND ID_TIPO IN ({$dadosRecebidos['ID_TIPO']})";
         }
 
         if(isset($dadosRecebidos['ID_PROJETO'])){
@@ -55,6 +56,10 @@ class PessoasController extends Controller
 
         if(isset($dadosRecebidos['id'])){
             $filtro = "AND ID = ".$dadosRecebidos['id'];
+        }
+
+        if(isset($dadosRecebidos['FILTRO_BUSCA'])){
+            $filtroBusca = "AND NOME like '%{$dadosRecebidos['FILTRO_BUSCA']}%'";
         }
 
         if(isset($dadosRecebidos['FILTRO_DIARIA'])){
@@ -112,6 +117,7 @@ class PessoasController extends Controller
                     FROM pessoa
                    WHERE 1 = 1
                      AND STATUS = 'A'
+                    $filtroBusca 
                    $filtro
                    $filtroIdTipo
                    $filtroIdProjeto
