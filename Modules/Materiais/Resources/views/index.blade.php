@@ -128,6 +128,10 @@
                             <label>Ultima Retirada</label>
                             <input type="datetime-local" class="form-control form-control-border  col-12" id="inputMaterialUltimaRetirada"> 
                         </div>
+                        <div class="form-group col-12">
+                            <label>Especificação</label>
+                            <textarea id="inputMaterialEspecificacao" class="form-control form-control-border" rows="5"></textarea>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -386,6 +390,7 @@
                     $('#inputMaterialQtde').val(dadosMaterial['QTDE']);
                     $('#selectMaterialDisponivel').val(dadosMaterial['SITUACAO']);
                     $('#inputMaterialUltimaRetirada').val(dadosMaterial['DATA_ULTIMA_RETIRADA']);
+                    $('#inputMaterialEspecificacao').val(dadosMaterial['ESPECIFICACAO']);
 
                     if(dadosMaterial['ID_FORNECEDOR'] > 0){
                         $('#inputIDFornecedor').val(dadosMaterial['ID_FORNECEDOR']);
@@ -799,6 +804,7 @@
                 var ultimaRetirada = $('#inputMaterialUltimaRetirada').val();
                 var tipoMaterial = $('#selectMaterialTipo').val();
                 var idFornecedor = $('#inputIDFornecedor').val();
+                var especificacao = $('#inputMaterialEspecificacao').val();
             
                 if(codMaterial == 0){
                     $.ajax({
@@ -813,7 +819,8 @@
                         'disponivel': disponivel,
                         'ultimaRetirada': ultimaRetirada,
                         'TIPO_MATERIAL': tipoMaterial,
-                        'ID_FORNECEDOR': idFornecedor
+                        'ID_FORNECEDOR': idFornecedor,
+                        'ESPECIFICACAO': especificacao,
                         },
                         url:"{{route('material.inserir')}}",
                         success:function(r){
@@ -843,7 +850,8 @@
                         'ultimaRetirada': ultimaRetirada,
                         'TIPO_MATERIAL': tipoMaterial,
                         'ID': codMaterial,
-                        'ID_FORNECEDOR': idFornecedor
+                        'ID_FORNECEDOR': idFornecedor,
+                        'ESPECIFICACAO': especificacao,
                         },
                         url:"{{route('material.alterar')}}",
                         success:function(r){
@@ -974,6 +982,7 @@
             $('#inputMaterialQtde').val('')
             $('#selectMaterialDisponivel').val('1')
             $('#inputMaterialUltimaRetirada').val('')
+            $('#inputMaterialEspecificacao').val('')
 
             limparCampo('inputFornecedor', 'inputIDFornecedor', 'btnLimparFornecedor');
         }

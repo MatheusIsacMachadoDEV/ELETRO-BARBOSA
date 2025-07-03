@@ -355,6 +355,7 @@ class MateriaisController extends Controller
         $ultimaRetirada = isset($dadosRecebidos['ultimaRetirada']) ? "'{$dadosRecebidos['ultimaRetirada']}'" : 'null';
         $TIPO_MATERIAL = $dadosRecebidos['TIPO_MATERIAL'];
         $idFornecedor = isset($dadosRecebidos['ID_FORNECEDOR']) ? $dadosRecebidos['ID_FORNECEDOR'] : 0;
+        $ESPECIFICACAO = isset($dadosRecebidos['ESPECIFICACAO']) ? $dadosRecebidos['ESPECIFICACAO'] : '';
         $descricaoMarca = '';
         $idUsuario = auth()->user()->id;
 
@@ -376,6 +377,7 @@ class MateriaisController extends Controller
                             , TIPO_MATERIAL
                             , ID_FORNECEDOR
                             , ID_USUARIO
+                            , ESPECIFICACAO
                             ) VALUES (
                             '$material'
                             , $valor
@@ -387,6 +389,7 @@ class MateriaisController extends Controller
                             , $TIPO_MATERIAL
                             , $idFornecedor
                             , $idUsuario
+                            , '$ESPECIFICACAO'
                             )";
         $result = DB::select($query);
 
@@ -534,6 +537,7 @@ class MateriaisController extends Controller
         $ultimaRetirada = strlen($dadosRecebidos['ultimaRetirada']) > 0 ? "'{$dadosRecebidos['ultimaRetirada']}'" : 'null';
         $TIPO_MATERIAL = $dadosRecebidos['TIPO_MATERIAL'];
         $idFornecedor = isset($dadosRecebidos['ID_FORNECEDOR']) ? $dadosRecebidos['ID_FORNECEDOR'] : 0;
+        $ESPECIFICACAO = isset($dadosRecebidos['ESPECIFICACAO']) ? $dadosRecebidos['ESPECIFICACAO'] : '';
         $descricaoMarca = '';
 
         if($marca > 0){
@@ -553,6 +557,7 @@ class MateriaisController extends Controller
                        , DATA_ULTIMA_RETIRADA = $ultimaRetirada
                        , TIPO_MATERIAL = $TIPO_MATERIAL
                        , ID_FORNECEDOR = $idFornecedor
+                       , ESPECIFICACAO = '$ESPECIFICACAO'
                    WHERE ID = $idMaterial";
         $result = DB::select($query);
 

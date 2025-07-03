@@ -221,6 +221,10 @@
                             <label>Quantidade</label>
                             <input type="text" class="form-control form-control-border  col-12" id="inputMaterialQtde" placeholder="Quantidade">
                         </div>
+                        <div class="form-group col-12">
+                            <label>Especificação</label>
+                            <textarea id="inputMaterialEspecificacao" class="form-control form-control-border" rows="5"></textarea>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -830,8 +834,9 @@
                 var QTDE = $('#inputMaterialQtde').val();
                 var disponivel = 1;
                 var ultimaRetirada = moment().format('YYYY-MM-DD HH:mm');
-                var tipoMaterial = 4;
+                var tipoMaterial = 5;
                 var idFornecedor = $('#inputIDFornecedor').val();
+                var especificacao = $('#inputMaterialEspecificacao').val();
             
                 if(codMaterial == 0){
                     $.ajax({
@@ -846,7 +851,8 @@
                         'disponivel': disponivel,
                         'ultimaRetirada': ultimaRetirada,
                         'TIPO_MATERIAL': tipoMaterial,
-                        'ID_FORNECEDOR': idFornecedor
+                        'ID_FORNECEDOR': idFornecedor,
+                        'ESPECIFICACAO': especificacao,
                         },
                         url:"{{route('material.inserir')}}",
                         success:function(r){
@@ -1230,6 +1236,7 @@
                     $('#inputCadastroItem').val(selectedData.item.data.MATERIAL);
                     $('#inputCadastroItem').attr('disabled', true); 
                     $('#inputCadastroItemID').val(selectedData.item.data.ID);
+                    $('#inputCadastroItemObs').val(selectedData.item.data.ESPECIFICACAO);
                     $('#inputCadastroItemQTDE').val('1');
                     $('#inputCadastroItemValorUnitario').val(mascaraFinanceira(selectedData.item.data.VALOR));
                     $('#inputCadastroItemValorTotal').val(mascaraFinanceira(selectedData.item.data.VALOR));
