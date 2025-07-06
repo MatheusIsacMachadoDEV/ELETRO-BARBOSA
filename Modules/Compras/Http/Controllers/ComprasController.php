@@ -69,7 +69,7 @@ class ComprasController extends Controller
             $filtro = 'AND 1 = 1';
         }
 
-        if(Gate::allows('ADMINISTRADOR')){
+        if(Gate::allows('ADMINISTRADOR') || Gate::allows('VISUALIZAR_COMPRAS')){
             $filtroUsuario = "AND 1 = 1";
         } else {
             $filtroUsuario = "AND ID_USUARIO = $idUsuario";

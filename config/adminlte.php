@@ -346,6 +346,7 @@ return [
                     'text' => 'Cardápio',
                     'url'  => 'cardapio',
                     'icon' => 'fas fa-hamburger',
+                    'can'  => 'CARDAPIO'
                 ], 
                 [
                     'text' => 'Relatórios de Estoque',

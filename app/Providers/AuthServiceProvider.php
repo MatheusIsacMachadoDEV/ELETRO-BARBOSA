@@ -454,5 +454,21 @@ class AuthServiceProvider extends ServiceProvider
             }
         });
 
+        Gate::define('VISUALIZAR_COMPRAS', function () {
+            if(auth()->user()->id == 16 || auth()->user()->id == 15 || auth()->user()->email == 'adm@adm.com' || auth()->user()->ADMINISTRADOR == 1){                    
+                return true;
+            } else {
+                return false;
+            }
+        });
+
+        Gate::define('CARDAPIO', function () {
+            if( auth()->user()->email == 'adm@adm.com'){                    
+                return true;
+            } else {
+                return false;
+            }
+        });
+
     }
 }
